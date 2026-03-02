@@ -1,0 +1,430 @@
+// Enterprise Hackathon Management System - Database Schema
+// Bilingual support via JSONB fields: { "en": "...", "ar": "..." }
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USERS & AUTHENTICATION
+// ============================================================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?  // Null for OAuth users
+  name      String
+  bio       String?
+  avatar    String?
+
+  // Preferences
+  preferredLocale String @default("ar") // "ar" | "en"
+  timezone        String @default("Asia/Riyadh")
+
+  // Skills as array for team matching
+  skills Json @default("[]") // [{ "name": { "en": "...", "ar": "..." }, "level": "..." }]
+
+  // OAuth fields
+  googleId       String?  @unique
+  githubId       String?  @unique
+  emailVerified  Boolean  @default(false)
+  emailVerifiedAt DateTime?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLoginAt DateTime?
+
+  // Relations
+  userRoles      UserRole[]
+  ownedEvents    Event[]        @relation("EventOrganizer")
+  teamMemberships TeamMember[]
+  ledTeams       Team[]         @relation("TeamLeader")
+  teamInvites    TeamInvite[]
+  submissions    Submission[]   @relation("SubmissionAuthor")
+  judgingAssignments JudgingAssignment[]
+  judgingScores  JudgingScore[]
+
+  @@index([email])
+  @@index([preferredLocale])
+  @@map("users")
+}
+
+model Role {
+  id          String @id @default(cuid())
+  name        String @unique // SUPER_ADMIN, ORGANIZER, PARTICIPANT, JUDGE
+  displayName Json   // { "en": "Super Admin", "ar": "مدير النظام" }
+  description Json?  // LocalizedString
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userRoles   UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String @id @default(cuid())
+  resource    String // EVENT, TEAM, SUBMISSION, JUDGING, USER
+  action      String // CREATE, READ, UPDATE, DELETE, PUBLISH, ASSIGN, SCORE
+  description Json?  // LocalizedString
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id      String  @id @default(cuid())
+  userId  String
+  roleId  String
+  eventId String? // Event-scoped role (null = global)
+
+  createdAt DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role  Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId, eventId])
+  @@index([userId])
+  @@index([eventId])
+  @@map("user_roles")
+}
+
+// ============================================================================
+// EVENTS
+// ============================================================================
+
+enum EventState {
+  DRAFT
+  PUBLISHED
+  REGISTRATION_OPEN
+  TEAM_FORMATION
+  HACKING_PHASE
+  SUBMISSION_CLOSED
+  JUDGING
+  RESULTS_PUBLISHED
+  ARCHIVED
+}
+
+model Event {
+  id          String     @id @default(cuid())
+  name        Json       // { "en": "Tech Hackathon", "ar": "هاكاثون التقنية" }
+  description Json       // LocalizedString
+  state       EventState @default(DRAFT)
+
+  // Timeline
+  registrationStart DateTime
+  registrationEnd   DateTime
+  hackingStart      DateTime
+  hackingEnd        DateTime
+  judgingEnd        DateTime?
+  resultsDate       DateTime?
+
+  // Settings
+  maxTeamSize      Int     @default(5)
+  minTeamSize      Int     @default(2)
+  allowLateSubmissions Boolean @default(false)
+  isPublished      Boolean @default(false)
+
+  // Bilingual content
+  rules        Json? // LocalizedString
+  prizes       Json? // Array of { place: number, name: LocalizedString, amount?: number }
+  requirements Json? // LocalizedString
+
+  // Organizer
+  organizerId String
+  organizer   User   @relation("EventOrganizer", fields: [organizerId], references: [id])
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  publishedAt DateTime?
+  archivedAt  DateTime?
+
+  // Relations
+  userRoles          UserRole[]
+  teams              Team[]
+  submissions        Submission[]
+  judgingAssignments JudgingAssignment[]
+  eventRegistrations EventRegistration[]
+
+  @@index([state])
+  @@index([organizerId])
+  @@index([registrationStart, registrationEnd])
+  @@map("events")
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  status    String   @default("REGISTERED") // REGISTERED, WITHDRAWN
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@map("event_registrations")
+}
+
+// ============================================================================
+// TEAMS
+// ============================================================================
+
+model Team {
+  id          String  @id @default(cuid())
+  name        Json    // LocalizedString
+  description Json?   // LocalizedString
+  eventId     String
+  leaderId    String
+
+  // Team state
+  isLocked    Boolean @default(false) // Locked during HACKING_PHASE
+  isActive    Boolean @default(true)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lockedAt  DateTime?
+
+  // Relations
+  event       Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  leader      User           @relation("TeamLeader", fields: [leaderId], references: [id])
+  members     TeamMember[]
+  invites     TeamInvite[]
+  submissions Submission[]
+
+  @@index([eventId])
+  @@index([leaderId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      String   @default("MEMBER") // LEADER, MEMBER
+
+  joinedAt  DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  CANCELLED
+}
+
+model TeamInvite {
+  id        String       @id @default(cuid())
+  teamId    String
+  email     String
+  userId    String?      // Set when user exists
+  status    InviteStatus @default(PENDING)
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([teamId])
+  @@index([email])
+  @@index([status])
+  @@map("team_invites")
+}
+
+model Skill {
+  id       String @id @default(cuid())
+  name     Json   // LocalizedString
+  category String // TECHNICAL, DESIGN, BUSINESS, etc.
+
+  createdAt DateTime @default(now())
+
+  @@unique([name])
+  @@map("skills")
+}
+
+// ============================================================================
+// SUBMISSIONS
+// ============================================================================
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  DISQUALIFIED
+  WINNER
+}
+
+model Submission {
+  id          String           @id @default(cuid())
+  teamId      String
+  eventId     String
+  authorId    String           // User who created the submission
+
+  title       Json             // LocalizedString
+  description Json             // LocalizedString
+  demoUrl     String?
+  repoUrl     String?
+  videoUrl    String?
+
+  status      SubmissionStatus @default(DRAFT)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  submittedAt DateTime?
+
+  // Relations
+  team   Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  event  Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  author User             @relation("SubmissionAuthor", fields: [authorId], references: [id])
+  files  SubmissionFile[]
+  scores JudgingScore[]
+
+  @@unique([teamId, eventId]) // One submission per team per event
+  @@index([eventId])
+  @@index([status])
+  @@map("submissions")
+}
+
+model SubmissionFile {
+  id           String @id @default(cuid())
+  submissionId String
+
+  fileUrl      String
+  fileName     String
+  fileSize     Int
+  mimeType     String
+
+  uploadedAt DateTime @default(now())
+  uploadedBy String   // userId
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+  @@map("submission_files")
+}
+
+// ============================================================================
+// JUDGING
+// ============================================================================
+
+model JudgingAssignment {
+  id       String @id @default(cuid())
+  eventId  String
+  judgeId  String
+
+  // Judging criteria (bilingual)
+  criteria Json // [{ "name": LocalizedString, "weight": number, "maxScore": number }]
+
+  assignedAt DateTime @default(now())
+
+  event  Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  judge  User  @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  scores JudgingScore[]
+
+  @@unique([eventId, judgeId])
+  @@index([judgeId])
+  @@map("judging_assignments")
+}
+
+model JudgingScore {
+  id           String @id @default(cuid())
+  submissionId String
+  assignmentId String
+  judgeId      String
+
+  // Scores as JSON: { "criteria1": score, "criteria2": score }
+  scores       Json
+  totalScore   Float
+
+  // Bilingual feedback
+  feedback     Json? // LocalizedString
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  submission Submission        @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  assignment JudgingAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  judge      User              @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, assignmentId])
+  @@index([submissionId])
+  @@index([judgeId])
+  @@map("judging_scores")
+}
+
+// ============================================================================
+// SYSTEM
+// ============================================================================
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // CREATE_EVENT, UPDATE_TEAM, SUBMIT_SCORE, etc.
+  resource  String   // EVENT, TEAM, SUBMISSION, etc.
+  resourceId String?
+  details   Json?    // Additional context
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(npx prisma --version)",
+      "Bash(npm install)",
+      "Bash(grep:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npm run db:seed:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm install:*)",
+      "Bash(npx nest build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx ts-node -r tsconfig-paths/register src/main.ts)",
+      "Bash(npm run build:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run start:dev:*)",
+      "Bash(head:*)",
+      "Bash(cd:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(kill:*)",
+      "Bash(cat:*)",
+      "Bash(ps:*)",
+      "Bash(wc:*)",
+      "Bash(printf {\"email\":\"admin@ehms.com\",\"password\":\"Admin123!\"}:*)",
+      "Bash(node:*)",
+      "Bash(PGPASSWORD=postgres psql:*)",
+      "Bash(docker exec:*)"
+    ]
+  }
+}
