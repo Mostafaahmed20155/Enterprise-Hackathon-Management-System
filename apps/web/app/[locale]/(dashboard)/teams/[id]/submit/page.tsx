@@ -58,8 +58,8 @@ export default function CreateSubmissionPage() {
 
   const loadTeam = async () => {
     try {
-      const data = await teamsApi.getById(teamId);
-      setTeam(data);
+      const res = await teamsApi.getById(teamId);
+      setTeam(res.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load team');
     }
@@ -76,7 +76,7 @@ export default function CreateSubmissionPage() {
       setIsLoading(true);
       setError(null);
 
-      const submission = await submissionsApi.create({
+      const submissionRes = await submissionsApi.create({
         teamId,
         title: {
           en: data.titleEn,
@@ -90,6 +90,7 @@ export default function CreateSubmissionPage() {
         repoUrl: data.repoUrl || undefined,
         videoUrl: data.videoUrl || undefined,
       });
+      const submission = submissionRes.data;
 
       // Upload files if any
       if (files.length > 0) {

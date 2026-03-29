@@ -1,0 +1,47 @@
+# EHMS Next.js frontend — build from repository root:
+#   docker build -f docker/Dockerfile.web -t ehms-web \
+#     --build-arg NEXT_PUBLIC_API_URL=https://ehmc-app.dpmena.com/api/v1 .
+#
+# Coolify: domain https://ehms.dpmena.com — set the same NEXT_PUBLIC_API_URL in build args / env.
+
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY tsconfig.json ./
+COPY apps/web/package.json apps/web/
+COPY apps/api/package.json apps/api/
+COPY packages/database/package.json packages/database/
+COPY packages/database/prisma ./packages/database/prisma
+COPY packages/types/package.json packages/types/
+COPY packages/validation/package.json packages/validation/
+
+COPY apps/web ./apps/web
+COPY packages/types ./packages/types
+COPY packages/validation ./packages/validation
+
+ARG NEXT_PUBLIC_API_URL=https://ehmc-app.dpmena.com/api/v1
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN npm ci
+RUN npm run build --workspace=@ehms/types \
+  && npm run build --workspace=@ehms/validation \
+  && npm run build --workspace=@ehms/web
+
+FROM node:20-alpine AS runner
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+COPY --from=builder /app/apps/web/.next/standalone ./
+COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /app/apps/web/public ./apps/web/public
+
+EXPOSE 3000
+CMD ["node", "apps/web/server.js"]

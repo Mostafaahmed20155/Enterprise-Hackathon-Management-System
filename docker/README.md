@@ -98,3 +98,30 @@ This configuration is for **local development only**. Production deployments sho
 - AWS S3 or equivalent cloud storage
 - Proper secrets management
 - TLS/SSL encryption
+
+### Coolify: two Docker images (recommended)
+
+Build from the **repository root** (not from `docker/`).
+
+**API (e.g. `https://ehmc-app.dpmena.com`)**
+
+```bash
+docker build -f docker/Dockerfile.api -t your-registry/ehms-api:latest .
+```
+
+- **Port**: `3001`
+- **Runtime env** (set in Coolify): mirror `apps/api/.env.example` — especially `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `CORS_ORIGIN`, `FRONTEND_URL`, `S3_*`, `API_PREFIX=api/v1`
+- **CORS / frontend URL**: use your real site, e.g. `CORS_ORIGIN=https://ehms.dpmena.com` and `FRONTEND_URL=https://ehms.dpmena.com` (comma-separate extra origins if needed)
+- **Migrations**: the API image runs `prisma migrate deploy` on container start (`docker/entrypoint-api.sh`). Set `SKIP_DB_MIGRATE=true` only if you must bypass that (emergency).
+
+**Web (e.g. `https://ehms.dpmena.com`)**
+
+```bash
+docker build -f docker/Dockerfile.web -t your-registry/ehms-web:latest \
+  --build-arg NEXT_PUBLIC_API_URL=https://ehmc-app.dpmena.com/api/v1 .
+```
+
+- **Port**: `3000`
+- **Build arg**: `NEXT_PUBLIC_API_URL` must be the **public** API base URL (HTTPS + `/api/v1`). Rebuild the web image whenever this changes.
+
+Coolify: create **two applications**, each with its own Dockerfile path and domain, and point the web build arg at the API URL you assigned.

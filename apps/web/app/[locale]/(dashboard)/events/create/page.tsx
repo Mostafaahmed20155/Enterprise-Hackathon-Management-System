@@ -69,7 +69,7 @@ export default function CreateEventPage() {
         allowLateSubmissions: false,
       });
 
-      router.push(`/events/${event.data?.id || event.id}`);
+      router.push(`/events/${event.data?.id}`);
     } catch (err: any) {
       setError(err.response?.data?.message || t('createError'));
     } finally {

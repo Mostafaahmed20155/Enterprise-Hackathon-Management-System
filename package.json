@@ -20,7 +20,8 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "db:migrate": "turbo run db:migrate",
     "db:seed": "turbo run db:seed",
-    "db:studio": "turbo run db:studio"
+    "db:studio": "turbo run db:studio",
+    "build:packages": "npm run build --workspace=@ehms/types && npm run build --workspace=@ehms/validation && npm run build --workspace=@ehms/database"
   },
   "workspaces": [
     "apps/*",
