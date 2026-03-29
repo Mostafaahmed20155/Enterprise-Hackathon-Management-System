@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sparkles, Mail, Lock, UserCircle, ArrowRight, Shield, Users, Trophy, CheckCircle2 } from 'lucide-react';
+import { getApiErrorMessage } from '@/lib/api-error-message';
 
 export default function RegisterPage() {
   const t = useTranslations();
@@ -34,8 +35,19 @@ export default function RegisterPage() {
       return;
     }
 
+    const apiBase = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiBase) {
+      setError(
+        locale === 'ar'
+          ? 'عنوان واجهة البرمجة غير مضبوط (NEXT_PUBLIC_API_URL).'
+          : 'API URL is not set. Add NEXT_PUBLIC_API_URL to apps/web/.env and restart the dev server.',
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
+      const response = await fetch(`${apiBase}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -51,8 +63,13 @@ export default function RegisterPage() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Registration failed');
+        let data: unknown;
+        try {
+          data = await response.json();
+        } catch {
+          data = null;
+        }
+        throw new Error(getApiErrorMessage(data, locale, t('auth.registrationFailed')));
       }
 
       const data = await response.json();

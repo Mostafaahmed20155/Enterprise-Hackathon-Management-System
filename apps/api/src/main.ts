@@ -16,9 +16,14 @@ async function bootstrap() {
   app.use(helmet());
   app.use(cookieParser());
 
-  // CORS
+  // CORS — comma-separated origins; localhost vs 127.0.0.1 must both be listed if you use both
+  const corsRaw = configService.get<string>('CORS_ORIGIN') || 'http://localhost:3000';
+  const corsOrigins = corsRaw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: configService.get('CORS_ORIGIN') || 'http://localhost:3000',
+    origin: corsOrigins.length <= 1 ? corsOrigins[0] : corsOrigins,
     credentials: true,
   });
 

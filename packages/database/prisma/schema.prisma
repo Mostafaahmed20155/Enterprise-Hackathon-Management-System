@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Hoisted monorepo: @prisma/client resolves from repo root; client must live in root node_modules/.prisma
   output   = "../../../node_modules/.prisma/client"
 }
 

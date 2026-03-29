@@ -33,6 +33,19 @@
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
   },
+  "overrides": {
+    "prisma": "6.19.2",
+    "@prisma/client": "6.19.2",
+    "@prisma/config": {
+      "effect": "3.21.0"
+    },
+    "path-to-regexp": "^8.4.0",
+    "tar": "^7.5.11",
+    "@angular-devkit/core": {
+      "ajv": "^8.18.0",
+      "picomatch": "^4.0.4"
+    }
+  },
   "packageManager": "npm@10.2.4",
   "engines": {
     "node": ">=20.0.0",

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sparkles, Mail, Lock, LogIn, ArrowRight, Shield, Users, Trophy } from 'lucide-react';
+import { getApiErrorMessage } from '@/lib/api-error-message';
 
 export default function LoginPage() {
   const t = useTranslations();
@@ -25,8 +26,19 @@ export default function LoginPage() {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
+    const apiBase = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiBase) {
+      setError(
+        locale === 'ar'
+          ? 'عنوان واجهة البرمجة غير مضبوط (NEXT_PUBLIC_API_URL).'
+          : 'API URL is not set. Add NEXT_PUBLIC_API_URL to apps/web/.env and restart the dev server.',
+      );
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const response = await fetch(`${apiBase}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,8 +49,13 @@ export default function LoginPage() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Login failed');
+        let data: unknown;
+        try {
+          data = await response.json();
+        } catch {
+          data = null;
+        }
+        throw new Error(getApiErrorMessage(data, locale, t('auth.loginFailed')));
       }
 
       const data = await response.json();
