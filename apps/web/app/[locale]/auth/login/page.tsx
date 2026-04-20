@@ -71,8 +71,20 @@ export default function LoginPage() {
 
       // Redirect to dashboard
       router.push(`/dashboard`);
-    } catch (err: any) {
-      setError(err.message || t('auth.loginFailed'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '';
+      const isNetworkError =
+        message === 'Failed to fetch' ||
+        (err instanceof TypeError && message.toLowerCase().includes('fetch'));
+      if (isNetworkError) {
+        setError(
+          locale === 'ar'
+            ? 'تعذّر الاتصال بالخادم. تأكد أن Nest يعمل على المنفذ 3001 (لا تشغّل أكثر من npm run dev)، وأن NEXT_PUBLIC_API_URL صحيح، وأن CORS_ORIGIN يتضمن أصل هذه الصفحة.'
+            : 'Cannot reach the API. Common causes: nothing listening on port 3001 (check the API terminal for EADDRINUSE — stop duplicate npm run dev or free port 3001), wrong NEXT_PUBLIC_API_URL, or CORS_ORIGIN missing this page’s origin (include both http://localhost:3000 and http://127.0.0.1:3000 if needed).',
+        );
+      } else {
+        setError(message || t('auth.loginFailed'));
+      }
     } finally {
       setLoading(false);
     }
@@ -81,10 +93,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-purple-600 to-indigo-700">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-orange-600 to-amber-900">
         {/* Decorative Elements */}
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] opacity-30" />
-        <div className="absolute top-0 start-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-r from-white/10 to-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 start-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-r from-white/10 to-orange-400/15 rounded-full blur-3xl" />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
@@ -95,7 +107,7 @@ export default function LoginPage() {
             </div>
             <div className="flex flex-col">
               <span className="text-2xl font-bold">EHMS</span>
-              <span className="text-sm text-indigo-100">Hackathon Platform</span>
+              <span className="text-sm text-orange-50/95">Hackathon Platform</span>
             </div>
           </Link>
 
@@ -105,7 +117,7 @@ export default function LoginPage() {
               <h1 className="text-4xl font-bold mb-4">
                 Welcome to the Future of Hackathons
               </h1>
-              <p className="text-lg text-indigo-100">
+              <p className="text-lg text-orange-50/95">
                 Enterprise-grade platform for organizing and managing successful hackathon events
               </p>
             </div>
@@ -117,7 +129,7 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Enterprise Security</h3>
-                  <p className="text-sm text-indigo-100">Role-based access control and secure data handling</p>
+                  <p className="text-sm text-orange-50/95">Role-based access control and secure data handling</p>
                 </div>
               </div>
 
@@ -127,7 +139,7 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Team Collaboration</h3>
-                  <p className="text-sm text-indigo-100">Seamless team formation and project management</p>
+                  <p className="text-sm text-orange-50/95">Seamless team formation and project management</p>
                 </div>
               </div>
 
@@ -137,14 +149,14 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Smart Judging</h3>
-                  <p className="text-sm text-indigo-100">Comprehensive evaluation and leaderboard system</p>
+                  <p className="text-sm text-orange-50/95">Comprehensive evaluation and leaderboard system</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="text-sm text-indigo-100">
+          <div className="text-sm text-orange-50/95">
             © 2024 EHMS. All rights reserved.
           </div>
         </div>
@@ -156,10 +168,10 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden text-center">
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
                 EHMS
               </span>
             </Link>

@@ -53,7 +53,7 @@ export default function EventTeamsPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
@@ -120,7 +120,7 @@ export default function EventTeamsPage() {
                         <span className="me-2">👤</span>
                         <span>{member.user.name}</span>
                         {member.role === 'LEADER' && (
-                          <span className="ms-2 text-xs bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-400 px-2 py-0.5 rounded">
+                          <span className="ms-2 text-xs bg-orange-100 dark:bg-orange-950/30 text-orange-900 dark:text-orange-300 px-2 py-0.5 rounded">
                             {t('leader')}
                           </span>
                         )}

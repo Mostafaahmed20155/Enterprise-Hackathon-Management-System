@@ -169,7 +169,7 @@ export default function EditSubmissionPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
@@ -234,7 +234,7 @@ export default function EditSubmissionPage() {
                   type="text"
                   value={titleEn}
                   onChange={(e) => setTitleEn(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   dir="ltr"
                   placeholder="Project title in English"
                 />
@@ -247,7 +247,7 @@ export default function EditSubmissionPage() {
                   type="text"
                   value={titleAr}
                   onChange={(e) => setTitleAr(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   dir="rtl"
                   placeholder="عنوان المشروع بالعربية"
                 />
@@ -263,7 +263,7 @@ export default function EditSubmissionPage() {
                   value={descriptionEn}
                   onChange={(e) => setDescriptionEn(e.target.value)}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-y"
                   dir="ltr"
                   placeholder="Describe your project in English"
                 />
@@ -276,7 +276,7 @@ export default function EditSubmissionPage() {
                   value={descriptionAr}
                   onChange={(e) => setDescriptionAr(e.target.value)}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-y"
                   dir="rtl"
                   placeholder="صف مشروعك بالعربية"
                 />
@@ -299,7 +299,7 @@ export default function EditSubmissionPage() {
                 type="url"
                 value={demoUrl}
                 onChange={(e) => setDemoUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 dir="ltr"
                 placeholder="https://your-demo.example.com"
               />
@@ -312,7 +312,7 @@ export default function EditSubmissionPage() {
                 type="url"
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 dir="ltr"
                 placeholder="https://github.com/your-org/your-repo"
               />
@@ -325,7 +325,7 @@ export default function EditSubmissionPage() {
                 type="url"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 dir="ltr"
                 placeholder="https://youtube.com/watch?v=..."
               />
@@ -369,7 +369,7 @@ export default function EditSubmissionPage() {
             )}
 
             {/* Upload new file */}
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors">
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-orange-400 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 transition-colors">
               <div className="flex flex-col items-center justify-center gap-2">
                 <Upload className="w-6 h-6 text-gray-400" />
                 <span className="text-sm text-gray-500">

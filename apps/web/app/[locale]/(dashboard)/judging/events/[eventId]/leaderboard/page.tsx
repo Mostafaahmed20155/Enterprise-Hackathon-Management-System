@@ -71,7 +71,7 @@ export default function LeaderboardPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
@@ -226,13 +226,13 @@ export default function LeaderboardPage() {
                         <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
                           <Link
                             href={`/submissions/${entry.submissionId}`}
-                            className="hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
+                            className="hover:text-primary dark:hover:text-orange-300 hover:underline"
                           >
                             {getText(entry.title, locale)}
                           </Link>
                         </td>
                         <td className="p-3 text-center">
-                          <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                          <span className="text-lg font-bold text-primary dark:text-orange-300">
                             {entry.totalScore.toFixed(1)}
                           </span>
                         </td>

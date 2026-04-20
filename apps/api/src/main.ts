@@ -1,3 +1,4 @@
+import './bootstrap-env';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -12,8 +13,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  // Security
-  app.use(helmet());
+  // Security — allow browser clients on another origin/port (web on :3000, API on :3001).
+  // Helmet defaults to CORP same-origin, which blocks credentialed cross-origin fetch responses.
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
   app.use(cookieParser());
 
   // CORS — comma-separated origins; localhost vs 127.0.0.1 must both be listed if you use both

@@ -29,13 +29,13 @@ function getText(value: BilingualText | undefined, locale: string): string {
 
 const stateColors: Record<string, string> = {
   DRAFT: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 dark:from-gray-800 dark:to-gray-700 dark:text-gray-300',
-  PUBLISHED: 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900/30 dark:to-blue-800/30 dark:text-blue-400',
+  PUBLISHED: 'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-900 dark:from-orange-950/30 dark:to-amber-950/30 dark:text-orange-300',
   REGISTRATION_OPEN: 'bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 dark:from-green-900/30 dark:to-emerald-800/30 dark:text-green-400',
   TEAM_FORMATION: 'bg-gradient-to-r from-yellow-100 to-amber-200 text-yellow-800 dark:from-yellow-900/30 dark:to-amber-800/30 dark:text-yellow-400',
-  HACKING_PHASE: 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 dark:from-purple-900/30 dark:to-purple-800/30 dark:text-purple-400',
+  HACKING_PHASE: 'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-900 dark:from-orange-950/30 dark:to-amber-950/30 dark:text-orange-300',
   SUBMISSION_CLOSED: 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 dark:from-orange-900/30 dark:to-orange-800/30 dark:text-orange-400',
-  JUDGING: 'bg-gradient-to-r from-indigo-100 to-indigo-200 text-indigo-800 dark:from-indigo-900/30 dark:to-indigo-800/30 dark:text-indigo-400',
-  RESULTS_PUBLISHED: 'bg-gradient-to-r from-teal-100 to-cyan-200 text-teal-800 dark:from-teal-900/30 dark:to-cyan-800/30 dark:text-teal-400',
+  JUDGING: 'bg-gradient-to-r from-amber-100 to-orange-100 text-orange-900 dark:from-orange-950/30 dark:to-amber-950/30 dark:text-orange-300',
+  RESULTS_PUBLISHED: 'bg-gradient-to-r from-amber-100 to-orange-200 text-orange-900 dark:from-amber-950/30 dark:to-orange-900/30 dark:text-orange-300',
   ARCHIVED: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 dark:from-gray-800 dark:to-gray-700 dark:text-gray-300',
 };
 
@@ -125,7 +125,7 @@ export default function EventsPage() {
           <p className="mt-2 text-gray-600 dark:text-gray-400">{t('subtitle')}</p>
         </div>
         <Link href="/events/create">
-          <Button size="lg" className="group bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg hover:shadow-xl transition-all">
+          <Button size="lg" className="group bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-700/90 shadow-lg hover:shadow-xl transition-all">
             <Plus className="w-5 h-5 me-2 group-hover:rotate-90 transition-transform" />
             {t('createEvent')}
           </Button>
@@ -194,7 +194,7 @@ export default function EventsPage() {
       {events.length === 0 ? (
         <div className="card-modern">
           <div className="flex flex-col items-center justify-center py-20 px-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-purple-500/10 rounded-full flex items-center justify-center mb-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary/12 to-orange-500/12 rounded-full flex items-center justify-center mb-6">
               <Sparkles className="w-10 h-10 text-primary" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -204,7 +204,7 @@ export default function EventsPage() {
               {locale === 'ar' ? 'ابدأ بإنشاء أول فعالية هاكاثون' : 'Get started by creating your first hackathon event'}
             </p>
             <Link href="/events/create">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-orange-600">
                 <Plus className="w-5 h-5 me-2" />
                 {t('createFirstEvent')}
               </Button>
@@ -229,7 +229,7 @@ export default function EventsPage() {
               key={event.id}
               className="group card-modern overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="h-1 bg-gradient-to-r from-primary via-purple-500 to-indigo-600" />
+              <div className="h-1 bg-gradient-to-r from-primary via-orange-500 to-amber-600" />
 
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -247,9 +247,9 @@ export default function EventsPage() {
 
               <CardContent className="pb-4">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-lg">
                     <div className="w-8 h-8 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                      <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <Calendar className="w-4 h-4 text-primary dark:text-orange-300" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{t('registration')}</p>
@@ -258,9 +258,9 @@ export default function EventsPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg">
                     <div className="w-8 h-8 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                      <Rocket className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <Rocket className="w-4 h-4 text-orange-700 dark:text-orange-300" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{t('hacking')}</p>
@@ -292,7 +292,7 @@ export default function EventsPage() {
               className="group flex items-center gap-4 p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary/40 hover:shadow-md transition-all"
             >
               {/* Color dot */}
-              <div className="w-2 h-10 rounded-full bg-gradient-to-b from-primary to-purple-600 shrink-0" />
+              <div className="w-2 h-10 rounded-full bg-gradient-to-b from-primary to-orange-600 shrink-0" />
 
               {/* Name + description */}
               <div className="flex-1 min-w-0">

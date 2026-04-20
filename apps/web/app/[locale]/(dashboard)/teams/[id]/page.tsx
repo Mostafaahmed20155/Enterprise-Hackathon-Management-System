@@ -203,7 +203,7 @@ export default function TeamDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
@@ -277,8 +277,8 @@ export default function TeamDetailPage() {
                     className="flex items-center justify-between p-3 rounded-lg border border-gray-200 dark:border-gray-700"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/20 rounded-full flex items-center justify-center shrink-0">
-                        <span className="text-indigo-600 dark:text-indigo-400 font-medium">
+                      <div className="w-10 h-10 bg-orange-100 dark:bg-orange-950/30 rounded-full flex items-center justify-center shrink-0">
+                        <span className="text-primary dark:text-orange-300 font-medium">
                           {member.user.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -370,7 +370,7 @@ export default function TeamDetailPage() {
                                 : 'hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer'
                             }`}
                           >
-                            <div className="w-8 h-8 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0">
+                            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-700 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0">
                               {user.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -387,7 +387,7 @@ export default function TeamDetailPage() {
                                   {locale === 'ar' ? 'مدعو' : 'Invited'}
                                 </span>
                               ) : (
-                                <UserCheck className="w-4 h-4 text-indigo-500" />
+                                <UserCheck className="w-4 h-4 text-orange-600" />
                               )}
                             </div>
                           </button>
@@ -407,15 +407,15 @@ export default function TeamDetailPage() {
 
                 {/* Selected user preview */}
                 {selectedUser && (
-                  <div className="flex items-center gap-3 p-3 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 rounded-lg">
-                    <div className="w-9 h-9 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold shrink-0">
+                  <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-950/25 border border-orange-200 dark:border-orange-900 rounded-lg">
+                    <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-orange-700 rounded-full flex items-center justify-center text-white font-semibold shrink-0">
                       {selectedUser.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{selectedUser.name}</p>
                       <p className="text-xs text-gray-500 truncate">{selectedUser.email}</p>
                     </div>
-                    <CheckCircle2 className="w-5 h-5 text-indigo-500 shrink-0" />
+                    <CheckCircle2 className="w-5 h-5 text-orange-600 shrink-0" />
                   </div>
                 )}
 

@@ -41,8 +41,8 @@ const statusColors: Record<string, string> = {
 
 const statusBarColors: Record<string, string> = {
   DRAFT: 'bg-gradient-to-r from-gray-400 to-gray-500',
-  SUBMITTED: 'bg-gradient-to-r from-green-500 to-emerald-500',
-  UNDER_REVIEW: 'bg-gradient-to-r from-blue-500 to-cyan-500',
+  SUBMITTED: 'bg-gradient-to-r from-amber-500 to-orange-600',
+  UNDER_REVIEW: 'bg-gradient-to-r from-orange-500 to-amber-500',
   DISQUALIFIED: 'bg-gradient-to-r from-red-500 to-red-600',
   WINNER: 'bg-gradient-to-r from-yellow-400 to-amber-500',
 };
@@ -126,7 +126,7 @@ export default function SubmissionsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-purple-600 to-indigo-700 p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-orange-600 to-amber-900 p-8 text-white shadow-xl">
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] opacity-30" />
         <div className="relative z-10 flex items-center justify-between">
           <div>
@@ -134,7 +134,7 @@ export default function SubmissionsPage() {
               <FileText className="w-6 h-6" />
               <h1 className="text-3xl font-bold">{t('title')}</h1>
             </div>
-            <p className="text-indigo-100 text-lg">{t('subtitle')}</p>
+            <p className="text-orange-50/95 text-lg">{t('subtitle')}</p>
           </div>
           <Link href="/submissions/create">
             <Button variant="secondary" className="flex items-center gap-2">

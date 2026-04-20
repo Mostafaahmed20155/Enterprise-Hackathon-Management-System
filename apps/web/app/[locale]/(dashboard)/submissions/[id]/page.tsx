@@ -523,7 +523,7 @@ export default function SubmissionDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
@@ -570,15 +570,15 @@ export default function SubmissionDetailPage() {
 
           {/* Judging Scores */}
           {submission.scores && submission.scores.length > 0 && (
-            <Card className="border-2 border-indigo-200 dark:border-indigo-800">
+            <Card className="border-2 border-orange-200 dark:border-orange-900">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    <Trophy className="w-5 h-5 text-primary dark:text-orange-300" />
                     <CardTitle>Judging Scores</CardTitle>
                   </div>
                   {submission.averageScore && (
-                    <div className="text-center px-4 py-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
+                    <div className="text-center px-4 py-2 bg-gradient-to-br from-primary to-orange-700 rounded-lg text-white">
                       <div className="text-3xl font-bold">
                         {submission.averageScore.toFixed(1)}
                       </div>
@@ -613,8 +613,8 @@ export default function SubmissionDetailPage() {
                             </p>
                           )}
                         </div>
-                        <div className="text-center px-3 py-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                          <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                        <div className="text-center px-3 py-2 bg-orange-100 dark:bg-orange-950/40 rounded-lg">
+                          <div className="text-2xl font-bold text-primary dark:text-orange-300">
                             {score.totalScore.toFixed(1)}
                           </div>
                           <div className="text-xs text-gray-600 dark:text-gray-400">Total</div>
@@ -711,7 +711,7 @@ export default function SubmissionDetailPage() {
                   href={submission.demoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-s-2 text-indigo-600 hover:text-indigo-500"
+                  className="flex items-center space-s-2 text-primary hover:text-orange-600"
                 >
                   <span>🌐</span>
                   <span>{t('viewDemo')}</span>
@@ -722,7 +722,7 @@ export default function SubmissionDetailPage() {
                   href={submission.repoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-s-2 text-indigo-600 hover:text-indigo-500"
+                  className="flex items-center space-s-2 text-primary hover:text-orange-600"
                 >
                   <span>💻</span>
                   <span>{t('viewRepo')}</span>
@@ -733,7 +733,7 @@ export default function SubmissionDetailPage() {
                   href={submission.videoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-s-2 text-indigo-600 hover:text-indigo-500"
+                  className="flex items-center space-s-2 text-primary hover:text-orange-600"
                 >
                   <span>🎥</span>
                   <span>{t('watchVideo')}</span>

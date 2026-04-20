@@ -47,8 +47,13 @@ export default async function LocaleLayout({
   const fontClass = locale === 'ar' ? cairo.variable : inter.variable;
 
   return (
-    <html lang={locale} dir={dir} className={`${fontClass} ${inter.variable} ${cairo.variable}`}>
-      <body className={locale === 'ar' ? 'font-arabic' : 'font-sans'}>
+    <html
+      lang={locale}
+      dir={dir}
+      className={`${fontClass} ${inter.variable} ${cairo.variable}`}
+      suppressHydrationWarning
+    >
+      <body className={locale === 'ar' ? 'font-arabic' : 'font-sans'} suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           {children}
           <Toaster

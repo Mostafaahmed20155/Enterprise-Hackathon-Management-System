@@ -47,7 +47,7 @@ interface Pagination {
 function getRoleBadgeColor(roleName: string) {
   switch (roleName) {
     case 'SUPER_ADMIN': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-    case 'ORGANIZER':   return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+    case 'ORGANIZER':   return 'bg-orange-100 text-orange-800 dark:bg-orange-950/35 dark:text-orange-300';
     case 'JUDGE':       return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
     case 'PARTICIPANT': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
     default:            return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
@@ -151,10 +151,10 @@ export default function AdminUsersPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <Users className="w-5 h-5 text-primary dark:text-orange-300" />
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total || pagination?.total || '—'}</p>
@@ -162,7 +162,7 @@ export default function AdminUsersPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50 dark:from-orange-950/25 dark:to-amber-950/25">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
               <UserCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -275,7 +275,7 @@ export default function AdminUsersPage() {
                   onClick={() => router.push(`/admin/users/${user.id}`)}
                 >
                   {/* Avatar */}
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0">
                     {getUserInitials(user.name)}
                   </div>
 

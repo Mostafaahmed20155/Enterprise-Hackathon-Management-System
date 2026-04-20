@@ -83,7 +83,7 @@ export default function JudgingEventPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
@@ -128,7 +128,7 @@ export default function JudgingEventPage() {
         <div className="mb-6">
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-primary to-purple-600 h-2 rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-primary to-orange-600 h-2 rounded-full transition-all duration-500"
               style={{ width: `${submissions.length > 0 ? (scoredCount / submissions.length) * 100 : 0}%` }}
             />
           </div>

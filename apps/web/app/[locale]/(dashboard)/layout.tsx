@@ -94,11 +94,11 @@ export default function DashboardLayout({
           {/* Logo Section */}
           <div className="flex items-center justify-between h-20 px-6 border-b border-gray-200 dark:border-gray-800">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                <span className="text-xl font-bold bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
                   EHMS
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -127,7 +127,7 @@ export default function DashboardLayout({
                   onClick={() => setIsSidebarOpen(false)}
                   className={`group flex items-center px-4 py-3.5 rounded-xl transition-all duration-200 ${
                     active
-                      ? 'bg-gradient-to-r from-primary/10 to-purple-500/10 text-primary dark:text-primary font-semibold shadow-sm'
+                      ? 'bg-gradient-to-r from-primary/12 to-orange-500/12 text-primary dark:text-primary font-semibold shadow-sm'
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:translate-x-1'
                   }`}
                 >
@@ -145,7 +145,7 @@ export default function DashboardLayout({
                     </span>
                   )}
                   {active && (
-                    <div className={`${item.href === '/teams' && pendingInviteCount > 0 ? '' : 'ms-auto'} w-1.5 h-8 bg-gradient-to-b from-primary to-purple-600 rounded-full`} />
+                    <div className={`${item.href === '/teams' && pendingInviteCount > 0 ? '' : 'ms-auto'} w-1.5 h-8 bg-gradient-to-b from-primary to-orange-600 rounded-full`} />
                   )}
                 </Link>
               );
@@ -198,7 +198,7 @@ export default function DashboardLayout({
           <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
             {currentUser ? (
               <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800/50 rounded-xl">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
                   {getUserInitials(currentUser.name)}
                 </div>
                 <div className="flex-1 min-w-0">

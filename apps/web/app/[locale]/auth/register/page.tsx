@@ -95,10 +95,10 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-purple-600 to-indigo-700">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-orange-600 to-amber-900">
         {/* Decorative Elements */}
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] opacity-30" />
-        <div className="absolute top-0 start-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-r from-white/10 to-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 start-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-gradient-to-r from-white/10 to-orange-400/15 rounded-full blur-3xl" />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
@@ -109,7 +109,7 @@ export default function RegisterPage() {
             </div>
             <div className="flex flex-col">
               <span className="text-2xl font-bold">EHMS</span>
-              <span className="text-sm text-indigo-100">Hackathon Platform</span>
+              <span className="text-sm text-orange-50/95">Hackathon Platform</span>
             </div>
           </Link>
 
@@ -119,7 +119,7 @@ export default function RegisterPage() {
               <h1 className="text-4xl font-bold mb-4">
                 Join the Innovation Community
               </h1>
-              <p className="text-lg text-indigo-100">
+              <p className="text-lg text-orange-50/95">
                 Create your account and start participating in exciting hackathon events
               </p>
             </div>
@@ -131,7 +131,7 @@ export default function RegisterPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Quick Setup</h3>
-                  <p className="text-sm text-indigo-100">Get started in minutes with our streamlined registration</p>
+                  <p className="text-sm text-orange-50/95">Get started in minutes with our streamlined registration</p>
                 </div>
               </div>
 
@@ -141,7 +141,7 @@ export default function RegisterPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Join Teams</h3>
-                  <p className="text-sm text-indigo-100">Connect with talented individuals and form winning teams</p>
+                  <p className="text-sm text-orange-50/95">Connect with talented individuals and form winning teams</p>
                 </div>
               </div>
 
@@ -151,14 +151,14 @@ export default function RegisterPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Compete & Win</h3>
-                  <p className="text-sm text-indigo-100">Showcase your skills and win amazing prizes</p>
+                  <p className="text-sm text-orange-50/95">Showcase your skills and win amazing prizes</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="text-sm text-indigo-100">
+          <div className="text-sm text-orange-50/95">
             © 2024 EHMS. All rights reserved.
           </div>
         </div>
@@ -170,10 +170,10 @@ export default function RegisterPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden text-center">
             <Link href="/" className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-orange-600 bg-clip-text text-transparent">
                 EHMS
               </span>
             </Link>

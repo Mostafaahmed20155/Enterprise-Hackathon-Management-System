@@ -80,7 +80,7 @@ export default function CreateEventPage() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Page Header */}
-      <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-purple-600 to-indigo-700 p-8 text-white shadow-xl">
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-orange-600 to-amber-900 p-8 text-white shadow-xl">
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] opacity-30" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
@@ -89,7 +89,7 @@ export default function CreateEventPage() {
             </div>
             <h1 className="text-3xl font-bold">{t('createEvent')}</h1>
           </div>
-          <p className="text-indigo-100 text-lg">{t('createEventDescription')}</p>
+          <p className="text-orange-50/95 text-lg">{t('createEventDescription')}</p>
         </div>
       </div>
 
@@ -109,7 +109,7 @@ export default function CreateEventPage() {
             {/* Event Name */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center shadow-sm">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('eventName')}</h3>
@@ -145,7 +145,7 @@ export default function CreateEventPage() {
             {/* Event Description */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-sm">
                   <FileText className="w-4 h-4 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('eventDescription')}</h3>
@@ -257,7 +257,7 @@ export default function CreateEventPage() {
             {/* Team Size */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-600 to-amber-600 rounded-lg flex items-center justify-center shadow-sm">
                   <Users className="w-4 h-4 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('teamSize')}</h3>

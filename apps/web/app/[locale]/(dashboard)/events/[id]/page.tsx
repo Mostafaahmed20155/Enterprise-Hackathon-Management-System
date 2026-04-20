@@ -70,13 +70,13 @@ const STATE_ORDER = [
 
 const STATE_COLORS: Record<string, string> = {
   DRAFT:              'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-  PUBLISHED:          'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  REGISTRATION_OPEN:  'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  TEAM_FORMATION:     'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+  PUBLISHED:          'bg-orange-100 text-orange-800 dark:bg-orange-950/35 dark:text-orange-300',
+  REGISTRATION_OPEN:  'bg-amber-100 text-amber-900 dark:bg-amber-950/35 dark:text-amber-300',
+  TEAM_FORMATION:     'bg-amber-50 text-amber-900 dark:bg-orange-950/25 dark:text-orange-300',
   HACKING_PHASE:      'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
   SUBMISSION_CLOSED:  'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  JUDGING:            'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  RESULTS_PUBLISHED:  'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+  JUDGING:            'bg-orange-100 text-orange-800 dark:bg-orange-950/35 dark:text-orange-300',
+  RESULTS_PUBLISHED:  'bg-amber-100 text-orange-900 dark:bg-amber-950/35 dark:text-orange-300',
   ARCHIVED:           'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400',
 };
 
@@ -266,7 +266,7 @@ export default function EventDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
@@ -360,20 +360,20 @@ export default function EventDetailPage() {
         {event._count && (
           <div className="flex flex-wrap gap-4 mt-4">
             <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <Users className="w-4 h-4 text-primary dark:text-orange-300" />
               <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
                 {event._count.eventRegistrations}
               </span>
-              <span className="text-sm text-blue-600 dark:text-blue-400">
+              <span className="text-sm text-primary dark:text-orange-300">
                 {locale === 'ar' ? 'مشارك' : 'Participants'}
               </span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+            <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-950/25 rounded-lg">
+              <Users className="w-4 h-4 text-orange-700 dark:text-orange-300" />
+              <span className="text-sm font-semibold text-orange-800 dark:text-orange-200">
                 {event._count.teams}
               </span>
-              <span className="text-sm text-purple-600 dark:text-purple-400">
+              <span className="text-sm text-orange-700 dark:text-orange-300">
                 {locale === 'ar' ? 'فريق' : 'Teams'}
               </span>
             </div>
@@ -442,13 +442,13 @@ export default function EventDetailPage() {
                     return (
                       <div key={state} className="flex flex-col items-center">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 bg-white dark:bg-gray-900 transition-all z-10
-                          ${isCurrent ? 'border-indigo-600 bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-200 dark:ring-indigo-800' :
+                          ${isCurrent ? 'border-primary bg-primary text-white shadow-lg ring-2 ring-orange-200 dark:ring-orange-900' :
                             isPast    ? 'border-green-500 bg-green-500 text-white' :
                                         'border-gray-300 text-gray-400'}`}>
                           {isPast ? <CheckCircle className="w-4 h-4" /> : index + 1}
                         </div>
                         <span className={`text-xs mt-2 text-center leading-tight px-0.5 break-words w-full
-                          ${isCurrent ? 'font-bold text-indigo-600 dark:text-indigo-400' :
+                          ${isCurrent ? 'font-bold text-primary dark:text-orange-300' :
                             isPast    ? 'text-green-600 dark:text-green-400' :
                                         'text-gray-400'}`}>
                           {shortLabels[state]}
@@ -680,7 +680,7 @@ export default function EventDetailPage() {
                       <span className="w-6 text-xs text-gray-400 text-center shrink-0">{i + 1}</span>
 
                       {/* Avatar */}
-                      <div className="w-9 h-9 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      <div className="w-9 h-9 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
                         {p.user.name.split(' ').map((n: string) => n[0]?.toUpperCase()).slice(0, 2).join('')}
                       </div>
 

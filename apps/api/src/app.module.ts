@@ -1,3 +1,4 @@
+import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -15,7 +16,13 @@ import { StorageModule } from './storage/storage.module';
     // Config
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      // Same order as bootstrap-env.ts: base first, then overrides; apps/api wins over repo root.
+      envFilePath: [
+        join(process.cwd(), '.env'),
+        join(process.cwd(), '.env.local'),
+        join(process.cwd(), 'apps', 'api', '.env'),
+        join(process.cwd(), 'apps', 'api', '.env.local'),
+      ],
     }),
 
     // Scheduling for auto-transitions

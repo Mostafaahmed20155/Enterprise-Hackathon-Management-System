@@ -283,7 +283,7 @@ export default function MyTeamsPage() {
       {teams.length === 0 ? (
         <div className="card-modern">
           <div className="flex flex-col items-center justify-center py-20 px-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-purple-500/10 rounded-full flex items-center justify-center mb-6">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary/12 to-orange-500/12 rounded-full flex items-center justify-center mb-6">
               <Users className="w-10 h-10 text-primary" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{t('noTeams')}</h3>
@@ -291,7 +291,7 @@ export default function MyTeamsPage() {
               {locale === 'ar' ? 'تصفح الفعاليات وانضم إلى فريق للبدء' : 'Browse events and join a team to get started'}
             </p>
             <Link href="/events">
-              <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-orange-600">
                 <Calendar className="w-5 h-5 me-2" />
                 {t('browseEvents')}
               </Button>
@@ -316,7 +316,7 @@ export default function MyTeamsPage() {
               key={team.id}
               className="group card-modern overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+              <div className="h-1 bg-gradient-to-r from-orange-500 via-primary to-amber-600" />
 
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -336,9 +336,9 @@ export default function MyTeamsPage() {
               </CardHeader>
 
               <CardContent className="space-y-4 pb-4">
-                <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-lg">
                   <div className="w-8 h-8 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                    <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    <Calendar className="w-4 h-4 text-primary dark:text-orange-300" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{t('event')}</p>
@@ -356,7 +356,7 @@ export default function MyTeamsPage() {
                   <div className="space-y-2">
                     {team.members.slice(0, 3).map((member) => (
                       <div key={member.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                        <div className="w-8 h-8 bg-gradient-to-br from-primary to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0">
+                        <div className="w-8 h-8 bg-gradient-to-br from-primary to-orange-600 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0">
                           {member.user.name.charAt(0).toUpperCase()}
                         </div>
                         <span className="text-sm text-gray-900 dark:text-white font-medium truncate flex-1">
@@ -400,7 +400,7 @@ export default function MyTeamsPage() {
               className="group flex items-center gap-4 p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary/40 hover:shadow-md transition-all"
             >
               {/* Avatar */}
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-base shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-base shrink-0">
                 {team.name.charAt(0).toUpperCase()}
               </div>
 
@@ -433,7 +433,7 @@ export default function MyTeamsPage() {
                   <div
                     key={m.id}
                     title={m.user.name}
-                    className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-purple-600 border-2 border-white dark:border-gray-900 flex items-center justify-center text-white text-xs font-semibold"
+                    className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-orange-600 border-2 border-white dark:border-gray-900 flex items-center justify-center text-white text-xs font-semibold"
                   >
                     {m.user.name.charAt(0).toUpperCase()}
                   </div>

@@ -117,7 +117,7 @@ export default function DashboardPage() {
             itemName: getText(team.name, locale),
             subtitle: getText(team.event?.name, locale) || '',
             timestamp: team.createdAt,
-            colorClass: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+            colorClass: 'bg-orange-100 dark:bg-orange-950/35 text-orange-800 dark:text-orange-300',
           });
         }
       }
@@ -180,24 +180,24 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Welcome Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-purple-600 to-indigo-700 p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-orange-600 to-amber-900 p-8 text-white shadow-xl">
         <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] opacity-30" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
             <Sparkles className="w-6 h-6" />
             <h1 className="text-3xl font-bold">{t('welcomeBack')}</h1>
           </div>
-          <p className="text-indigo-100 text-lg">{t('overview')}</p>
+          <p className="text-orange-50/95 text-lg">{t('overview')}</p>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: t('stats.totalEvents'), value: stats.totalEvents, sub: t('stats.allTime'), icon: Calendar, gradient: 'from-blue-500 to-cyan-500' },
-          { label: t('stats.myTeams'), value: stats.myTeams, sub: t('stats.activeTeams'), icon: Users, gradient: 'from-purple-500 to-pink-500' },
+          { label: t('stats.totalEvents'), value: stats.totalEvents, sub: t('stats.allTime'), icon: Calendar, gradient: 'from-orange-500 to-amber-500' },
+          { label: t('stats.myTeams'), value: stats.myTeams, sub: t('stats.activeTeams'), icon: Users, gradient: 'from-orange-500 to-amber-600' },
           { label: t('stats.submissions'), value: stats.submissions, sub: t('stats.projectsSubmitted'), icon: FileText, gradient: 'from-amber-500 to-orange-500' },
-          { label: t('stats.upcoming'), value: stats.upcomingEvents, sub: t('stats.eventsOpen'), icon: Clock, gradient: 'from-green-500 to-emerald-500' },
+          { label: t('stats.upcoming'), value: stats.upcomingEvents, sub: t('stats.eventsOpen'), icon: Clock, gradient: 'from-amber-600 to-orange-700' },
         ].map((stat) => {
           const Icon = stat.icon;
           return (
@@ -227,7 +227,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card-modern p-6 hover:shadow-xl transition-all duration-300">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary to-purple-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
+            <div className="w-14 h-14 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
               <Plus className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1">
@@ -247,7 +247,7 @@ export default function DashboardPage() {
 
         <div className="card-modern p-6 hover:shadow-xl transition-all duration-300">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
+            <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
               <Trophy className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1">
