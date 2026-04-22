@@ -1,37 +1,297 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { Link } from '@/i18n/routing';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Calendar,
-  Users,
-  FileText,
-  Trophy,
-  TrendingUp,
-  Clock,
-  ArrowRight,
-  Plus,
-  Sparkles,
-  CheckCircle2,
-  PenLine,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
+import { authApi, eventsApi, submissionsApi, usersApi } from '@/lib/api';
+import { ArrowRight, Calendar, Clock, FileText, Plus, Sparkles, Trophy, Users } from 'lucide-react';
 
-const ACTIVITIES_PER_PAGE = 5;
-import { eventsApi, usersApi, submissionsApi } from '@/lib/api';
+type BilingualText = string | { en?: string; ar?: string };
 
-interface Activity {
+interface DashboardEvent {
   id: string;
-  type: 'team_joined' | 'submission_created' | 'submission_submitted';
-  icon: 'team' | 'file' | 'check';
-  itemName: string;
+  name: BilingualText;
+  description?: BilingualText;
+  state: string;
+  createdAt?: string;
+  updatedAt?: string;
+  registrationStart?: string;
+  registrationEnd?: string;
+}
+
+interface DashboardTeam {
+  id: string;
+  name: BilingualText;
+  createdAt?: string;
+  event?: {
+    id?: string;
+    name?: BilingualText;
+  };
+}
+
+interface DashboardSubmission {
+  id: string;
+  title?: BilingualText;
+  teamId?: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  team?: {
+    id?: string;
+    name?: BilingualText;
+  };
+}
+
+interface CurrentUser {
+  name?: string;
+}
+
+type ActivityCategory = 'events' | 'teams' | 'submissions';
+
+interface ActivityItem {
+  id: string;
+  category: ActivityCategory;
+  title: string;
   subtitle: string;
   timestamp: string;
-  colorClass: string;
+  tag: string;
+  tone: 'green' | 'gray' | 'dark';
+  icon: 'event' | 'team' | 'submission' | 'judging';
+  href: string;
+}
+
+interface DashboardStats {
+  totalEvents: number;
+  myTeams: number;
+  submissions: number;
+  submittedProjects: number;
+  upcomingEvents: number;
+}
+
+interface DashboardLocaleCopy {
+  welcome: {
+    prefix: string;
+    fallbackName: string;
+    overview: string;
+  };
+  stats: {
+    totalEvents: string;
+    totalEventsSub: string;
+    totalEventsDeltaPrefix: string;
+    myTeams: string;
+    myTeamsSub: string;
+    myTeamsEmptySub: string;
+    submissions: string;
+    submissionsSub: string;
+    submissionsEmptySub: string;
+    upcoming: string;
+    upcomingSub: string;
+    upcomingDelta: string;
+  };
+  quickActions: {
+    createTitle: string;
+    createAccent: string;
+    createBody: string;
+    createCta: string;
+    joinTitle: string;
+    joinAccent: string;
+    joinBody: string;
+    joinCta: string;
+  };
+  activity: {
+    title: string;
+    subtitle: string;
+    filters: {
+      all: string;
+      events: string;
+      teams: string;
+      submissions: string;
+    };
+    emptyTitle: string;
+    emptyBody: string;
+    footer: string;
+    eventOpened: string;
+    eventUpdated: string;
+    eventJudging: string;
+    eventResults: string;
+    joinedTeam: string;
+    createdSubmission: string;
+    submittedProject: string;
+    registrationWindow: string;
+    teamEventPrefix: string;
+    projectTeamPrefix: string;
+    liveTag: string;
+    readyTag: string;
+    draftTag: string;
+    memberTag: string;
+    submittedTag: string;
+    openTeamLink: string;
+  };
+  loading: string;
+  loadError: string;
+  retry: string;
+}
+
+const dashboardCopy: Record<'en' | 'ar', DashboardLocaleCopy> = {
+  en: {
+    welcome: {
+      prefix: 'Welcome back,',
+      fallbackName: 'there',
+      overview: "Here's an overview of your hackathon activities.",
+    },
+    stats: {
+      totalEvents: 'Total Events',
+      totalEventsSub: 'All time · organized',
+      totalEventsDeltaPrefix: '+',
+      myTeams: 'My Teams',
+      myTeamsSub: 'Active teams in progress',
+      myTeamsEmptySub: 'No active teams · join one',
+      submissions: 'Submissions',
+      submissionsSub: 'Projects submitted so far',
+      submissionsEmptySub: 'No projects submitted yet',
+      upcoming: 'Upcoming',
+      upcomingSub: 'Events open for registration',
+      upcomingDelta: 'OPEN',
+    },
+    quickActions: {
+      createTitle: 'Create New',
+      createAccent: 'Event.',
+      createBody:
+        'Start organizing your next hackathon with branding, tracks, judging, and analytics in one place.',
+      createCta: 'Get Started',
+      joinTitle: 'Join a',
+      joinAccent: 'Hackathon.',
+      joinBody:
+        'Explore open hackathons and join teams to collaborate on innovative projects with developers worldwide.',
+      joinCta: 'Browse Events',
+    },
+    activity: {
+      title: 'Recent Activity',
+      subtitle: 'Your latest hackathon activities',
+      filters: {
+        all: 'All',
+        events: 'Events',
+        teams: 'Teams',
+        submissions: 'Submissions',
+      },
+      emptyTitle: 'No activity yet',
+      emptyBody: 'Join an event or create a submission to see activity here.',
+      footer: 'View all activity',
+      eventOpened: 'opened for registration',
+      eventUpdated: 'was updated',
+      eventJudging: 'moved into judging',
+      eventResults: 'published results',
+      joinedTeam: 'You joined',
+      createdSubmission: 'Created submission',
+      submittedProject: 'Submitted',
+      registrationWindow: 'Registration window',
+      teamEventPrefix: 'Hackathon',
+      projectTeamPrefix: 'Team',
+      liveTag: 'Live',
+      readyTag: 'Ready',
+      draftTag: 'Draft',
+      memberTag: 'Member',
+      submittedTag: 'Submitted',
+      openTeamLink: 'join one',
+    },
+    loading: 'Loading dashboard...',
+    loadError: 'Failed to load dashboard.',
+    retry: 'Retry',
+  },
+  ar: {
+    welcome: {
+      prefix: 'عوداً سعيداً،',
+      fallbackName: 'صديقنا',
+      overview: 'إليك نظرة عامة على أنشطة الهاكاثون الخاصة بك.',
+    },
+    stats: {
+      totalEvents: 'إجمالي الفعاليات',
+      totalEventsSub: 'كل الوقت · نظمتها',
+      totalEventsDeltaPrefix: '+',
+      myTeams: 'فرقي',
+      myTeamsSub: 'فرق نشطة حالياً',
+      myTeamsEmptySub: 'لا توجد فرق نشطة · انضم إلى واحدة',
+      submissions: 'المشاريع',
+      submissionsSub: 'المشاريع التي تم تقديمها',
+      submissionsEmptySub: 'لا توجد مشاريع مقدمة بعد',
+      upcoming: 'القادمة',
+      upcomingSub: 'فعاليات مفتوحة للتسجيل',
+      upcomingDelta: 'مفتوح',
+    },
+    quickActions: {
+      createTitle: 'أنشئ',
+      createAccent: 'فعالية جديدة.',
+      createBody:
+        'ابدأ تنظيم الهاكاثون القادم مع الهوية، المسارات، التحكيم، والتحليلات في مكان واحد.',
+      createCta: 'ابدأ الآن',
+      joinTitle: 'انضم إلى',
+      joinAccent: 'هاكاثون.',
+      joinBody:
+        'استكشف الهاكاثونات المفتوحة وانضم إلى فرق للتعاون على مشاريع مبتكرة مع مطورين من مختلف الأماكن.',
+      joinCta: 'تصفح الفعاليات',
+    },
+    activity: {
+      title: 'النشاط الأخير',
+      subtitle: 'أحدث أنشطتك في الهاكاثون',
+      filters: {
+        all: 'الكل',
+        events: 'الفعاليات',
+        teams: 'الفرق',
+        submissions: 'المشاريع',
+      },
+      emptyTitle: 'لا يوجد نشاط بعد',
+      emptyBody: 'انضم إلى فعالية أو أنشئ مشروعاً لترى النشاط هنا.',
+      footer: 'عرض كل النشاط',
+      eventOpened: 'فتحت التسجيل',
+      eventUpdated: 'تم تحديثها',
+      eventJudging: 'انتقلت إلى التحكيم',
+      eventResults: 'نشرت النتائج',
+      joinedTeam: 'انضممت إلى',
+      createdSubmission: 'تم إنشاء مشروع',
+      submittedProject: 'تم تقديم',
+      registrationWindow: 'فترة التسجيل',
+      teamEventPrefix: 'الهاكاثون',
+      projectTeamPrefix: 'الفريق',
+      liveTag: 'مباشر',
+      readyTag: 'جاهز',
+      draftTag: 'مسودة',
+      memberTag: 'عضو',
+      submittedTag: 'تم',
+      openTeamLink: 'انضم إلى واحدة',
+    },
+    loading: 'جارٍ تحميل لوحة التحكم...',
+    loadError: 'فشل تحميل لوحة التحكم.',
+    retry: 'إعادة المحاولة',
+  },
+};
+
+function getText(value: BilingualText | undefined, locale: string): string {
+  if (!value) {
+    return '';
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  return value[locale as 'en' | 'ar'] || value.en || value.ar || '';
+}
+
+function extractArray<T>(payload: unknown): T[] {
+  if (Array.isArray(payload)) {
+    return payload as T[];
+  }
+
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'data' in payload &&
+    Array.isArray((payload as { data?: unknown }).data)
+  ) {
+    return (payload as { data: T[] }).data;
+  }
+
+  return [];
 }
 
 function relativeTime(iso: string, locale: string): string {
@@ -41,358 +301,526 @@ function relativeTime(iso: string, locale: string): string {
   const days = Math.floor(hours / 24);
   const isAr = locale === 'ar';
 
-  if (mins < 2) return isAr ? 'الآن' : 'Just now';
-  if (mins < 60) return isAr ? `منذ ${mins} دقيقة` : `${mins}m ago`;
-  if (hours < 24) return isAr ? `منذ ${hours} ساعة` : `${hours}h ago`;
-  if (days < 30) return isAr ? `منذ ${days} يوم` : `${days}d ago`;
+  if (mins < 2) {
+    return isAr ? 'الآن' : 'Just now';
+  }
+
+  if (mins < 60) {
+    return isAr ? `منذ ${mins} دقيقة` : `${mins}m ago`;
+  }
+
+  if (hours < 24) {
+    return isAr ? `منذ ${hours} ساعة` : `${hours}h ago`;
+  }
+
+  if (days === 1) {
+    return isAr ? 'أمس' : 'Yesterday';
+  }
+
+  if (days < 30) {
+    return isAr ? `منذ ${days} أيام` : `${days}d ago`;
+  }
+
   return new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
     month: 'short',
     day: 'numeric',
   });
 }
 
-function getText(value: any, locale: string): string {
-  if (!value) return '';
-  if (typeof value === 'string') return value;
-  return value[locale] || value.en || value.ar || '';
+function formatHeaderDate(locale: string): string {
+  return new Date().toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function buildEventActivity(
+  event: DashboardEvent,
+  locale: string,
+  copy: DashboardLocaleCopy
+): ActivityItem | null {
+  const eventName = getText(event.name, locale);
+  if (!eventName) {
+    return null;
+  }
+
+  const timestamp = event.updatedAt || event.createdAt || event.registrationStart;
+  if (!timestamp) {
+    return null;
+  }
+
+  let title = `Event "${eventName}" ${copy.activity.eventUpdated}`;
+  let tag = copy.activity.draftTag;
+  let tone: ActivityItem['tone'] = 'gray';
+  let icon: ActivityItem['icon'] = 'event';
+
+  if (event.state === 'REGISTRATION_OPEN') {
+    title = `Event "${eventName}" ${copy.activity.eventOpened}`;
+    tag = copy.activity.liveTag;
+    tone = 'green';
+  } else if (event.state === 'JUDGING') {
+    title = `Event "${eventName}" ${copy.activity.eventJudging}`;
+    tag = copy.activity.readyTag;
+    tone = 'dark';
+    icon = 'judging';
+  } else if (event.state === 'RESULTS_PUBLISHED') {
+    title = `Event "${eventName}" ${copy.activity.eventResults}`;
+    tag = copy.activity.readyTag;
+    tone = 'green';
+  }
+
+  const registrationStart = event.registrationStart;
+  const registrationEnd = event.registrationEnd;
+  const subtitle =
+    registrationStart && registrationEnd
+      ? `${copy.activity.registrationWindow}: ${new Date(registrationStart).toLocaleDateString(
+          locale === 'ar' ? 'ar-SA' : 'en-US',
+          {
+            month: 'short',
+            day: 'numeric',
+          }
+        )} - ${new Date(registrationEnd).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+          month: 'short',
+          day: 'numeric',
+        })}`
+      : getText(event.description, locale);
+
+  return {
+    id: `event-${event.id}`,
+    category: 'events',
+    title,
+    subtitle,
+    timestamp,
+    tag,
+    tone,
+    icon,
+    href: `/events/${event.id}`,
+  };
+}
+
+function buildTeamActivity(
+  team: DashboardTeam,
+  locale: string,
+  copy: DashboardLocaleCopy
+): ActivityItem | null {
+  const teamName = getText(team.name, locale);
+  const timestamp = team.createdAt;
+
+  if (!teamName || !timestamp) {
+    return null;
+  }
+
+  const eventName = getText(team.event?.name, locale);
+
+  return {
+    id: `team-${team.id}`,
+    category: 'teams',
+    title: `${copy.activity.joinedTeam} "${teamName}"`,
+    subtitle: eventName ? `${copy.activity.teamEventPrefix}: ${eventName}` : '',
+    timestamp,
+    tag: copy.activity.memberTag,
+    tone: 'gray',
+    icon: 'team',
+    href: `/teams/${team.id}`,
+  };
+}
+
+function buildSubmissionActivities(
+  submission: DashboardSubmission,
+  locale: string,
+  copy: DashboardLocaleCopy
+): ActivityItem[] {
+  const title = getText(submission.title, locale) || submission.id;
+  const teamName = getText(submission.team?.name, locale);
+  const subtitle = teamName ? `${copy.activity.projectTeamPrefix}: ${teamName}` : '';
+  const items: ActivityItem[] = [];
+
+  if (submission.createdAt) {
+    items.push({
+      id: `submission-created-${submission.id}`,
+      category: 'submissions',
+      title: `${copy.activity.createdSubmission} "${title}"`,
+      subtitle,
+      timestamp: submission.createdAt,
+      tag: copy.activity.draftTag,
+      tone: 'gray',
+      icon: 'submission',
+      href: `/submissions/${submission.id}`,
+    });
+  }
+
+  if (
+    submission.status === 'SUBMITTED' &&
+    submission.updatedAt &&
+    submission.updatedAt !== submission.createdAt
+  ) {
+    items.push({
+      id: `submission-submitted-${submission.id}`,
+      category: 'submissions',
+      title: `${copy.activity.submittedProject} "${title}"`,
+      subtitle,
+      timestamp: submission.updatedAt,
+      tag: copy.activity.submittedTag,
+      tone: 'green',
+      icon: 'submission',
+      href: `/submissions/${submission.id}`,
+    });
+  }
+
+  return items;
 }
 
 export default function DashboardPage() {
   const locale = useLocale();
-  const t = useTranslations('dashboard');
-  const [stats, setStats] = useState({ totalEvents: 0, myTeams: 0, submissions: 0, upcomingEvents: 0 });
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [activityPage, setActivityPage] = useState(1);
+  const isRtl = locale === 'ar';
+  const copy = dashboardCopy[isRtl ? 'ar' : 'en'];
+
+  const [stats, setStats] = useState<DashboardStats>({
+    totalEvents: 0,
+    myTeams: 0,
+    submissions: 0,
+    submittedProjects: 0,
+    upcomingEvents: 0,
+  });
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [activityFilter, setActivityFilter] = useState<ActivityCategory | 'all'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadDashboardData();
+    void loadDashboardData();
   }, []);
 
   const loadDashboardData = async () => {
     try {
       setIsLoading(true);
+      setError(null);
 
-      const [eventsResponse, teamsResponse, subsResponse] = await Promise.all([
+      const [userResponse, eventsResponse, teamsResponse, submissionsResponse] = await Promise.all([
+        authApi.getCurrentUser().catch(() => ({ data: null })),
         eventsApi.list(),
         usersApi.getMyTeams(),
         submissionsApi.list({ limit: 50 }),
       ]);
 
-      const events: any[] = Array.isArray(eventsResponse.data)
-        ? eventsResponse.data
-        : (eventsResponse.data?.data || []);
+      const events = extractArray<DashboardEvent>(eventsResponse.data);
+      const teams = extractArray<DashboardTeam>(teamsResponse.data);
+      const submissions = extractArray<DashboardSubmission>(submissionsResponse.data);
+      const user = (userResponse.data || null) as CurrentUser | null;
 
-      const teams: any[] = Array.isArray(teamsResponse.data)
-        ? teamsResponse.data
-        : (teamsResponse.data?.data || []);
+      const myTeamIds = new Set(teams.map((team) => team.id));
+      const mySubmissions = submissions.filter((submission) => {
+        const teamId = submission.teamId || submission.team?.id;
+        return Boolean(teamId && myTeamIds.has(teamId));
+      });
 
-      const allSubs: any[] = Array.isArray(subsResponse.data)
-        ? subsResponse.data
-        : (subsResponse.data?.data || []);
+      const submittedProjects = mySubmissions.filter(
+        (submission) => submission.status === 'SUBMITTED'
+      ).length;
+      const upcomingEvents = events.filter((event) =>
+        ['PUBLISHED', 'REGISTRATION_OPEN', 'TEAM_FORMATION'].includes(event.state)
+      ).length;
 
-      // Filter submissions that belong to the user's teams
-      const myTeamIds = new Set(teams.map((t: any) => t.id));
-      const mySubs = allSubs.filter((s: any) => myTeamIds.has(s.teamId) || myTeamIds.has(s.team?.id));
+      const feed = [
+        ...events
+          .map((event) => buildEventActivity(event, locale, copy))
+          .filter((item): item is ActivityItem => item !== null),
+        ...teams
+          .map((team) => buildTeamActivity(team, locale, copy))
+          .filter((item): item is ActivityItem => item !== null),
+        ...mySubmissions.flatMap((submission) =>
+          buildSubmissionActivities(submission, locale, copy)
+        ),
+      ].sort(
+        (left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime()
+      );
 
+      setCurrentUser(user);
       setStats({
         totalEvents: events.length,
         myTeams: teams.length,
-        submissions: mySubs.length,
-        upcomingEvents: events.filter((e: any) =>
-          ['PUBLISHED', 'REGISTRATION_OPEN', 'TEAM_FORMATION'].includes(e.state)
-        ).length,
+        submissions: mySubmissions.length,
+        submittedProjects,
+        upcomingEvents,
       });
-
-      // Build activity feed
-      const feed: Activity[] = [];
-
-      // Team join activities
-      for (const team of teams) {
-        if (team.createdAt) {
-          feed.push({
-            id: `team-${team.id}`,
-            type: 'team_joined',
-            icon: 'team',
-            itemName: getText(team.name, locale),
-            subtitle: getText(team.event?.name, locale) || '',
-            timestamp: team.createdAt,
-            colorClass: 'bg-orange-100 dark:bg-orange-950/35 text-orange-800 dark:text-orange-300',
-          });
-        }
-      }
-
-      // Submission activities
-      for (const sub of mySubs) {
-        const itemName = getText(sub.title, locale) || sub.id;
-        const teamName = getText(sub.team?.name, locale) || '';
-
-        if (sub.status === 'SUBMITTED' && sub.updatedAt && sub.updatedAt !== sub.createdAt) {
-          feed.push({
-            id: `sub-submitted-${sub.id}`,
-            type: 'submission_submitted',
-            icon: 'check',
-            itemName,
-            subtitle: teamName,
-            timestamp: sub.updatedAt,
-            colorClass: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
-          });
-        }
-
-        if (sub.createdAt) {
-          feed.push({
-            id: `sub-created-${sub.id}`,
-            type: 'submission_created',
-            icon: 'file',
-            itemName,
-            subtitle: teamName,
-            timestamp: sub.createdAt,
-            colorClass: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
-          });
-        }
-      }
-
-      // Sort newest first
-      feed.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setActivities(feed);
-      setActivityPage(1);
-    } catch (err) {
-      console.error('Failed to load dashboard data:', err);
+    } catch (loadError) {
+      console.error('Failed to load dashboard data:', loadError);
+      setError(copy.loadError);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const visibleActivities = activities
+    .filter((activity) => activityFilter === 'all' || activity.category === activityFilter)
+    .slice(0, 5);
+
+  const firstName = currentUser?.name?.trim().split(' ')[0] || copy.welcome.fallbackName;
+  const hasTeamLink = stats.myTeams === 0;
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 dark:border-gray-700 mx-auto" />
-            <div className="absolute inset-0 animate-spin rounded-full h-16 w-16 border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent mx-auto" />
-          </div>
-          <p className="text-gray-600 dark:text-gray-400 font-medium">{t('loading')}</p>
-        </div>
+      <div className="ehms-dashboard-page ehms-dashboard-loading">
+        <div className="ehms-dashboard-spinner" />
+        <p>{copy.loading}</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="ehms-dashboard-page ehms-dashboard-loading">
+        <div className="ehms-dashboard-error">{error}</div>
+        <button
+          type="button"
+          className="ehms-dashboard-btn ehms-dashboard-btn-primary"
+          onClick={loadDashboardData}
+        >
+          {copy.retry}
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Welcome Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-orange-600 to-amber-900 p-8 text-white shadow-xl">
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] opacity-30" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="w-6 h-6" />
-            <h1 className="text-3xl font-bold">{t('welcomeBack')}</h1>
-          </div>
-          <p className="text-orange-50/95 text-lg">{t('overview')}</p>
+    <div className="ehms-dashboard-page">
+      <div className="ehms-dashboard-welcome">
+        <div>
+          <h1>
+            {copy.welcome.prefix} <span className="ehms-dashboard-serif">{firstName}.</span>
+          </h1>
+          <p>{copy.welcome.overview}</p>
+        </div>
+        <div className="ehms-dashboard-date">
+          <span className="ehms-dashboard-date-dot" />
+          {formatHeaderDate(locale)}
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: t('stats.totalEvents'), value: stats.totalEvents, sub: t('stats.allTime'), icon: Calendar, gradient: 'from-orange-500 to-amber-500' },
-          { label: t('stats.myTeams'), value: stats.myTeams, sub: t('stats.activeTeams'), icon: Users, gradient: 'from-orange-500 to-amber-600' },
-          { label: t('stats.submissions'), value: stats.submissions, sub: t('stats.projectsSubmitted'), icon: FileText, gradient: 'from-amber-500 to-orange-500' },
-          { label: t('stats.upcoming'), value: stats.upcomingEvents, sub: t('stats.eventsOpen'), icon: Clock, gradient: 'from-amber-600 to-orange-700' },
-        ].map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="group card-modern overflow-hidden hover:shadow-xl transition-all duration-300">
-              <div className={`h-1 bg-gradient-to-r ${stat.gradient}`} />
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-sm font-medium">{stat.label}</CardDescription>
-                  <div className={`w-10 h-10 bg-gradient-to-br ${stat.gradient} rounded-lg flex items-center justify-center`}>
-                    <Icon className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  {stat.sub}
-                </p>
-              </CardContent>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card-modern p-6 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary to-orange-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-              <Plus className="w-7 h-7 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('createEvent')}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                {t('createEventDesc')}
-              </p>
-              <Link href="/events/create">
-                <Button className="group">
-                  {t('getStarted')}
-                  <ArrowRight className="w-4 h-4 ms-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+      <section className="ehms-dashboard-stats">
+        <article className="ehms-dashboard-stat">
+          <div className="ehms-dashboard-stat-head">
+            <div className="ehms-dashboard-stat-label">{copy.stats.totalEvents}</div>
+            <div className="ehms-dashboard-stat-icon">
+              <Calendar aria-hidden size={16} />
             </div>
           </div>
-        </div>
+          <div className="ehms-dashboard-stat-value">
+            {stats.totalEvents}
+            {stats.upcomingEvents > 0 && (
+              <span className="ehms-dashboard-stat-delta">
+                {copy.stats.totalEventsDeltaPrefix}
+                {stats.upcomingEvents}
+              </span>
+            )}
+          </div>
+          <div className="ehms-dashboard-stat-sub">{copy.stats.totalEventsSub}</div>
+          <svg className="ehms-dashboard-stat-spark" viewBox="0 0 90 28" preserveAspectRatio="none">
+            <polyline
+              fill="none"
+              stroke="oklch(0.5 0.17 130)"
+              strokeWidth="1.6"
+              points="0,22 12,18 24,20 36,14 48,16 60,10 72,12 84,6"
+            />
+            <circle cx="84" cy="6" r="2.5" fill="#0A0A0A" />
+          </svg>
+        </article>
 
-        <div className="card-modern p-6 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-              <Trophy className="w-7 h-7 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('joinHackathon')}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                {t('joinHackathonDesc')}
-              </p>
-              <Link href="/events">
-                <Button variant="outline" className="group">
-                  {t('browseEvents')}
-                  <ArrowRight className="w-4 h-4 ms-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+        <article className={`ehms-dashboard-stat ${stats.myTeams === 0 ? 'is-empty' : ''}`}>
+          <div className="ehms-dashboard-stat-head">
+            <div className="ehms-dashboard-stat-label">{copy.stats.myTeams}</div>
+            <div className="ehms-dashboard-stat-icon">
+              <Users aria-hidden size={16} />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <Card className="card-modern">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            {t('recentActivity')}
-          </CardTitle>
-          <CardDescription>{t('recentActivityDesc')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {activities.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-gray-400" />
-              </div>
-              <p className="text-gray-500 dark:text-gray-400 font-medium mb-1">{t('noActivity')}</p>
-              <p className="text-sm text-gray-400 dark:text-gray-500">
-                {t('noActivityDesc')}
-              </p>
-            </div>
-          ) : (() => {
-            const totalPages = Math.ceil(activities.length / ACTIVITIES_PER_PAGE);
-            const pageItems = activities.slice(
-              (activityPage - 1) * ACTIVITIES_PER_PAGE,
-              activityPage * ACTIVITIES_PER_PAGE,
-            );
-
-            return (
+          <div className="ehms-dashboard-stat-value">{stats.myTeams}</div>
+          <div className="ehms-dashboard-stat-sub">
+            {hasTeamLink ? (
               <>
-                <div className="space-y-1">
-                  {pageItems.map((activity, index) => {
-                    const IconComp =
-                      activity.icon === 'team' ? Users :
-                      activity.icon === 'check' ? CheckCircle2 :
-                      PenLine;
-                    const isLast = index === pageItems.length - 1;
-
-                    const activityTitle =
-                      activity.type === 'team_joined'
-                        ? `${t('activity.joinedTeam')} "${activity.itemName}"`
-                        : activity.type === 'submission_submitted'
-                        ? `${t('activity.submitted')} "${activity.itemName}"`
-                        : `${t('activity.createdSubmission')} "${activity.itemName}"`;
-
-                    return (
-                      <div
-                        key={activity.id}
-                        className="flex items-start gap-4 px-3 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                      >
-                        {/* Icon + connector line */}
-                        <div className="flex flex-col items-center shrink-0">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center ${activity.colorClass}`}>
-                            <IconComp className="w-4 h-4" />
-                          </div>
-                          {!isLast && (
-                            <div className="w-px flex-1 min-h-[1.25rem] bg-gray-200 dark:bg-gray-700 mt-1" />
-                          )}
-                        </div>
-
-                        {/* Text */}
-                        <div className="flex-1 min-w-0 pb-1">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white leading-snug truncate">
-                            {activityTitle}
-                          </p>
-                          {activity.subtitle && (
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-                              {activity.subtitle}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Timestamp */}
-                        <span className="shrink-0 text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                          {relativeTime(activity.timestamp, locale)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-100 dark:border-gray-800">
-                    <p className="text-xs text-gray-400 dark:text-gray-500">
-                      {(activityPage - 1) * ACTIVITIES_PER_PAGE + 1}–{Math.min(activityPage * ACTIVITIES_PER_PAGE, activities.length)} of {activities.length}
-                    </p>
-
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setActivityPage((p) => Math.max(1, p - 1))}
-                        disabled={activityPage === 1}
-                        className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        aria-label="Previous page"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setActivityPage(page)}
-                          className={`min-w-[2rem] h-8 px-2 rounded-lg text-xs font-medium transition-colors ${
-                            page === activityPage
-                              ? 'bg-primary text-white shadow-sm'
-                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
-
-                      <button
-                        onClick={() => setActivityPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={activityPage === totalPages}
-                        className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        aria-label="Next page"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {copy.stats.myTeamsEmptySub.split('·')[0].trim()} ·{' '}
+                <Link href="/events">{copy.activity.openTeamLink}</Link>
               </>
-            );
-          })()}
-        </CardContent>
-      </Card>
+            ) : (
+              copy.stats.myTeamsSub
+            )}
+          </div>
+        </article>
+
+        <article className={`ehms-dashboard-stat ${stats.submissions === 0 ? 'is-empty' : ''}`}>
+          <div className="ehms-dashboard-stat-head">
+            <div className="ehms-dashboard-stat-label">{copy.stats.submissions}</div>
+            <div className="ehms-dashboard-stat-icon">
+              <FileText aria-hidden size={16} />
+            </div>
+          </div>
+          <div className="ehms-dashboard-stat-value">{stats.submissions}</div>
+          <div className="ehms-dashboard-stat-sub">
+            {stats.submissions === 0 ? copy.stats.submissionsEmptySub : copy.stats.submissionsSub}
+          </div>
+        </article>
+
+        <article className="ehms-dashboard-stat">
+          <div className="ehms-dashboard-stat-head">
+            <div className="ehms-dashboard-stat-label">{copy.stats.upcoming}</div>
+            <div className="ehms-dashboard-stat-icon">
+              <Clock aria-hidden size={16} />
+            </div>
+          </div>
+          <div className="ehms-dashboard-stat-value">
+            {stats.upcomingEvents}
+            <span className="ehms-dashboard-stat-delta">{copy.stats.upcomingDelta}</span>
+          </div>
+          <div className="ehms-dashboard-stat-sub">{copy.stats.upcomingSub}</div>
+          <svg className="ehms-dashboard-stat-spark" viewBox="0 0 90 28" preserveAspectRatio="none">
+            <g fill="oklch(0.85 0.17 130)">
+              <rect x="4" y="14" width="8" height="10" rx="1.5" />
+              <rect x="18" y="8" width="8" height="16" rx="1.5" />
+              <rect x="32" y="16" width="8" height="8" rx="1.5" />
+              <rect x="46" y="4" width="8" height="20" rx="1.5" />
+              <rect x="60" y="10" width="8" height="14" rx="1.5" />
+              <rect x="74" y="6" width="8" height="18" rx="1.5" fill="#0A0A0A" />
+            </g>
+          </svg>
+        </article>
+      </section>
+
+      <section className="ehms-dashboard-qa-grid">
+        <article className="ehms-dashboard-qa is-primary">
+          <div className="ehms-dashboard-qa-inner">
+            <div className="ehms-dashboard-qa-icon">
+              <Plus aria-hidden size={20} />
+            </div>
+            <h3>
+              {copy.quickActions.createTitle}{' '}
+              <span className="ehms-dashboard-serif">{copy.quickActions.createAccent}</span>
+            </h3>
+            <p>{copy.quickActions.createBody}</p>
+            <Link href="/events/create" className="ehms-dashboard-qa-cta">
+              {copy.quickActions.createCta}
+              <span className="ehms-dashboard-chev" aria-hidden>
+                {isRtl ? '←' : '→'}
+              </span>
+            </Link>
+          </div>
+        </article>
+
+        <article className="ehms-dashboard-qa is-secondary">
+          <div className="ehms-dashboard-qa-inner">
+            <div className="ehms-dashboard-qa-icon">
+              <Sparkles aria-hidden size={20} />
+            </div>
+            <h3>
+              {copy.quickActions.joinTitle}{' '}
+              <span className="ehms-dashboard-serif">{copy.quickActions.joinAccent}</span>
+            </h3>
+            <p>{copy.quickActions.joinBody}</p>
+            <Link href="/events" className="ehms-dashboard-qa-cta">
+              {copy.quickActions.joinCta}
+              <span className="ehms-dashboard-chev" aria-hidden>
+                {isRtl ? '←' : '→'}
+              </span>
+            </Link>
+          </div>
+        </article>
+      </section>
+
+      <section className="ehms-dashboard-activity">
+        <div className="ehms-dashboard-activity-head">
+          <div>
+            <h2>{copy.activity.title}</h2>
+            <p>{copy.activity.subtitle}</p>
+          </div>
+          <div className="ehms-dashboard-activity-filters">
+            {(
+              [
+                ['all', copy.activity.filters.all],
+                ['events', copy.activity.filters.events],
+                ['teams', copy.activity.filters.teams],
+                ['submissions', copy.activity.filters.submissions],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={`ehms-dashboard-chip ${activityFilter === value ? 'active' : ''}`}
+                onClick={() => setActivityFilter(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="ehms-dashboard-activity-list">
+          {visibleActivities.length === 0 ? (
+            <div className="ehms-dashboard-empty-hint">
+              <p>{copy.activity.emptyTitle}</p>
+              <span>{copy.activity.emptyBody}</span>
+            </div>
+          ) : (
+            visibleActivities.map((activity) => {
+              const Icon =
+                activity.icon === 'team'
+                  ? Users
+                  : activity.icon === 'submission'
+                    ? FileText
+                    : activity.icon === 'judging'
+                      ? Trophy
+                      : Calendar;
+
+              return (
+                <Link
+                  key={activity.id}
+                  href={activity.href}
+                  className="ehms-dashboard-activity-item"
+                >
+                  <div
+                    className={`ehms-dashboard-activity-dot ${
+                      activity.icon === 'team'
+                        ? 'is-team'
+                        : activity.icon === 'judging'
+                          ? 'is-system'
+                          : 'is-event'
+                    }`}
+                  >
+                    <Icon aria-hidden size={15} />
+                  </div>
+
+                  <div className="ehms-dashboard-activity-body">
+                    <div className="ehms-dashboard-activity-title">{activity.title}</div>
+                    <div className="ehms-dashboard-activity-sub">{activity.subtitle}</div>
+                  </div>
+
+                  <div className="ehms-dashboard-activity-meta">
+                    <div className="ehms-dashboard-activity-time">
+                      {relativeTime(activity.timestamp, locale)}
+                    </div>
+                    <span className={`ehms-dashboard-tag is-${activity.tone}`}>{activity.tag}</span>
+                  </div>
+
+                  <span className="ehms-dashboard-activity-chev" aria-hidden>
+                    {isRtl ? '←' : '→'}
+                  </span>
+                </Link>
+              );
+            })
+          )}
+        </div>
+
+        {visibleActivities.length > 0 && (
+          <div className="ehms-dashboard-activity-footer">
+            <Link href="/events">
+              {copy.activity.footer} {isRtl ? '←' : '→'}
+            </Link>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

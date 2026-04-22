@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vision 2030 Youth Innovation Cup — EHMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg: #FAFAF7;
+  --bg-elev: #FFFFFF;
+  --ink: #0A0A0A;
+  --ink-2: #2A2A2A;
+  --muted: #6B6B6B;
+  --muted-2: #9B9B9B;
+  --line: rgba(10,10,10,0.08);
+  --line-2: rgba(10,10,10,0.14);
+  --accent: oklch(0.85 0.17 130);
+  --accent-deep: oklch(0.68 0.19 130);
+  --accent-soft: oklch(0.93 0.09 130);
+  --maxw: 1240px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.mono{font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:-0.01em}
+.serif{font-family:'Instrument Serif',serif;font-weight:400;font-style:italic}
+.container{max-width:var(--maxw);margin:0 auto;padding:0 32px}
+
+/* ============ NAV ============ */
+.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:color-mix(in oklab, var(--bg) 78%, transparent);border-bottom:1px solid var(--line)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:68px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-0.02em;font-size:17px}
+.logo-mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative;overflow:hidden}
+.logo-mark::before{content:"";position:absolute;inset:4px;border-radius:4px;background:var(--accent)}
+.logo-mark::after{content:"";position:absolute;left:10px;top:10px;width:6px;height:6px;border-radius:2px;background:var(--ink)}
+.nav-links{display:flex;gap:32px;font-size:14px;color:var(--muted)}
+.nav-links a{transition:color .2s}
+.nav-links a:hover,.nav-links a.active{color:var(--ink)}
+.nav-cta{display:flex;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:500;transition:all .2s ease;border:1px solid transparent;white-space:nowrap}
+.btn-ghost{color:var(--ink-2)}
+.btn-ghost:hover{background:rgba(10,10,10,0.04)}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-primary:hover{background:#000;transform:translateY(-1px);box-shadow:0 6px 20px -8px rgba(10,10,10,0.4)}
+.btn-outline{border-color:var(--line-2);color:var(--ink);background:#fff}
+.btn-outline:hover{border-color:var(--ink)}
+.btn-accent{background:var(--accent);color:var(--ink)}
+.btn-accent:hover{background:var(--accent-deep);color:#fff}
+.chev{transition:transform .2s}
+.btn:hover .chev{transform:translateX(3px)}
+
+/* ============ BREADCRUMB ============ */
+.crumb{padding:22px 0 6px;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.crumb a{transition:color .2s}
+.crumb a:hover{color:var(--ink)}
+.crumb .sep{color:var(--muted-2)}
+.crumb b{color:var(--ink);font-weight:500}
+
+/* ============ HERO ============ */
+.hero{position:relative;padding:24px 0 48px;overflow:hidden}
+.hero-gradient{position:absolute;inset:0;pointer-events:none;z-index:0}
+.hero-gradient::before{
+  content:"";position:absolute;left:50%;top:-20%;transform:translateX(-50%);
+  width:1400px;height:700px;
+  background:
+    radial-gradient(ellipse 55% 50% at 50% 30%, oklch(0.92 0.15 130 / 0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 30% 30%, oklch(0.88 0.18 140 / 0.3) 0%, transparent 55%);
+  filter:blur(24px);
+}
+.hero-gradient::after{
+  content:"";position:absolute;inset:0;
+  background-image:radial-gradient(circle at 1px 1px, rgba(10,10,10,0.05) 1px, transparent 0);
+  background-size:22px 22px;
+  mask-image:radial-gradient(ellipse 70% 70% at 50% 30%, #000 20%, transparent 80%);
+  -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 30%, #000 20%, transparent 80%);
+}
+.hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:center}
+
+.badge-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:100px;font-size:12.5px;font-weight:500;border:1px solid transparent}
+.badge.results{background:var(--ink);color:var(--accent);border-color:var(--ink)}
+.badge.results .b-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px oklch(0.85 0.17 130 / 0.3)}
+.badge.loc{background:rgba(255,255,255,0.7);color:var(--ink-2);border-color:var(--line-2);backdrop-filter:blur(8px)}
+.badge.track{background:var(--accent-soft);color:var(--ink);border-color:oklch(0.85 0.17 130 / 0.3)}
+
+.hero h1{font-size:clamp(40px,5.4vw,68px);line-height:1;letter-spacing:-0.035em;font-weight:600;margin-bottom:20px}
+.hero h1 .serif{color:var(--ink-2);font-size:1em}
+.hero p.lede{font-size:17px;color:var(--muted);line-height:1.5;max-width:540px;margin-bottom:28px}
+
+.hero-ctas{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:28px}
+
+.hero-stats{display:flex;gap:36px;padding-top:24px;border-top:1px solid var(--line);flex-wrap:wrap}
+.hs{display:flex;flex-direction:column;gap:4px}
+.hs .n{font-size:22px;font-weight:600;letter-spacing:-0.02em;line-height:1}
+.hs .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;font-family:'JetBrains Mono',monospace}
+
+/* hero visual — trophy / winners card */
+.hero-visual{position:relative;min-height:420px}
+.winner-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:22px;padding:28px;box-shadow:0 30px 80px -30px rgba(10,10,10,0.2),0 10px 30px -15px rgba(10,10,10,0.08)}
+.wc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.wc-top .lbl{font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);font-weight:600}
+.wc-top .live{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent-deep);display:flex;align-items:center;gap:6px}
+.wc-top .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent-deep);box-shadow:0 0 0 3px oklch(0.85 0.17 130 / 0.3)}
+.trophy{display:flex;align-items:center;gap:14px;padding:14px;border-radius:14px;background:linear-gradient(135deg, var(--accent-soft), #fff);border:1px solid oklch(0.85 0.17 130 / 0.25);margin-bottom:10px}
+.trophy .rank{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--ink);flex-shrink:0;background:var(--accent);font-size:18px;font-family:'JetBrains Mono',monospace}
+.trophy .info{flex:1;min-width:0}
+.trophy .info .n{font-weight:600;letter-spacing:-0.01em;font-size:15.5px}
+.trophy .info .p{font-size:12.5px;color:var(--muted);margin-top:2px}
+.trophy .prize{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--ink)}
+.wc-row{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;background:#FBFBF9;border:1px solid var(--line)}
+.wc-row+.wc-row{margin-top:8px}
+.wc-row .rank{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:13px;font-family:'JetBrains Mono',monospace}
+.wc-row .rank.silver{background:#EFEFEA;color:var(--ink-2)}
+.wc-row .rank.bronze{background:oklch(0.78 0.11 50);color:#fff}
+.wc-row .info{flex:1;min-width:0}
+.wc-row .info .n{font-weight:600;font-size:14px;letter-spacing:-0.01em}
+.wc-row .info .p{font-size:12px;color:var(--muted);margin-top:1px}
+.wc-row .prize{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+
+.float-pill{position:absolute;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;box-shadow:0 20px 40px -20px rgba(10,10,10,0.2);font-size:12px;z-index:2;display:flex;gap:8px;align-items:center}
+.float-pill .fp-ico{width:26px;height:26px;border-radius:8px;background:var(--ink);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.float-pill .fp-ico svg{width:13px;height:13px}
+.float-pill .fp-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em}
+.float-pill .fp-val{font-weight:600;font-size:13px;letter-spacing:-0.01em}
+.fp1{left:-24px;top:-18px}
+.fp2{right:-24px;bottom:30px}
+
+/* ============ MILESTONE ROW ============ */
+.section{padding:80px 0;position:relative}
+.section-sm{padding:48px 0}
+
+.milestones{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ml{border:1px solid var(--line);border-radius:16px;background:#fff;padding:22px;position:relative;overflow:hidden;transition:border-color .25s, transform .25s, box-shadow .25s}
+.ml:hover{border-color:var(--line-2);transform:translateY(-2px);box-shadow:0 18px 36px -22px rgba(10,10,10,0.15)}
+.ml.done::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ink),var(--accent))}
+.ml.current::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+.ml-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.ml-step{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted-2);letter-spacing:0.08em;font-weight:600}
+.ml-status{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:3px 8px;border-radius:100px;letter-spacing:0.05em;font-weight:600}
+.ml-status.closed{background:var(--ink);color:#fff}
+.ml-status.current{background:var(--accent);color:var(--ink)}
+.ml-status.upcoming{background:#F5F5F0;color:var(--muted)}
+.ml h3{font-size:17px;letter-spacing:-0.02em;font-weight:600;margin-bottom:4px}
+.ml .date{font-size:13.5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.ml .sub{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5}
+
+/* ============ SEC HEADERS ============ */
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;gap:20px;flex-wrap:wrap}
+.sec-head h2{font-size:clamp(28px,3.4vw,40px);letter-spacing:-0.025em;line-height:1.05;font-weight:600}
+.sec-head h2 .serif{color:var(--muted)}
+.sec-head p{font-size:15px;color:var(--muted);margin-top:6px;max-width:500px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);padding:5px 12px;border:1px solid var(--line-2);border-radius:100px;background:#fff;margin-bottom:12px;font-family:'JetBrains Mono',monospace}
+.eyebrow .e-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-deep)}
+
+/* ============ GRID LAYOUT ============ */
+.two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:32px}
+
+/* ============ ABOUT ============ */
+.about-card{border:1px solid var(--line);border-radius:20px;background:#fff;padding:36px}
+.about-card h2{font-size:28px;letter-spacing:-0.025em;font-weight:600;margin-bottom:12px;line-height:1.1}
+.about-card h2 .serif{color:var(--muted)}
+.about-card p{font-size:15px;line-height:1.65;color:var(--ink-2);margin-bottom:14px}
+.about-card p:last-child{margin-bottom:0}
+
+/* tracks */
+.tracks{margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.track-card{border:1px solid var(--line);border-radius:12px;padding:16px;background:#FCFCFA;transition:border-color .2s,background .2s}
+.track-card:hover{border-color:var(--line-2);background:#fff}
+.track-ico{width:30px;height:30px;border-radius:8px;background:var(--ink);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px}
+.track-ico svg{width:14px;height:14px}
+.track-card .t{font-size:14px;font-weight:600;letter-spacing:-0.01em;margin-bottom:2px}
+.track-card .d{font-size:12px;color:var(--muted);line-height:1.4}
+
+/* ============ SIDEBAR CARD ============ */
+.side-stack{display:flex;flex-direction:column;gap:16px;position:sticky;top:90px;align-self:start}
+.side-card{border:1px solid var(--line);border-radius:18px;background:#fff;padding:24px}
+.side-card.dark{background:var(--ink);color:#fff;border-color:var(--ink);position:relative;overflow:hidden}
+.side-card.dark::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 100% 120%, oklch(0.85 0.17 130 / 0.4) 0%, transparent 55%);pointer-events:none}
+.side-card-inner{position:relative;z-index:1}
+.side-card h4{font-size:13px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;margin-bottom:14px;font-family:'JetBrains Mono',monospace}
+.side-card.dark h4{color:rgba(255,255,255,0.55)}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;font-size:14px;border-bottom:1px dashed var(--line-2)}
+.info-row:last-child{border-bottom:0}
+.side-card.dark .info-row{border-color:rgba(255,255,255,0.1)}
+.info-row .lbl{color:var(--muted);display:flex;align-items:center;gap:8px}
+.side-card.dark .info-row .lbl{color:rgba(255,255,255,0.55)}
+.info-row .val{font-weight:500;letter-spacing:-0.01em}
+
+.host{display:flex;align-items:center;gap:12px;margin-top:6px}
+.host-logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--ink);flex-shrink:0}
+.host .n{font-weight:600;font-size:14.5px;letter-spacing:-0.01em}
+.host .p{font-size:12.5px;color:var(--muted);margin-top:1px}
+
+.prize-pool{display:flex;align-items:baseline;gap:6px;font-size:32px;letter-spacing:-0.03em;font-weight:500}
+.prize-pool .u{font-size:14px;color:rgba(255,255,255,0.55);font-weight:400;font-family:'JetBrains Mono',monospace;letter-spacing:0.05em}
+.side-card.dark p{color:rgba(255,255,255,0.55);font-size:13px;margin-top:6px}
+
+.mini-map{margin-top:12px;border-radius:12px;overflow:hidden;height:140px;position:relative;background:linear-gradient(135deg,#F5F5F0,#FBFBF9);border:1px solid var(--line)}
+.mini-map svg{position:absolute;inset:0;width:100%;height:100%}
+.map-pin{position:absolute;left:52%;top:48%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:6px;background:var(--ink);color:#fff;padding:6px 10px;border-radius:100px;font-size:11.5px;font-weight:500;box-shadow:0 6px 16px -6px rgba(10,10,10,0.4);z-index:2}
+.map-pin::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.map-pulse{position:absolute;left:52%;top:48%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:oklch(0.85 0.17 130 / 0.3);z-index:1;animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{transform:translate(-50%,-50%) scale(.6);opacity:1}100%{transform:translate(-50%,-50%) scale(2);opacity:0}}
+
+/* ============ RESULTS ============ */
+.results{border:1px solid var(--line);border-radius:22px;background:#fff;overflow:hidden}
+.results-head{padding:24px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.results-head h2{font-size:24px;letter-spacing:-0.02em;font-weight:600}
+.results-head p{font-size:13.5px;color:var(--muted);margin-top:3px}
+.podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;align-items:end;gap:14px;padding:36px 28px 28px;background:linear-gradient(180deg, #FCFCFA, #fff)}
+.pod{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px 20px;text-align:center;position:relative;transition:transform .25s, border-color .25s, box-shadow .25s}
+.pod:hover{transform:translateY(-3px);box-shadow:0 18px 36px -20px rgba(10,10,10,0.2)}
+.pod .rank-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;border:3px solid var(--bg)}
+.pod.first{min-height:230px;border-color:oklch(0.85 0.17 130 / 0.5);background:linear-gradient(180deg,var(--accent-soft),#fff)}
+.pod.first .rank-badge{background:var(--accent);color:var(--ink)}
+.pod.second{min-height:205px}
+.pod.second .rank-badge{background:#EFEFEA;color:var(--ink-2)}
+.pod.third{min-height:190px}
+.pod.third .rank-badge{background:oklch(0.78 0.11 50);color:#fff}
+.pod .team{font-size:18px;font-weight:600;letter-spacing:-0.02em;margin-top:20px;margin-bottom:4px}
+.pod .proj{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.pod .prize-tag{display:inline-flex;gap:4px;align-items:baseline;padding:6px 12px;border-radius:100px;background:var(--ink);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600}
+.pod .members{font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.1em;font-family:'JetBrains Mono',monospace;margin-top:12px}
+
+/* ============ AGENDA ============ */
+.agenda{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden}
+.day-group{border-bottom:1px solid var(--line)}
+.day-group:last-child{border-bottom:0}
+.day-head{padding:16px 24px;background:#FCFCFA;display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+.day-head b{color:var(--ink)}
+.ag-item{display:grid;grid-template-columns:120px 1fr auto;gap:16px;padding:16px 24px;border-top:1px solid var(--line);align-items:center}
+.ag-time{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--ink-2)}
+.ag-body .t{font-size:14.5px;font-weight:500;letter-spacing:-0.01em;margin-bottom:2px}
+.ag-body .s{font-size:12.5px;color:var(--muted)}
+.ag-tag{font-size:10.5px;padding:3px 9px;border-radius:100px;font-weight:500;white-space:nowrap}
+.ag-tag.keynote{background:var(--ink);color:#fff}
+.ag-tag.hack{background:var(--accent);color:var(--ink)}
+.ag-tag.workshop{background:var(--accent-soft);color:var(--ink);border:1px solid oklch(0.85 0.17 130 / 0.3)}
+.ag-tag.award{background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:var(--ink)}
+
+/* ============ SPONSORS ============ */
+.sp-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.sp{border:1px solid var(--line);border-radius:14px;padding:22px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;aspect-ratio:3/2;transition:border-color .2s, transform .2s}
+.sp:hover{border-color:var(--line-2);transform:translateY(-2px)}
+.sp-dot{width:32px;height:32px;border-radius:8px;background:var(--ink);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:13px;font-weight:700;letter-spacing:-0.02em}
+.sp-name{font-size:13px;font-weight:600;letter-spacing:-0.01em;color:var(--ink-2)}
+
+/* ============ CTA ============ */
+.cta-box{position:relative;border-radius:24px;background:var(--ink);color:#fff;padding:56px 40px;overflow:hidden;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.cta-box::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 50% 80% at 100% 120%, oklch(0.85 0.17 130 / 0.45) 0%, transparent 55%),radial-gradient(ellipse 40% 60% at 0% 0%, oklch(0.85 0.17 130 / 0.18) 0%, transparent 50%)}
+.cta-box::after{content:"";position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0);background-size:22px 22px;mask-image:radial-gradient(ellipse 80% 80% at 50% 100%, #000 20%, transparent 80%);-webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 100%, #000 20%, transparent 80%)}
+.cta-inner{position:relative;z-index:1;max-width:560px}
+.cta-inner h3{font-size:28px;letter-spacing:-0.025em;font-weight:600;line-height:1.1;margin-bottom:8px}
+.cta-inner h3 .serif{color:var(--accent)}
+.cta-inner p{color:rgba(255,255,255,0.65);font-size:14.5px;line-height:1.5}
+.cta-btns{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap}
+.cta-btns .btn-primary{background:var(--accent);color:var(--ink)}
+.cta-btns .btn-primary:hover{background:#fff}
+.cta-btns .btn-outline{border-color:rgba(255,255,255,0.2);color:#fff;background:transparent}
+.cta-btns .btn-outline:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.3)}
+
+/* ============ FOOTER ============ */
+.footer{border-top:1px solid var(--line);padding:36px 0;font-size:13px;color:var(--muted);margin-top:60px}
+.footer-inner{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.footer a{color:var(--ink-2);transition:color .2s}
+.footer a:hover{color:var(--ink)}
+.footer .links{display:flex;gap:22px}
+
+/* responsive */
+@media (max-width:1024px){
+  .hero-inner{grid-template-columns:1fr;gap:40px}
+  .milestones{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .side-stack{position:static}
+  .tracks{grid-template-columns:repeat(2,1fr)}
+  .sp-grid{grid-template-columns:repeat(3,1fr)}
+  .nav-links{display:none}
+  .fp1,.fp2{display:none}
+}
+@media (max-width:640px){
+  .container{padding:0 20px}
+  .section{padding:56px 0}
+  .milestones{grid-template-columns:1fr}
+  .podium{grid-template-columns:1fr;padding:28px 20px 20px}
+  .pod{min-height:auto !important}
+  .tracks{grid-template-columns:1fr}
+  .sp-grid{grid-template-columns:repeat(2,1fr)}
+  .ag-item{grid-template-columns:1fr;gap:6px}
+  .cta-box{padding:40px 24px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============== NAV ============== -->
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo"><span class="logo-mark"></span>EHMS</a>
+    <div class="nav-links">
+      <a href="#" class="active">Events</a>
+      <a href="#">Dashboard</a>
+      <a href="#">Teams</a>
+      <a href="#">Sponsors</a>
+      <a href="#">Resources</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-ghost">Sign in</a>
+      <a href="#" class="btn btn-primary">Explore events <span class="chev">→</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <!-- crumb -->
+  <div class="crumb">
+    <a href="#">Events</a>
+    <span class="sep">/</span>
+    <a href="#">National tracks</a>
+    <span class="sep">/</span>
+    <b>Vision 2030 Youth Innovation Cup</b>
+  </div>
+</div>
+
+<!-- ============== HERO ============== -->
+<section class="hero">
+  <div class="hero-gradient"></div>
+  <div class="container">
+    <div class="hero-inner">
+
+      <div class="hero-left">
+        <div class="badge-row">
+          <span class="badge results"><span class="b-dot"></span> Results Published</span>
+          <span class="badge loc">📍 Riyadh, Saudi Arabia</span>
+          <span class="badge track">Nationwide Youth Track</span>
+        </div>
+        <h1>Vision 2030 <br/><span class="serif">Youth Innovation Cup.</span></h1>
+        <p class="lede">Nationwide youth track — winners announced from Riyadh. Three days of building, mentoring, and demoing the next generation of Vision 2030 ideas.</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-primary">View results <span class="chev">→</span></a>
+          <a href="#" class="btn btn-outline">Download report</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hs"><span class="n">1,248</span><span class="l">Participants</span></div>
+          <div class="hs"><span class="n">312</span><span class="l">Teams</span></div>
+          <div class="hs"><span class="n">42</span><span class="l">Mentors</span></div>
+          <div class="hs"><span class="n">$120k</span><span class="l">Prize pool</span></div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="float-pill fp1">
+          <div class="fp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M8 14l-2 8 6-3 6 3-2-8"/></svg></div>
+          <div>
+            <div class="fp-label">Winners</div>
+            <div class="fp-val">Announced</div>
+          </div>
+        </div>
+        <div class="float-pill fp2">
+          <div class="fp-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 3 3 5-7"/></svg></div>
+          <div>
+            <div class="fp-label">Impact score</div>
+            <div class="fp-val">9.2 / 10</div>
+          </div>
+        </div>
+        <div class="winner-card">
+          <div class="wc-top">
+            <span class="lbl">Final Rankings</span>
+            <span class="live">Certified</span>
+          </div>
+          <div class="trophy">
+            <div class="rank">1</div>
+            <div class="info">
+              <div class="n">Team Nabta</div>
+              <div class="p">AI-driven desert crop planning</div>
+            </div>
+            <div class="prize">$50,000</div>
+          </div>
+          <div class="wc-row">
+            <div class="rank silver">2</div>
+            <div class="info">
+              <div class="n">Team Misbah</div>
+              <div class="p">Edge-AI water leak sensors for Riyadh</div>
+            </div>
+            <div class="prize">$25,000</div>
+          </div>
+          <div class="wc-row">
+            <div class="rank bronze">3</div>
+            <div class="info">
+              <div class="n">Team Asil</div>
+              <div class="p">Arabic heritage archive, reimagined</div>
+            </div>
+            <div class="prize">$12,000</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============== MILESTONES ============== -->
+<section class="section-sm">
+  <div class="container">
+    <div class="milestones">
+      <div class="ml done">
+        <div class="ml-head"><span class="ml-step">STEP 01</span><span class="ml-status closed">CLOSED</span></div>
+        <h3>Registration</h3>
+        <div class="date">October 3, 2025</div>
+        <div class="sub">1,248 applicants across 18 regions — double last year's turnout.</div>
+      </div>
+      <div class="ml done">
+        <div class="ml-head"><span class="ml-step">STEP 02</span><span class="ml-status closed">CLOSED</span></div>
+        <h3>Hackathon</h3>
+        <div class="date">November 12, 2025</div>
+        <div class="sub">72 hours of building across six Vision 2030 tracks in Riyadh.</div>
+      </div>
+      <div class="ml done">
+        <div class="ml-head"><span class="ml-step">STEP 03</span><span class="ml-status closed">CLOSED</span></div>
+        <h3>Judging</h3>
+        <div class="date">November 14, 2025</div>
+        <div class="sub">Three rounds · 42 expert judges · blind peer review.</div>
+      </div>
+      <div class="ml current">
+        <div class="ml-head"><span class="ml-step">STEP 04</span><span class="ml-status current">PUBLISHED</span></div>
+        <h3>Results &amp; Awards</h3>
+        <div class="date">November 16, 2025</div>
+        <div class="sub">Winners announced live from the Riyadh Innovation Center.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== ABOUT + SIDE ============== -->
+<section class="section">
+  <div class="container two-col">
+
+    <div>
+      <span class="eyebrow"><span class="e-dot"></span> ABOUT THE EVENT</span>
+      <div class="about-card">
+        <h2>Built in 72 hours — <span class="serif">made to last a decade.</span></h2>
+        <p>The Vision 2030 Youth Innovation Cup brought together 1,248 builders from universities, bootcamps, and high schools across Saudi Arabia for a three-day sprint aimed at one goal: ship working prototypes against six national priority tracks.</p>
+        <p>Participants worked alongside 42 industry mentors from leading organizations and pitched final submissions to a cross-sector panel — with top teams receiving direct pathways into accelerator programs and government innovation funds.</p>
+
+        <div class="tracks">
+          <div class="track-card">
+            <div class="track-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20l4-16M13 20l4-16M6 9h15M3 15h15"/></svg></div>
+            <div class="t">Smart Cities</div>
+            <div class="d">Urban infrastructure &amp; mobility</div>
+          </div>
+          <div class="track-card">
+            <div class="track-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 22V10M17 22V4M12 22V14"/></svg></div>
+            <div class="t">Green Economy</div>
+            <div class="d">Sustainability &amp; climate tech</div>
+          </div>
+          <div class="track-card">
+            <div class="track-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 017 7c0 3-2 5-3 6s-1 2-1 3H9c0-1 0-2-1-3S5 12 5 9a7 7 0 017-7zM9 21h6M10 18h4"/></svg></div>
+            <div class="t">HealthTech</div>
+            <div class="d">Preventive &amp; digital health</div>
+          </div>
+          <div class="track-card">
+            <div class="track-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 5h5l-4 3 2 6-5-3-5 3 2-6-4-3h5z"/></svg></div>
+            <div class="t">Heritage &amp; Arts</div>
+            <div class="d">Cultural preservation, reimagined</div>
+          </div>
+          <div class="track-card">
+            <div class="track-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg></div>
+            <div class="t">FinTech</div>
+            <div class="d">Inclusion &amp; open banking</div>
+          </div>
+          <div class="track-card">
+            <div class="track-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v5H4zM4 15h16v5H4zM8 9v6M16 9v6"/></svg></div>
+            <div class="t">EduTech</div>
+            <div class="d">Lifelong &amp; accessible learning</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- side -->
+    <div class="side-stack">
+
+      <div class="side-card dark">
+        <div class="side-card-inner">
+          <h4>Total Prize Pool</h4>
+          <div class="prize-pool">$120,000 <span class="u">USD</span></div>
+          <p>Distributed across 9 winning teams, with top-3 receiving direct accelerator placement.</p>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Event Details</h4>
+        <div class="info-row">
+          <span class="lbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Dates</span>
+          <span class="val">Nov 12 – 16, 2025</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg> Venue</span>
+          <span class="val">Riyadh Innovation Center</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Format</span>
+          <span class="val">In-person · 72h</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Team size</span>
+          <span class="val">2 – 5 members</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-9h14l2 9M3 12v9h18v-9M3 12h18"/></svg> Eligibility</span>
+          <span class="val">Ages 16 – 28</span>
+        </div>
+        <div class="info-row">
+          <span class="lbl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg> Status</span>
+          <span class="val" style="color:var(--accent-deep);font-weight:600">Concluded</span>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Host &amp; Partners</h4>
+        <div class="host">
+          <div class="host-logo">V30</div>
+          <div>
+            <div class="n">Vision 2030 Foundation</div>
+            <div class="p">Official Host · Kingdom of Saudi Arabia</div>
+          </div>
+        </div>
+        <div class="mini-map">
+          <svg viewBox="0 0 300 140" preserveAspectRatio="none">
+            <defs>
+              <pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1" fill="rgba(10,10,10,0.1)"/>
+              </pattern>
+            </defs>
+            <rect width="300" height="140" fill="url(#dots)"/>
+            <path d="M30 80 Q 80 40, 130 70 T 240 60 L 270 90 L 200 120 L 80 110 Z" fill="none" stroke="rgba(10,10,10,0.18)" stroke-width="1.5"/>
+          </svg>
+          <div class="map-pulse"></div>
+          <div class="map-pin">Riyadh · KSA</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============== RESULTS PODIUM ============== -->
+<section class="section" id="results" style="padding-top:0">
+  <div class="container">
+    <div class="sec-head">
+      <div>
+        <span class="eyebrow"><span class="e-dot"></span> RESULTS · PODIUM</span>
+        <h2>The top three, <span class="serif">by unanimous decision.</span></h2>
+      </div>
+      <p>Final rankings certified by a 42-member cross-sector jury across six tracks. Full leaderboard available in the official report.</p>
+    </div>
+    <div class="results">
+      <div class="results-head">
+        <div>
+          <h2>Final leaderboard</h2>
+          <p>Nov 16, 2025 · Announced live from Riyadh</p>
+        </div>
+        <a href="#" class="btn btn-outline">See all 9 winners <span class="chev">→</span></a>
+      </div>
+      <div class="podium">
+        <div class="pod second">
+          <div class="rank-badge">02</div>
+          <div class="team">Team Misbah</div>
+          <div class="proj">Edge-AI water leak detection sensors for urban Riyadh infrastructure.</div>
+          <div class="prize-tag">$25,000</div>
+          <div class="members">4 members · FinTech Track</div>
+        </div>
+        <div class="pod first">
+          <div class="rank-badge">01</div>
+          <div class="team">Team Nabta</div>
+          <div class="proj">AI-driven desert crop planning platform for Saudi agricultural resilience.</div>
+          <div class="prize-tag">$50,000</div>
+          <div class="members">5 members · Green Economy Track</div>
+        </div>
+        <div class="pod third">
+          <div class="rank-badge">03</div>
+          <div class="team">Team Asil</div>
+          <div class="proj">Arabic heritage archive — AR-powered cultural preservation for youth.</div>
+          <div class="prize-tag">$12,000</div>
+          <div class="members">3 members · Heritage Track</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== AGENDA ============== -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="sec-head">
+      <div>
+        <span class="eyebrow"><span class="e-dot"></span> EVENT AGENDA</span>
+        <h2>Three days, <span class="serif">one relentless build.</span></h2>
+      </div>
+    </div>
+    <div class="agenda">
+      <div class="day-group">
+        <div class="day-head">DAY 01 · <b>Nov 12, 2025</b> — Opening &amp; kickoff</div>
+        <div class="ag-item">
+          <div class="ag-time">09:00 – 10:30</div>
+          <div class="ag-body"><div class="t">Opening keynote · H.E. Minister of Innovation</div><div class="s">Riyadh Innovation Center, Main Hall</div></div>
+          <span class="ag-tag keynote">Keynote</span>
+        </div>
+        <div class="ag-item">
+          <div class="ag-time">11:00 – 18:00</div>
+          <div class="ag-body"><div class="t">Track briefings &amp; team formation</div><div class="s">Six parallel rooms · breakout mentorship</div></div>
+          <span class="ag-tag workshop">Workshop</span>
+        </div>
+        <div class="ag-item">
+          <div class="ag-time">20:00 – 00:00</div>
+          <div class="ag-body"><div class="t">Hack begins — 72-hour window opens</div><div class="s">Overnight mentors available · snacks + prayer rooms</div></div>
+          <span class="ag-tag hack">Hack</span>
+        </div>
+      </div>
+
+      <div class="day-group">
+        <div class="day-head">DAY 02 · <b>Nov 13, 2025</b> — Build deep</div>
+        <div class="ag-item">
+          <div class="ag-time">10:00 – 12:00</div>
+          <div class="ag-body"><div class="t">Mentor office hours · rotational</div><div class="s">42 mentors across all six tracks</div></div>
+          <span class="ag-tag workshop">Workshop</span>
+        </div>
+        <div class="ag-item">
+          <div class="ag-time">14:00 – 15:30</div>
+          <div class="ag-body"><div class="t">Masterclass: Designing for Arabic-first audiences</div><div class="s">Led by Fatimah Al-Rashid · Creative Director</div></div>
+          <span class="ag-tag keynote">Keynote</span>
+        </div>
+        <div class="ag-item">
+          <div class="ag-time">All day</div>
+          <div class="ag-body"><div class="t">Continuous hacking</div><div class="s">Check-ins every 6 hours</div></div>
+          <span class="ag-tag hack">Hack</span>
+        </div>
+      </div>
+
+      <div class="day-group">
+        <div class="day-head">DAY 03 · <b>Nov 14, 2025</b> — Submit &amp; judge</div>
+        <div class="ag-item">
+          <div class="ag-time">18:00</div>
+          <div class="ag-body"><div class="t">Submission deadline — hard close</div><div class="s">All prototypes frozen · final videos uploaded</div></div>
+          <span class="ag-tag hack">Hack</span>
+        </div>
+        <div class="ag-item">
+          <div class="ag-time">19:00 – 23:00</div>
+          <div class="ag-body"><div class="t">Round 1 &amp; 2 judging</div><div class="s">Blind peer review + expert panel</div></div>
+          <span class="ag-tag workshop">Workshop</span>
+        </div>
+      </div>
+
+      <div class="day-group">
+        <div class="day-head">DAY 04 · <b>Nov 16, 2025</b> — Awards &amp; closing</div>
+        <div class="ag-item">
+          <div class="ag-time">16:00 – 18:00</div>
+          <div class="ag-body"><div class="t">Top-9 finalist demos · live-streamed nationwide</div><div class="s">Main stage · 1,200 attendees</div></div>
+          <span class="ag-tag keynote">Keynote</span>
+        </div>
+        <div class="ag-item">
+          <div class="ag-time">19:00 – 20:30</div>
+          <div class="ag-body"><div class="t">Awards ceremony &amp; closing remarks</div><div class="s">Prizes · accelerator offers · press conference</div></div>
+          <span class="ag-tag award">Award</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SPONSORS ============== -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="sec-head">
+      <div>
+        <span class="eyebrow"><span class="e-dot"></span> SPONSORS &amp; PARTNERS</span>
+        <h2>Backed by the ecosystem <span class="serif">building tomorrow.</span></h2>
+      </div>
+    </div>
+    <div class="sp-grid">
+      <div class="sp"><span class="sp-dot">V3</span><span class="sp-name">Vision 2030</span></div>
+      <div class="sp"><span class="sp-dot" style="background:var(--accent);color:var(--ink)">N</span><span class="sp-name">Neom</span></div>
+      <div class="sp"><span class="sp-dot" style="border-radius:50%">SI</span><span class="sp-name">Saudi Innovate</span></div>
+      <div class="sp"><span class="sp-dot" style="background:var(--ink-2)">K</span><span class="sp-name">KAUST</span></div>
+      <div class="sp"><span class="sp-dot" style="background:oklch(0.85 0.1 50);color:var(--ink)">R</span><span class="sp-name">Riyadh Bank</span></div>
+      <div class="sp"><span class="sp-dot" style="background:var(--accent-deep);color:#fff">M</span><span class="sp-name">Misk Foundation</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== CTA ============== -->
+<section class="container" style="padding-bottom:40px">
+  <div class="cta-box">
+    <div class="cta-inner">
+      <h3>Next edition — <span class="serif">Spring 2026.</span></h3>
+      <p>Want early access to the Vision 2030 Youth Cup 2026 — or to host your own national-scale event on EHMS? Get in touch.</p>
+    </div>
+    <div class="cta-btns">
+      <a href="#" class="btn btn-primary">Join 2026 waitlist <span class="chev">→</span></a>
+      <a href="#" class="btn btn-outline">View details</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FOOTER ============== -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div>© 2026 EHMS Systems, Inc.</div>
+    <div class="links">
+      <a href="#">Events</a>
+      <a href="#">Docs</a>
+      <a href="#">Privacy</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
