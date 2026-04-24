@@ -891,6 +891,108 @@ async function main() {
 
   console.log('✓ Seeded 7 KSA-themed events + registrations, teams, submissions, judging');
 
+  // ============================================================================
+  // ADDITIONAL TEAMS — richer teams page demo for participant1
+  // ============================================================================
+  console.log('Seeding additional demo teams...');
+
+  // Register participants in riyadhGovTech (already done above) and visionCup
+  await prisma.eventRegistration.createMany({
+    data: allParticipantIds.map((userId) => ({ eventId: visionCup.id, userId, status: 'REGISTERED' })),
+    skipDuplicates: true,
+  });
+
+  // Register participants in publishedTabuk
+  await prisma.eventRegistration.createMany({
+    data: allParticipantIds.map((userId) => ({ eventId: publishedTabuk.id, userId, status: 'REGISTERED' })),
+    skipDuplicates: true,
+  });
+
+  // Vision Cup — participant1 leads a full team (5 members)
+  await prisma.team.create({
+    data: {
+      name: loc('Sarab AI', 'سراب للذكاء الاصطناعي'),
+      description: loc(
+        'Youth-driven AI tools for Vision 2030 social programs.',
+        'أدوات ذكاء اصطناعي بقيادة شبابية لبرامج رؤية ٢٠٣٠.',
+      ),
+      eventId: visionCup.id,
+      leaderId: participant1.id,
+      isLocked: true,
+      members: {
+        create: [
+          { userId: participant1.id, role: 'LEADER' },
+          { userId: participant2.id, role: 'MEMBER' },
+          { userId: participant3.id, role: 'MEMBER' },
+          { userId: participant4.id, role: 'MEMBER' },
+          { userId: participant5.id, role: 'MEMBER' },
+        ],
+      },
+    },
+  });
+
+  // Riyadh GovTech — participant1 joins as member (different team)
+  await prisma.team.create({
+    data: {
+      name: loc('Tamkeen Platform', 'منصة تمكين'),
+      description: loc(
+        'Citizen empowerment dashboard for government e-services.',
+        'لوحة تمكين المواطن لخدمات الحكومة الإلكترونية.',
+      ),
+      eventId: riyadhGovTech.id,
+      leaderId: participant2.id,
+      members: {
+        create: [
+          { userId: participant2.id, role: 'LEADER' },
+          { userId: participant1.id, role: 'MEMBER' },
+          { userId: participant4.id, role: 'MEMBER' },
+        ],
+      },
+    },
+  });
+
+  // Tabuk Desert Code Camp — participant1 leads a small team
+  await prisma.team.create({
+    data: {
+      name: loc('Desert Data Crew', 'طاقم بيانات الصحراء'),
+      description: loc(
+        'Open-source mapping tools for Tabuk wilderness areas.',
+        'أدوات رسم خرائط مفتوحة المصدر لمناطق طبيعة تبوك.',
+      ),
+      eventId: publishedTabuk.id,
+      leaderId: participant1.id,
+      members: {
+        create: [
+          { userId: participant1.id, role: 'LEADER' },
+          { userId: participant5.id, role: 'MEMBER' },
+        ],
+      },
+    },
+  });
+
+  // NEOM — participant1 joins a locked team
+  await prisma.team.create({
+    data: {
+      name: loc('Helix Mobility', 'هيليكس للتنقل'),
+      description: loc(
+        'Predictive transit corridors for NEOM linear city.',
+        'ممرات عبور تنبؤية لمدينة نيوم الخطية.',
+      ),
+      eventId: neomMobility.id,
+      leaderId: participant4.id,
+      isLocked: true,
+      members: {
+        create: [
+          { userId: participant4.id, role: 'LEADER' },
+          { userId: participant1.id, role: 'MEMBER' },
+          { userId: participant5.id, role: 'MEMBER' },
+        ],
+      },
+    },
+  });
+
+  console.log('✓ Seeded 4 additional teams for richer teams page demo');
+
   console.log('');
   console.log('✅ Seed completed!');
   console.log('');
