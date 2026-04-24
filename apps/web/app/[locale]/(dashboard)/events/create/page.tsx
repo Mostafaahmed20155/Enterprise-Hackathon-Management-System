@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useRouter } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
 import { useForm, useWatch } from 'react-hook-form';
@@ -8,28 +9,38 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { eventsApi } from '@/lib/api';
 import {
+  AlertCircle,
   Calendar,
-  Check,
   ChevronRight,
   Clock3,
-  FileText,
-  Languages,
+  List,
+  MessageSquare,
   Minus,
   Plus,
-  Sparkles,
   Users,
   X,
 } from 'lucide-react';
 
-type StepId = 'details' | 'registration' | 'hacking' | 'team';
 type DateField = 'registrationStart' | 'registrationEnd' | 'hackingStart' | 'hackingEnd';
 
 const createEventSchema = z
   .object({
-    nameEn: z.string().min(3, 'English name must be at least 3 characters'),
-    nameAr: z.string().min(3, 'Arabic name must be at least 3 characters'),
-    descriptionEn: z.string().min(10, 'English description must be at least 10 characters'),
-    descriptionAr: z.string().min(10, 'Arabic description must be at least 10 characters'),
+    nameEn: z
+      .string()
+      .min(3, 'English name must be at least 3 characters')
+      .max(60, 'English name must be at most 60 characters'),
+    nameAr: z
+      .string()
+      .min(3, 'Arabic name must be at least 3 characters')
+      .max(60, 'Arabic name must be at most 60 characters'),
+    descriptionEn: z
+      .string()
+      .min(10, 'English description must be at least 10 characters')
+      .max(400, 'English description must be at most 400 characters'),
+    descriptionAr: z
+      .string()
+      .min(10, 'Arabic description must be at least 10 characters')
+      .max(400, 'Arabic description must be at most 400 characters'),
     registrationStart: z.string().min(1, 'Registration start is required'),
     registrationEnd: z.string().min(1, 'Registration end is required'),
     hackingStart: z.string().min(1, 'Hackathon start is required'),
@@ -70,19 +81,12 @@ interface CreateEventCopy {
     accent: string;
     subtitle: string;
     badge: string;
-    helper: string;
-  };
-  steps: {
-    title: string;
-    details: string;
-    registration: string;
-    hacking: string;
-    team: string;
-    complete: string;
   };
   sections: {
-    details: string;
-    detailsBody: string;
+    names: string;
+    namesBody: string;
+    descriptions: string;
+    descriptionsBody: string;
     registration: string;
     registrationBody: string;
     hacking: string;
@@ -92,8 +96,6 @@ interface CreateEventCopy {
   };
   fields: {
     required: string;
-    name: string;
-    description: string;
     nameEnPlaceholder: string;
     nameArPlaceholder: string;
     descriptionEnPlaceholder: string;
@@ -109,10 +111,9 @@ interface CreateEventCopy {
     maxHelp: string;
     preview: string;
     teamRange: string;
-    characters: string;
   };
   footer: {
-    completeLabel: string;
+    status: string;
     requiredHint: string;
   };
   misc: {
@@ -135,55 +136,44 @@ const CREATE_EVENT_COPY: Record<'en' | 'ar', CreateEventCopy> = {
     },
     header: {
       title: 'Create',
-      accent: 'Event.',
+      accent: 'event.',
       subtitle:
-        'Create a new hackathon event with the same bilingual setup used across the admin experience.',
+        'Set up a bilingual hackathon with registration windows, build dates, and team size limits.',
       badge: 'Bilingual setup',
-      helper: 'Only the fields supported by the current platform are included here.',
-    },
-    steps: {
-      title: 'Form map',
-      details: 'Event details',
-      registration: 'Registration period',
-      hacking: 'Hackathon period',
-      team: 'Team size',
-      complete: 'complete',
     },
     sections: {
-      details: 'Event Details',
-      detailsBody:
-        'Fill in both languages. English and Arabic are both required for the current setup.',
-      registration: 'Registration Period',
+      names: 'Event name',
+      namesBody: 'Public title in English and Arabic — both are required.',
+      descriptions: 'Event description',
+      descriptionsBody: 'One or two sentences per language about what participants should expect.',
+      registration: 'Registration period',
       registrationBody: 'When can participants register for this event?',
-      hacking: 'Hackathon Period',
-      hackingBody: 'Defines the window when teams can build and submit.',
-      team: 'Team Size',
-      teamBody: 'How many members are allowed per team?',
+      hacking: 'Hackathon period',
+      hackingBody: 'The window when teams can build and submit their projects.',
+      team: 'Team size',
+      teamBody: 'Minimum and maximum members allowed per team.',
     },
     fields: {
-      required: 'Required',
-      name: 'Event Name',
-      description: 'Event Description',
-      nameEnPlaceholder: 'e.g. Global Innovate 2026',
-      nameArPlaceholder: 'مثال: هاكاثون الابتكار العالمي',
-      descriptionEnPlaceholder: 'Tell participants what this event is about...',
-      descriptionArPlaceholder: 'صف الفعالية للمشاركين باللغة العربية...',
-      publicTitle: 'Shown as the primary title on public pages.',
-      publicTitleAr: 'يظهر كعنوان رئيسي في الصفحات العامة.',
-      publicDescription: 'Used on the public event page and registration emails.',
-      publicDescriptionAr: 'يستخدم في الصفحة العامة ورسائل التسجيل.',
-      timezone: 'Values are converted to ISO timestamps when submitted.',
-      registrationRule: 'Registration must close before hacking begins.',
+      required: '*',
+      nameEnPlaceholder: 'e.g. Tech Hackathon 2026',
+      nameArPlaceholder: 'مثال: هاكاثون الرياض 2026',
+      descriptionEnPlaceholder: 'Tell participants what this event is about…',
+      descriptionArPlaceholder: 'صف الفعالية للمشاركين بالعربية…',
+      publicTitle: 'Shown on listings and the public event page.',
+      publicTitleAr: 'يظهر في القوائم والصفحة العامة.',
+      publicDescription: 'Visible to mentors, judges, and participants.',
+      publicDescriptionAr: 'مرئي للموجهين والمحكمين والمشاركين.',
+      timezone: 'Stored as ISO timestamps on save.',
+      registrationRule: 'Registration must end before hacking begins.',
       buildWindow: 'Build window',
       minHelp: 'At least 1 member.',
       maxHelp: 'Up to 20 members.',
       preview: 'Preview',
-      teamRange: 'Teams of {min} - {max} members allowed',
-      characters: 'characters',
+      teamRange: 'Teams of {min} – {max} members allowed',
     },
     footer: {
-      completeLabel: 'sections complete',
-      requiredHint: 'Fields marked required must be completed before creating the event.',
+      status: '{complete} of {total} sections ready',
+      requiredHint: 'Complete all required fields before creating the event.',
     },
     misc: {
       days: 'd',
@@ -205,52 +195,42 @@ const CREATE_EVENT_COPY: Record<'en' | 'ar', CreateEventCopy> = {
       title: 'إنشاء',
       accent: 'فعالية.',
       subtitle:
-        'أنشئ فعالية هاكاثون جديدة بنفس لغة التصميم الإدارية مع دعم ثنائي كامل للعربية والإنجليزية.',
+        'أعدّ فعالية هاكاثون ثنائية اللغة مع نوافذ التسجيل وتواريخ البناء وحدود حجم الفريق.',
       badge: 'إعداد ثنائي اللغة',
-      helper: 'تم تضمين الحقول المدعومة فعليا في المنصة الحالية فقط.',
-    },
-    steps: {
-      title: 'خريطة النموذج',
-      details: 'تفاصيل الفعالية',
-      registration: 'فترة التسجيل',
-      hacking: 'فترة الهاكاثون',
-      team: 'حجم الفريق',
-      complete: 'مكتملة',
     },
     sections: {
-      details: 'تفاصيل الفعالية',
-      detailsBody: 'املأ اللغتين معا. الإنجليزية والعربية مطلوبتان في الإعداد الحالي.',
+      names: 'اسم الفعالية',
+      namesBody: 'العنوان العام بالإنجليزية والعربية — كلاهما مطلوب.',
+      descriptions: 'وصف الفعالية',
+      descriptionsBody: 'جملة أو جملتان لكل لغة عما ينتظره المشاركون.',
       registration: 'فترة التسجيل',
-      registrationBody: 'متى يمكن للمشاركين التسجيل في هذه الفعالية؟',
+      registrationBody: 'متى يمكن للمشاركين التسجيل؟',
       hacking: 'فترة الهاكاثون',
-      hackingBody: 'تحدد النافذة الزمنية التي يمكن خلالها للفرق البناء والتقديم.',
+      hackingBody: 'النافذة التي يمكن خلالها للفرق البناء والتقديم.',
       team: 'حجم الفريق',
-      teamBody: 'كم عدد الأعضاء المسموح به في كل فريق؟',
+      teamBody: 'الحد الأدنى والأقصى للأعضاء في كل فريق.',
     },
     fields: {
-      required: 'مطلوب',
-      name: 'اسم الفعالية',
-      description: 'وصف الفعالية',
-      nameEnPlaceholder: 'مثال: Global Innovate 2026',
-      nameArPlaceholder: 'مثال: هاكاثون الابتكار العالمي',
-      descriptionEnPlaceholder: 'اكتب وصفا باللغة الإنجليزية يعرّف المشاركين بالفعالية...',
-      descriptionArPlaceholder: 'اكتب وصفا بالعربية يشرح الفعالية للمشاركين...',
-      publicTitle: 'يظهر كعنوان رئيسي في الصفحات العامة.',
-      publicTitleAr: 'يظهر كعنوان رئيسي في الصفحات العامة.',
-      publicDescription: 'يستخدم في الصفحة العامة ورسائل التسجيل.',
-      publicDescriptionAr: 'يستخدم في الصفحة العامة ورسائل التسجيل.',
-      timezone: 'سيتم تحويل القيم إلى توقيت ISO عند الإرسال.',
-      registrationRule: 'يجب أن يغلق التسجيل قبل بدء الهاكاثون.',
+      required: '*',
+      nameEnPlaceholder: 'مثال: Tech Hackathon 2026',
+      nameArPlaceholder: 'مثال: هاكاثون الرياض 2026',
+      descriptionEnPlaceholder: 'صف الفعالية بالإنجليزية…',
+      descriptionArPlaceholder: 'صف الفعالية بالعربية…',
+      publicTitle: 'يظهر في القوائم والصفحة العامة.',
+      publicTitleAr: 'يظهر في القوائم والصفحة العامة.',
+      publicDescription: 'مرئي للموجهين والمحكمين والمشاركين.',
+      publicDescriptionAr: 'مرئي للموجهين والمحكمين والمشاركين.',
+      timezone: 'يُحفظ كتوقيت ISO عند الإرسال.',
+      registrationRule: 'يجب أن ينتهي التسجيل قبل بدء الهاكاثون.',
       buildWindow: 'نافذة البناء',
       minHelp: 'عضو واحد على الأقل.',
       maxHelp: 'حتى 20 عضوا.',
       preview: 'معاينة',
-      teamRange: 'يسمح بفرق من {min} إلى {max} أعضاء',
-      characters: 'حرف',
+      teamRange: 'فرق من {min} – {max} أعضاء',
     },
     footer: {
-      completeLabel: 'أقسام مكتملة',
-      requiredHint: 'يجب إكمال الحقول المطلوبة قبل إنشاء الفعالية.',
+      status: '{complete} من {total} أقسام جاهزة',
+      requiredHint: 'أكمل جميع الحقول المطلوبة قبل إنشاء الفعالية.',
     },
     misc: {
       days: 'ي',
@@ -320,6 +300,20 @@ function extractApiMessage(message: unknown, locale: string, fallback: string): 
   return fallback;
 }
 
+const ink = '#0A0A0A';
+const ink2 = '#2A2A2A';
+const muted = '#6B6B6B';
+const muted2 = '#9B9B9B';
+const line = 'rgba(10,10,10,.08)';
+const line2 = 'rgba(10,10,10,.14)';
+const bgPage = '#FAFAF7';
+const accent = 'oklch(0.85 0.17 130)';
+const accentDeep = 'oklch(0.68 0.19 130)';
+const accentSoft = 'oklch(0.93 0.09 130)';
+const danger = 'oklch(0.62 0.22 25)';
+const mono = "font-[family-name:var(--font-mono-display),ui-monospace,monospace]";
+const displaySerif = "font-[family-name:var(--font-display),ui-serif,Georgia,serif]";
+
 export default function CreateEventPage() {
   const t = useTranslations('events');
   const locale = useLocale();
@@ -328,7 +322,6 @@ export default function CreateEventPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeStep, setActiveStep] = useState<StepId>('details');
 
   const {
     register,
@@ -367,53 +360,25 @@ export default function CreateEventPage() {
   const steps = useMemo(
     () => [
       {
-        id: 'details' as const,
-        label: copy.steps.details,
         complete:
           nameEn.trim().length >= 3 &&
           nameAr.trim().length >= 3 &&
           descriptionEn.trim().length >= 10 &&
           descriptionAr.trim().length >= 10,
-        hasError: Boolean(
-          errors.nameEn || errors.nameAr || errors.descriptionEn || errors.descriptionAr
-        ),
       },
       {
-        id: 'registration' as const,
-        label: copy.steps.registration,
         complete: Boolean(registrationStart && registrationEnd),
-        hasError: Boolean(errors.registrationStart || errors.registrationEnd),
       },
       {
-        id: 'hacking' as const,
-        label: copy.steps.hacking,
         complete: Boolean(hackingStart && hackingEnd),
-        hasError: Boolean(errors.hackingStart || errors.hackingEnd),
       },
       {
-        id: 'team' as const,
-        label: copy.steps.team,
         complete: minTeamSize >= 1 && maxTeamSize >= minTeamSize,
-        hasError: Boolean(errors.minTeamSize || errors.maxTeamSize),
       },
     ],
     [
-      copy.steps.details,
-      copy.steps.hacking,
-      copy.steps.registration,
-      copy.steps.team,
       descriptionAr,
       descriptionEn,
-      errors.descriptionAr,
-      errors.descriptionEn,
-      errors.hackingEnd,
-      errors.hackingStart,
-      errors.maxTeamSize,
-      errors.minTeamSize,
-      errors.nameAr,
-      errors.nameEn,
-      errors.registrationEnd,
-      errors.registrationStart,
       hackingEnd,
       hackingStart,
       maxTeamSize,
@@ -426,37 +391,7 @@ export default function CreateEventPage() {
   );
 
   const completedSteps = steps.filter((step) => step.complete).length;
-  const progressPercent = Math.round((completedSteps / steps.length) * 100);
   const visibleTeamSlots = Math.min(Math.max(maxTeamSize, 7), 10);
-
-  useEffect(() => {
-    const onScroll = () => {
-      let currentStep: StepId = 'details';
-
-      for (const step of steps) {
-        const section = document.getElementById(`create-${step.id}`);
-        if (section && section.getBoundingClientRect().top <= 180) {
-          currentStep = step.id;
-        }
-      }
-
-      setActiveStep(currentStep);
-    };
-
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-    };
-  }, [steps]);
-
-  const scrollToStep = (stepId: StepId) => {
-    document.getElementById(`create-${stepId}`)?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-  };
 
   const updateDateField = (field: DateField, value: string) => {
     setValue(field, value, {
@@ -517,603 +452,676 @@ export default function CreateEventPage() {
 
       const eventId = response.data?.id || response.data?.data?.id;
       router.push(`/events/${eventId}`);
-    } catch (submitError: any) {
-      const message =
-        submitError?.response?.data?.error?.message || submitError?.response?.data?.message;
+    } catch (submitError: unknown) {
+      const err = submitError as { response?: { data?: { error?: { message?: unknown }; message?: unknown } } };
+      const message = err?.response?.data?.error?.message || err?.response?.data?.message;
       setError(extractApiMessage(message, locale, t('createError')));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const inputClassName = (hasError?: boolean, isArabic?: boolean) =>
-    `ehms-create-input${hasError ? ' is-invalid' : ''}${isArabic ? ' is-ar' : ''}`;
-  const textAreaClassName = (hasError?: boolean, isArabic?: boolean) =>
-    `ehms-create-textarea${hasError ? ' is-invalid' : ''}${isArabic ? ' is-ar' : ''}`;
+  const inp =
+    'w-full rounded-[10px] border bg-[#FCFCFA] px-3.5 py-2.5 text-sm text-[#0A0A0A] outline-none transition-colors hover:bg-white focus:border-[#0A0A0A] focus:bg-white focus:shadow-[0_0_0_3px_rgba(10,10,10,.05)] disabled:opacity-60';
+  const inpErr = 'border-[oklch(0.62_0.22_25)] bg-white';
+  const inpNorm = 'border-[rgba(10,10,10,.14)]';
+  const tar = `${inp} min-h-[110px] resize-y leading-[1.55]`;
+
+  const langEn = `rounded-[5px] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] ${mono} bg-[#0A0A0A] text-[oklch(0.85_0.17_130)]`;
+  const langAr = `rounded-[5px] border border-[oklch(0.85_0.17_130/0.3)] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] ${mono} bg-[oklch(0.93_0.09_130)] text-[#0A0A0A]`;
+
+  const secHead = (
+    icon: ReactNode,
+    title: string,
+    subtitle: string
+  ) => (
+    <div className="flex gap-3.5 border-b px-6 py-5 sm:px-6" style={{ borderColor: line }}>
+      <div
+        className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] border text-[#0A0A0A]"
+        style={{
+          backgroundColor: accentSoft,
+          borderColor: 'oklch(0.85 0.17 130 / 0.3)',
+        }}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <h3 className="text-[17px] font-semibold tracking-[-0.015em]" style={{ color: ink }}>
+          {title}
+        </h3>
+        <p className="mt-1 text-[13px] leading-snug" style={{ color: muted }}>
+          {subtitle}
+        </p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="ehms-dashboard-page ehms-create-event-page">
-      <div className="ehms-dashboard-toolbar">
-        <div className="ehms-create-crumb">
-          <span>{copy.toolbar.root}</span>
-          <span className="ehms-create-crumb-sep">/</span>
-          <Link href="/events">{copy.toolbar.events}</Link>
-          <span className="ehms-create-crumb-sep">/</span>
-          <b>{copy.toolbar.current}</b>
-        </div>
-
-        <div className="ehms-dashboard-actions">
-          <button
-            type="button"
-            className="ehms-dashboard-btn ehms-create-btn-secondary"
-            onClick={() => router.back()}
-          >
-            {copy.toolbar.cancel}
-          </button>
-
-          <button
-            type="submit"
-            form="create-event-form"
-            className="ehms-dashboard-btn ehms-dashboard-btn-primary"
-            disabled={isLoading}
-          >
-            {isLoading ? copy.toolbar.creating : copy.toolbar.submit}
-            {!isLoading && (
-              <span className="ehms-dashboard-chev" aria-hidden>
-                {isRtl ? '←' : '→'}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-
-      <div className="ehms-create-head">
-        <div>
-          <div className="ehms-create-badge">
-            <Languages aria-hidden size={14} />
-            {copy.header.badge}
+    <div className="pb-20 [-webkit-font-smoothing:antialiased]" style={{ backgroundColor: bgPage, color: ink }}>
+      <div className="mx-auto max-w-[1100px] px-4 py-7 sm:px-8 sm:py-8">
+        {/* Top bar */}
+        <div
+          className="mb-7 flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between"
+          style={{ borderColor: line }}
+        >
+          <div className="flex flex-wrap items-center gap-2 text-[13px]" style={{ color: muted }}>
+            <span>{copy.toolbar.root}</span>
+            <span style={{ color: muted2 }}>/</span>
+            <Link href="/events" className="transition-colors hover:text-[#0A0A0A]">
+              {copy.toolbar.events}
+            </Link>
+            <span style={{ color: muted2 }}>/</span>
+            <b className="font-medium" style={{ color: ink }}>
+              {copy.toolbar.current}
+            </b>
           </div>
-          <h1>
-            {copy.header.title} <span className="ehms-dashboard-serif">{copy.header.accent}</span>
-          </h1>
-          <p>{copy.header.subtitle}</p>
-        </div>
-
-        <div className="ehms-create-head-note">
-          <strong>{completedSteps} / 4</strong>
-          <span>{copy.header.helper}</span>
-        </div>
-      </div>
-
-      <div className="ehms-create-layout">
-        <aside className="ehms-create-stepnav" aria-label={copy.steps.title}>
-          <div className="ehms-create-stepnav-title">{copy.steps.title}</div>
-          {steps.map((step, index) => (
+          <div className="flex flex-wrap gap-2.5">
             <button
-              key={step.id}
               type="button"
-              className={`ehms-create-stepnav-item ${
-                activeStep === step.id ? 'active' : ''
-              } ${step.complete ? 'done' : ''} ${step.hasError ? 'has-error' : ''}`}
-              onClick={() => scrollToStep(step.id)}
-              aria-current={activeStep === step.id ? 'step' : undefined}
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2 rounded-[10px] px-4 py-2.5 text-[13.5px] font-medium transition-colors hover:bg-[rgba(10,10,10,.04)]"
+              style={{ color: ink2 }}
             >
-              <span className="ehms-create-stepnav-num">{String(index + 1).padStart(2, '0')}</span>
-              <span className="ehms-create-stepnav-label">{step.label}</span>
-              <Check aria-hidden size={12} className="ehms-create-stepnav-tick" />
+              {copy.toolbar.cancel}
             </button>
-          ))}
-        </aside>
-
-        <div className="ehms-create-form-col">
-          {error && <div className="ehms-create-form-error">{error}</div>}
-
-          <form
-            id="create-event-form"
-            onSubmit={handleSubmit(onSubmit)}
-            className="ehms-create-form"
-          >
-            <section
-              id="create-details"
-              className={`ehms-create-section ${activeStep === 'details' ? 'is-active' : ''}`}
+            <button
+              type="submit"
+              form="create-event-form"
+              className="inline-flex items-center gap-2 rounded-[10px] border border-transparent bg-[#0A0A0A] px-4 py-2.5 text-[13.5px] font-medium text-[#FAFAF7] transition-all hover:-translate-y-px hover:bg-black disabled:opacity-60"
+              disabled={isLoading}
             >
-              <div className="ehms-create-section-head">
-                <div className="ehms-create-section-head-left">
-                  <div className="ehms-create-section-icon">
-                    <Sparkles aria-hidden size={16} />
-                  </div>
-                  <div>
-                    <h3>{copy.sections.details}</h3>
-                    <p>{copy.sections.detailsBody}</p>
-                  </div>
-                </div>
-                <span className="ehms-create-section-pill">STEP 01</span>
-              </div>
-
-              <div className="ehms-create-section-body">
-                <div className="ehms-create-field">
-                  <label className="ehms-create-field-label">{copy.fields.name}</label>
-
-                  <div className="ehms-create-lang-group">
-                    <div className="ehms-create-field-group">
-                      <label className="ehms-create-sub-label" htmlFor="nameEn">
-                        <span className="ehms-create-lang-pill is-en">EN</span>
-                        {t('nameEn')}
-                        <span className="ehms-create-req">{copy.fields.required}</span>
-                      </label>
-                      <input
-                        id="nameEn"
-                        className={inputClassName(Boolean(errors.nameEn))}
-                        placeholder={copy.fields.nameEnPlaceholder}
-                        disabled={isLoading}
-                        {...register('nameEn')}
-                      />
-                      <div className="ehms-create-field-help">
-                        <span>{copy.fields.publicTitle}</span>
-                        <span className="ehms-create-count">
-                          {nameEn.length} {copy.fields.characters}
-                        </span>
-                      </div>
-                      {errors.nameEn && (
-                        <p className="ehms-create-field-error">{errors.nameEn.message}</p>
-                      )}
-                    </div>
-
-                    <div className="ehms-create-field-group">
-                      <label className="ehms-create-sub-label" htmlFor="nameAr">
-                        <span className="ehms-create-lang-pill is-ar">AR</span>
-                        {t('nameAr')}
-                        <span className="ehms-create-req">{copy.fields.required}</span>
-                      </label>
-                      <input
-                        id="nameAr"
-                        className={inputClassName(Boolean(errors.nameAr), true)}
-                        placeholder={copy.fields.nameArPlaceholder}
-                        dir="rtl"
-                        disabled={isLoading}
-                        {...register('nameAr')}
-                      />
-                      <div className="ehms-create-field-help">
-                        <span>{copy.fields.publicTitleAr}</span>
-                        <span className="ehms-create-count">
-                          {nameAr.length} {copy.fields.characters}
-                        </span>
-                      </div>
-                      {errors.nameAr && (
-                        <p className="ehms-create-field-error">{errors.nameAr.message}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="ehms-create-field">
-                  <label className="ehms-create-field-label">{copy.fields.description}</label>
-
-                  <div className="ehms-create-lang-group">
-                    <div className="ehms-create-field-group">
-                      <label className="ehms-create-sub-label" htmlFor="descriptionEn">
-                        <span className="ehms-create-lang-pill is-en">EN</span>
-                        {t('descriptionEn')}
-                        <span className="ehms-create-req">{copy.fields.required}</span>
-                      </label>
-                      <textarea
-                        id="descriptionEn"
-                        className={textAreaClassName(Boolean(errors.descriptionEn))}
-                        placeholder={copy.fields.descriptionEnPlaceholder}
-                        rows={5}
-                        disabled={isLoading}
-                        {...register('descriptionEn')}
-                      />
-                      <div className="ehms-create-field-help">
-                        <span>{copy.fields.publicDescription}</span>
-                        <span className="ehms-create-count">
-                          {descriptionEn.length} {copy.fields.characters}
-                        </span>
-                      </div>
-                      {errors.descriptionEn && (
-                        <p className="ehms-create-field-error">{errors.descriptionEn.message}</p>
-                      )}
-                    </div>
-
-                    <div className="ehms-create-field-group">
-                      <label className="ehms-create-sub-label" htmlFor="descriptionAr">
-                        <span className="ehms-create-lang-pill is-ar">AR</span>
-                        {t('descriptionAr')}
-                        <span className="ehms-create-req">{copy.fields.required}</span>
-                      </label>
-                      <textarea
-                        id="descriptionAr"
-                        className={textAreaClassName(Boolean(errors.descriptionAr), true)}
-                        placeholder={copy.fields.descriptionArPlaceholder}
-                        rows={5}
-                        dir="rtl"
-                        disabled={isLoading}
-                        {...register('descriptionAr')}
-                      />
-                      <div className="ehms-create-field-help">
-                        <span>{copy.fields.publicDescriptionAr}</span>
-                        <span className="ehms-create-count">
-                          {descriptionAr.length} {copy.fields.characters}
-                        </span>
-                      </div>
-                      {errors.descriptionAr && (
-                        <p className="ehms-create-field-error">{errors.descriptionAr.message}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section
-              id="create-registration"
-              className={`ehms-create-section ${activeStep === 'registration' ? 'is-active' : ''}`}
-            >
-              <div className="ehms-create-section-head">
-                <div className="ehms-create-section-head-left">
-                  <div className="ehms-create-section-icon">
-                    <Calendar aria-hidden size={16} />
-                  </div>
-                  <div>
-                    <h3>{copy.sections.registration}</h3>
-                    <p>{copy.sections.registrationBody}</p>
-                  </div>
-                </div>
-                <span className="ehms-create-section-pill is-soft">STEP 02</span>
-              </div>
-
-              <div className="ehms-create-section-body">
-                <div className="ehms-create-two-col">
-                  <div className="ehms-create-field-group">
-                    <label className="ehms-create-sub-label" htmlFor="registrationStart">
-                      {t('registrationStart')}
-                      <span className="ehms-create-req">{copy.fields.required}</span>
-                    </label>
-                    <div className="ehms-create-date-wrap">
-                      <Calendar aria-hidden size={14} className="ehms-create-date-icon" />
-                      <input
-                        id="registrationStart"
-                        type="datetime-local"
-                        className={inputClassName(Boolean(errors.registrationStart))}
-                        value={registrationStart}
-                        onChange={(event) =>
-                          updateDateField('registrationStart', event.target.value)
-                        }
-                        disabled={isLoading}
-                      />
-                      {registrationStart && (
-                        <button
-                          type="button"
-                          className="ehms-create-date-clear"
-                          onClick={() => clearDateField('registrationStart')}
-                          aria-label="Clear registration start"
-                        >
-                          <X aria-hidden size={12} />
-                        </button>
-                      )}
-                    </div>
-                    <div className="ehms-create-field-help">
-                      <span>{copy.fields.timezone}</span>
-                    </div>
-                    {errors.registrationStart && (
-                      <p className="ehms-create-field-error">{errors.registrationStart.message}</p>
-                    )}
-                  </div>
-
-                  <div className="ehms-create-field-group">
-                    <label className="ehms-create-sub-label" htmlFor="registrationEnd">
-                      {t('registrationEnd')}
-                      <span className="ehms-create-req">{copy.fields.required}</span>
-                    </label>
-                    <div className="ehms-create-date-wrap">
-                      <Calendar aria-hidden size={14} className="ehms-create-date-icon" />
-                      <input
-                        id="registrationEnd"
-                        type="datetime-local"
-                        className={inputClassName(Boolean(errors.registrationEnd))}
-                        value={registrationEnd}
-                        onChange={(event) => updateDateField('registrationEnd', event.target.value)}
-                        disabled={isLoading}
-                      />
-                      {registrationEnd && (
-                        <button
-                          type="button"
-                          className="ehms-create-date-clear"
-                          onClick={() => clearDateField('registrationEnd')}
-                          aria-label="Clear registration end"
-                        >
-                          <X aria-hidden size={12} />
-                        </button>
-                      )}
-                    </div>
-                    <div className="ehms-create-field-help">
-                      <span>{copy.fields.registrationRule}</span>
-                    </div>
-                    {errors.registrationEnd && (
-                      <p className="ehms-create-field-error">{errors.registrationEnd.message}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section
-              id="create-hacking"
-              className={`ehms-create-section ${activeStep === 'hacking' ? 'is-active' : ''}`}
-            >
-              <div className="ehms-create-section-head">
-                <div className="ehms-create-section-head-left">
-                  <div className="ehms-create-section-icon">
-                    <Clock3 aria-hidden size={16} />
-                  </div>
-                  <div>
-                    <h3>{copy.sections.hacking}</h3>
-                    <p>{copy.sections.hackingBody}</p>
-                  </div>
-                </div>
-                <span className="ehms-create-section-pill">STEP 03</span>
-              </div>
-
-              <div className="ehms-create-section-body">
-                <div className="ehms-create-two-col">
-                  <div className="ehms-create-field-group">
-                    <label className="ehms-create-sub-label" htmlFor="hackingStart">
-                      {t('hackingStart')}
-                      <span className="ehms-create-req">{copy.fields.required}</span>
-                    </label>
-                    <div className="ehms-create-date-wrap">
-                      <Clock3 aria-hidden size={14} className="ehms-create-date-icon" />
-                      <input
-                        id="hackingStart"
-                        type="datetime-local"
-                        className={inputClassName(Boolean(errors.hackingStart))}
-                        value={hackingStart}
-                        onChange={(event) => updateDateField('hackingStart', event.target.value)}
-                        disabled={isLoading}
-                      />
-                      {hackingStart && (
-                        <button
-                          type="button"
-                          className="ehms-create-date-clear"
-                          onClick={() => clearDateField('hackingStart')}
-                          aria-label="Clear hackathon start"
-                        >
-                          <X aria-hidden size={12} />
-                        </button>
-                      )}
-                    </div>
-                    {errors.hackingStart && (
-                      <p className="ehms-create-field-error">{errors.hackingStart.message}</p>
-                    )}
-                  </div>
-
-                  <div className="ehms-create-field-group">
-                    <label className="ehms-create-sub-label" htmlFor="hackingEnd">
-                      {t('hackingEnd')}
-                      <span className="ehms-create-req">{copy.fields.required}</span>
-                    </label>
-                    <div className="ehms-create-date-wrap">
-                      <Clock3 aria-hidden size={14} className="ehms-create-date-icon" />
-                      <input
-                        id="hackingEnd"
-                        type="datetime-local"
-                        className={inputClassName(Boolean(errors.hackingEnd))}
-                        value={hackingEnd}
-                        onChange={(event) => updateDateField('hackingEnd', event.target.value)}
-                        disabled={isLoading}
-                      />
-                      {hackingEnd && (
-                        <button
-                          type="button"
-                          className="ehms-create-date-clear"
-                          onClick={() => clearDateField('hackingEnd')}
-                          aria-label="Clear hackathon end"
-                        >
-                          <X aria-hidden size={12} />
-                        </button>
-                      )}
-                    </div>
-                    {errors.hackingEnd && (
-                      <p className="ehms-create-field-error">{errors.hackingEnd.message}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="ehms-create-timeline">
-                  <span>{copy.fields.buildWindow}</span>
-                  <div className="ehms-create-timeline-bar">
-                    <div className="ehms-create-timeline-fill" />
-                    <div className="ehms-create-timeline-dot is-start" />
-                    <div className="ehms-create-timeline-dot is-end" />
-                  </div>
-                  <b>{formatDuration(hackingStart, hackingEnd, copy.misc)}</b>
-                </div>
-              </div>
-            </section>
-
-            <section
-              id="create-team"
-              className={`ehms-create-section ${activeStep === 'team' ? 'is-active' : ''}`}
-            >
-              <div className="ehms-create-section-head">
-                <div className="ehms-create-section-head-left">
-                  <div className="ehms-create-section-icon">
-                    <Users aria-hidden size={16} />
-                  </div>
-                  <div>
-                    <h3>{copy.sections.team}</h3>
-                    <p>{copy.sections.teamBody}</p>
-                  </div>
-                </div>
-                <span className="ehms-create-section-pill is-muted">STEP 04</span>
-              </div>
-
-              <div className="ehms-create-section-body">
-                <div className="ehms-create-team-row">
-                  <div className="ehms-create-field-group">
-                    <label className="ehms-create-sub-label" htmlFor="minTeamSize">
-                      {t('minTeamSize')}
-                      <span className="ehms-create-req">{copy.fields.required}</span>
-                    </label>
-                    <div className="ehms-create-stepper">
-                      <button
-                        type="button"
-                        className="ehms-create-stepper-btn"
-                        onClick={() => updateMinTeamSize(minTeamSize - 1)}
-                        disabled={isLoading}
-                        aria-label="Decrease minimum team size"
-                      >
-                        <Minus aria-hidden size={14} />
-                      </button>
-                      <input
-                        id="minTeamSize"
-                        type="number"
-                        min={1}
-                        max={10}
-                        className="ehms-create-stepper-value"
-                        disabled={isLoading}
-                        {...register('minTeamSize', {
-                          valueAsNumber: true,
-                          onChange: (event) =>
-                            updateMinTeamSize(Number(event.target.value || minTeamSize)),
-                        })}
-                      />
-                      <button
-                        type="button"
-                        className="ehms-create-stepper-btn"
-                        onClick={() => updateMinTeamSize(minTeamSize + 1)}
-                        disabled={isLoading}
-                        aria-label="Increase minimum team size"
-                      >
-                        <Plus aria-hidden size={14} />
-                      </button>
-                    </div>
-                    <div className="ehms-create-field-help">
-                      <span>{copy.fields.minHelp}</span>
-                    </div>
-                    {errors.minTeamSize && (
-                      <p className="ehms-create-field-error">{errors.minTeamSize.message}</p>
-                    )}
-                  </div>
-
-                  <div className="ehms-create-field-group">
-                    <label className="ehms-create-sub-label" htmlFor="maxTeamSize">
-                      {t('maxTeamSize')}
-                      <span className="ehms-create-req">{copy.fields.required}</span>
-                    </label>
-                    <div className="ehms-create-stepper">
-                      <button
-                        type="button"
-                        className="ehms-create-stepper-btn"
-                        onClick={() => updateMaxTeamSize(maxTeamSize - 1)}
-                        disabled={isLoading}
-                        aria-label="Decrease maximum team size"
-                      >
-                        <Minus aria-hidden size={14} />
-                      </button>
-                      <input
-                        id="maxTeamSize"
-                        type="number"
-                        min={2}
-                        max={20}
-                        className="ehms-create-stepper-value"
-                        disabled={isLoading}
-                        {...register('maxTeamSize', {
-                          valueAsNumber: true,
-                          onChange: (event) =>
-                            updateMaxTeamSize(Number(event.target.value || maxTeamSize)),
-                        })}
-                      />
-                      <button
-                        type="button"
-                        className="ehms-create-stepper-btn"
-                        onClick={() => updateMaxTeamSize(maxTeamSize + 1)}
-                        disabled={isLoading}
-                        aria-label="Increase maximum team size"
-                      >
-                        <Plus aria-hidden size={14} />
-                      </button>
-                    </div>
-                    <div className="ehms-create-field-help">
-                      <span>{copy.fields.maxHelp}</span>
-                    </div>
-                    {errors.maxTeamSize && (
-                      <p className="ehms-create-field-error">{errors.maxTeamSize.message}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="ehms-create-team-preview">
-                  <div className="ehms-create-team-preview-label">{copy.fields.preview}</div>
-                  <div className="ehms-create-team-preview-avatars" aria-hidden>
-                    {Array.from({ length: visibleTeamSlots }, (_, index) => {
-                      const slot = index + 1;
-                      const state =
-                        slot <= minTeamSize ? 'is-core' : slot <= maxTeamSize ? 'is-on' : 'is-off';
-
-                      return (
-                        <span key={slot} className={`ehms-create-team-avatar ${state}`}>
-                          {slot}
-                        </span>
-                      );
-                    })}
-                    {maxTeamSize > visibleTeamSlots && (
-                      <span className="ehms-create-team-avatar is-extra">
-                        +{maxTeamSize - visibleTeamSlots}
-                      </span>
-                    )}
-                  </div>
-                  <div className="ehms-create-team-preview-note">
-                    {copy.fields.teamRange
-                      .replace('{min}', String(minTeamSize))
-                      .replace('{max}', String(maxTeamSize))}
-                  </div>
-                </div>
-              </div>
-            </section>
-          </form>
+              {isLoading ? copy.toolbar.creating : copy.toolbar.submit}
+              {!isLoading && <ChevronRight className="h-4 w-4 rtl:rotate-180" strokeWidth={2} />}
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="ehms-create-footer-bar">
-        <div className="ehms-create-footer-meta">
+        {/* Page heading */}
+        <div className="mb-7 flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <h1 className="text-[34px] font-semibold leading-[1.05] tracking-[-0.03em]">
+              {copy.header.title}{' '}
+              <span className={`${displaySerif} font-normal italic`} style={{ color: ink2 }}>
+                {copy.header.accent}
+              </span>
+            </h1>
+            <p className="mt-1.5 max-w-[540px] text-[14.5px] leading-snug" style={{ color: muted }}>
+              {copy.header.subtitle}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-[0.05em] ${mono}`}
+              style={{ backgroundColor: ink, color: accent }}
+            >
+              <span
+                className="h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{
+                  backgroundColor: accent,
+                  boxShadow: '0 0 0 3px oklch(0.85 0.17 130 / 0.3)',
+                }}
+              />
+              {copy.header.badge}
+            </span>
+          </div>
+        </div>
+
+        {error ? (
           <div
-            className="ehms-create-progress-ring"
+            className="mb-5 flex items-start gap-2 rounded-[10px] border px-3 py-2.5 text-sm"
             style={{
-              background: `conic-gradient(var(--ink) 0%, var(--ink) ${progressPercent}%, #efefea ${progressPercent}%, #efefea 100%)`,
+              borderColor: 'oklch(0.88 0.06 25)',
+              backgroundColor: 'oklch(0.96 0.04 25)',
+              color: danger,
             }}
           >
-            <span>{progressPercent}%</span>
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2} />
+            {error}
           </div>
-          <div>
-            <div className="ehms-create-footer-title">
-              {completedSteps} / {steps.length} {copy.footer.completeLabel}
-            </div>
-            <div className="ehms-create-footer-sub">{copy.footer.requiredHint}</div>
-          </div>
-        </div>
+        ) : null}
 
-        <div className="ehms-create-footer-actions">
-          <button
-            type="button"
-            className="ehms-dashboard-btn ehms-create-btn-secondary"
-            onClick={() => router.back()}
-            disabled={isLoading}
-          >
-            {t('cancel')}
-          </button>
-          <button
-            type="submit"
-            form="create-event-form"
-            className="ehms-dashboard-btn ehms-create-btn-primary"
-            disabled={isLoading}
-          >
-            {isLoading ? copy.toolbar.creating : copy.toolbar.submit}
-            {!isLoading && (
-              <ChevronRight aria-hidden size={14} className={isRtl ? 'flip-rtl' : ''} />
+        <form id="create-event-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {/* Event name */}
+          <section className="overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+            {secHead(
+              <List aria-hidden className="h-4 w-4" strokeWidth={1.8} strokeLinecap="round" />,
+              copy.sections.names,
+              copy.sections.namesBody
             )}
-          </button>
-        </div>
+            <div className="px-6 py-[22px] sm:px-6">
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="flex flex-col">
+                  <label className="mb-1.5 flex flex-wrap items-center gap-2 text-[13px] font-medium" htmlFor="nameEn">
+                    <span className={langEn}>EN</span>
+                    {t('nameEn')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <input
+                    id="nameEn"
+                    className={`${inp} ${errors.nameEn ? inpErr : inpNorm}`}
+                    placeholder={copy.fields.nameEnPlaceholder}
+                    disabled={isLoading}
+                    maxLength={60}
+                    {...register('nameEn')}
+                  />
+                  <div className="mt-1.5 flex justify-between text-xs" style={{ color: muted }}>
+                    <span>{copy.fields.publicTitle}</span>
+                    <span className={mono} style={{ color: muted2 }}>
+                      {nameEn.length} / 60
+                    </span>
+                  </div>
+                  {errors.nameEn ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.nameEn.message}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-col">
+                  <label className="mb-1.5 flex flex-wrap items-center gap-2 text-[13px] font-medium" htmlFor="nameAr">
+                    <span className={langAr}>AR</span>
+                    {t('nameAr')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <input
+                    id="nameAr"
+                    className={`${inp} ${errors.nameAr ? inpErr : inpNorm}`}
+                    placeholder={copy.fields.nameArPlaceholder}
+                    dir="rtl"
+                    disabled={isLoading}
+                    maxLength={60}
+                    {...register('nameAr')}
+                  />
+                  <div className="mt-1.5 flex justify-between text-xs" style={{ color: muted }}>
+                    <span>{copy.fields.publicTitleAr}</span>
+                    <span className={mono} style={{ color: muted2 }}>
+                      {nameAr.length} / 60
+                    </span>
+                  </div>
+                  {errors.nameAr ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.nameAr.message}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Event description */}
+          <section className="overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+            {secHead(
+              <MessageSquare aria-hidden className="h-4 w-4" strokeWidth={1.8} strokeLinecap="round" />,
+              copy.sections.descriptions,
+              copy.sections.descriptionsBody
+            )}
+            <div className="px-6 py-[22px] sm:px-6">
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="flex flex-col">
+                  <label
+                    className="mb-1.5 flex flex-wrap items-center gap-2 text-[13px] font-medium"
+                    htmlFor="descriptionEn"
+                  >
+                    <span className={langEn}>EN</span>
+                    {t('descriptionEn')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <textarea
+                    id="descriptionEn"
+                    className={`${tar} ${errors.descriptionEn ? inpErr : inpNorm}`}
+                    placeholder={copy.fields.descriptionEnPlaceholder}
+                    disabled={isLoading}
+                    maxLength={400}
+                    {...register('descriptionEn')}
+                  />
+                  <div className="mt-1.5 flex justify-between text-xs" style={{ color: muted }}>
+                    <span>{copy.fields.publicDescription}</span>
+                    <span className={mono} style={{ color: muted2 }}>
+                      {descriptionEn.length} / 400
+                    </span>
+                  </div>
+                  {errors.descriptionEn ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.descriptionEn.message}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-col">
+                  <label
+                    className="mb-1.5 flex flex-wrap items-center gap-2 text-[13px] font-medium"
+                    htmlFor="descriptionAr"
+                  >
+                    <span className={langAr}>AR</span>
+                    {t('descriptionAr')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <textarea
+                    id="descriptionAr"
+                    className={`${tar} ${errors.descriptionAr ? inpErr : inpNorm}`}
+                    placeholder={copy.fields.descriptionArPlaceholder}
+                    dir="rtl"
+                    disabled={isLoading}
+                    maxLength={400}
+                    {...register('descriptionAr')}
+                  />
+                  <div className="mt-1.5 flex justify-between text-xs" style={{ color: muted }}>
+                    <span>{copy.fields.publicDescriptionAr}</span>
+                    <span className={mono} style={{ color: muted2 }}>
+                      {descriptionAr.length} / 400
+                    </span>
+                  </div>
+                  {errors.descriptionAr ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.descriptionAr.message}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Registration */}
+          <section className="overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+            {secHead(
+              <Calendar aria-hidden className="h-4 w-4" strokeWidth={1.8} />,
+              copy.sections.registration,
+              copy.sections.registrationBody
+            )}
+            <div className="px-6 py-[22px] sm:px-6">
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="flex flex-col">
+                  <label className="mb-1.5 text-[13px] font-medium" htmlFor="registrationStart">
+                    {t('registrationStart')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <Calendar
+                      aria-hidden
+                      className="pointer-events-none absolute start-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9B9B9B]"
+                      strokeWidth={1.8}
+                    />
+                    <input
+                      id="registrationStart"
+                      type="datetime-local"
+                      className={`${inp} ps-10 ${errors.registrationStart ? inpErr : inpNorm}`}
+                      value={registrationStart}
+                      onChange={(e) => updateDateField('registrationStart', e.target.value)}
+                      disabled={isLoading}
+                    />
+                    {registrationStart ? (
+                      <button
+                        type="button"
+                        className="absolute end-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[#9B9B9B] hover:bg-[rgba(10,10,10,.06)] hover:text-[#0A0A0A]"
+                        onClick={() => clearDateField('registrationStart')}
+                        aria-label="Clear"
+                      >
+                        <X className="h-3 w-3" strokeWidth={2} />
+                      </button>
+                    ) : null}
+                  </div>
+                  <p className="mt-1.5 text-xs" style={{ color: muted }}>
+                    {copy.fields.timezone}
+                  </p>
+                  {errors.registrationStart ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.registrationStart.message}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-col">
+                  <label className="mb-1.5 text-[13px] font-medium" htmlFor="registrationEnd">
+                    {t('registrationEnd')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <Calendar
+                      aria-hidden
+                      className="pointer-events-none absolute start-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9B9B9B]"
+                      strokeWidth={1.8}
+                    />
+                    <input
+                      id="registrationEnd"
+                      type="datetime-local"
+                      className={`${inp} ps-10 ${errors.registrationEnd ? inpErr : inpNorm}`}
+                      value={registrationEnd}
+                      onChange={(e) => updateDateField('registrationEnd', e.target.value)}
+                      disabled={isLoading}
+                    />
+                    {registrationEnd ? (
+                      <button
+                        type="button"
+                        className="absolute end-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[#9B9B9B] hover:bg-[rgba(10,10,10,.06)] hover:text-[#0A0A0A]"
+                        onClick={() => clearDateField('registrationEnd')}
+                        aria-label="Clear"
+                      >
+                        <X className="h-3 w-3" strokeWidth={2} />
+                      </button>
+                    ) : null}
+                  </div>
+                  <p className="mt-1.5 text-xs" style={{ color: muted }}>
+                    {copy.fields.registrationRule}
+                  </p>
+                  {errors.registrationEnd ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.registrationEnd.message}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Hacking */}
+          <section className="overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+            {secHead(
+              <Clock3 aria-hidden className="h-4 w-4" strokeWidth={1.8} />,
+              copy.sections.hacking,
+              copy.sections.hackingBody
+            )}
+            <div className="px-6 py-[22px] sm:px-6">
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="flex flex-col">
+                  <label className="mb-1.5 text-[13px] font-medium" htmlFor="hackingStart">
+                    {t('hackingStart')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <Clock3
+                      aria-hidden
+                      className="pointer-events-none absolute start-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9B9B9B]"
+                      strokeWidth={1.8}
+                    />
+                    <input
+                      id="hackingStart"
+                      type="datetime-local"
+                      className={`${inp} ps-10 ${errors.hackingStart ? inpErr : inpNorm}`}
+                      value={hackingStart}
+                      onChange={(e) => updateDateField('hackingStart', e.target.value)}
+                      disabled={isLoading}
+                    />
+                    {hackingStart ? (
+                      <button
+                        type="button"
+                        className="absolute end-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[#9B9B9B] hover:bg-[rgba(10,10,10,.06)] hover:text-[#0A0A0A]"
+                        onClick={() => clearDateField('hackingStart')}
+                        aria-label="Clear"
+                      >
+                        <X className="h-3 w-3" strokeWidth={2} />
+                      </button>
+                    ) : null}
+                  </div>
+                  {errors.hackingStart ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.hackingStart.message}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-col">
+                  <label className="mb-1.5 text-[13px] font-medium" htmlFor="hackingEnd">
+                    {t('hackingEnd')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <Clock3
+                      aria-hidden
+                      className="pointer-events-none absolute start-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#9B9B9B]"
+                      strokeWidth={1.8}
+                    />
+                    <input
+                      id="hackingEnd"
+                      type="datetime-local"
+                      className={`${inp} ps-10 ${errors.hackingEnd ? inpErr : inpNorm}`}
+                      value={hackingEnd}
+                      onChange={(e) => updateDateField('hackingEnd', e.target.value)}
+                      disabled={isLoading}
+                    />
+                    {hackingEnd ? (
+                      <button
+                        type="button"
+                        className="absolute end-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[#9B9B9B] hover:bg-[rgba(10,10,10,.06)] hover:text-[#0A0A0A]"
+                        onClick={() => clearDateField('hackingEnd')}
+                        aria-label="Clear"
+                      >
+                        <X className="h-3 w-3" strokeWidth={2} />
+                      </button>
+                    ) : null}
+                  </div>
+                  {errors.hackingEnd ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.hackingEnd.message}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div
+                className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border px-4 py-3"
+                style={{ borderColor: line, background: '#FCFCFA' }}
+              >
+                <span className="text-[13px] font-medium" style={{ color: ink2 }}>
+                  {copy.fields.buildWindow}
+                </span>
+                <b className={`text-sm ${mono}`} style={{ color: ink }}>
+                  {formatDuration(hackingStart, hackingEnd, copy.misc)}
+                </b>
+              </div>
+            </div>
+          </section>
+
+          {/* Team size + action bar */}
+          <section className="overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+            {secHead(
+              <Users aria-hidden className="h-4 w-4" strokeWidth={1.8} />,
+              copy.sections.team,
+              copy.sections.teamBody
+            )}
+            <div className="px-6 py-[22px] sm:px-6">
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="flex flex-col">
+                  <label className="mb-1.5 text-[13px] font-medium" htmlFor="minTeamSize">
+                    {t('minTeamSize')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <div
+                    className="flex items-center gap-0 overflow-hidden rounded-[10px] border"
+                    style={{ borderColor: line2 }}
+                  >
+                    <button
+                      type="button"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center border-e transition-colors hover:bg-[rgba(10,10,10,.04)]"
+                      style={{ borderColor: line }}
+                      onClick={() => updateMinTeamSize(minTeamSize - 1)}
+                      disabled={isLoading}
+                      aria-label="Decrease"
+                    >
+                      <Minus className="h-3.5 w-3.5" strokeWidth={2} />
+                    </button>
+                    <input
+                      id="minTeamSize"
+                      type="number"
+                      min={1}
+                      max={10}
+                      className={`h-11 min-w-0 flex-1 border-0 bg-transparent text-center text-sm font-semibold outline-none ${mono}`}
+                      disabled={isLoading}
+                      {...register('minTeamSize', {
+                        valueAsNumber: true,
+                        onChange: (e) => updateMinTeamSize(Number(e.target.value || minTeamSize)),
+                      })}
+                    />
+                    <button
+                      type="button"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center border-s transition-colors hover:bg-[rgba(10,10,10,.04)]"
+                      style={{ borderColor: line }}
+                      onClick={() => updateMinTeamSize(minTeamSize + 1)}
+                      disabled={isLoading}
+                      aria-label="Increase"
+                    >
+                      <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-xs" style={{ color: muted }}>
+                    {copy.fields.minHelp}
+                  </p>
+                  {errors.minTeamSize ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.minTeamSize.message}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-col">
+                  <label className="mb-1.5 text-[13px] font-medium" htmlFor="maxTeamSize">
+                    {t('maxTeamSize')}{' '}
+                    <span className="text-[11px]" style={{ color: accentDeep }}>
+                      {copy.fields.required}
+                    </span>
+                  </label>
+                  <div
+                    className="flex items-center gap-0 overflow-hidden rounded-[10px] border"
+                    style={{ borderColor: line2 }}
+                  >
+                    <button
+                      type="button"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center border-e transition-colors hover:bg-[rgba(10,10,10,.04)]"
+                      style={{ borderColor: line }}
+                      onClick={() => updateMaxTeamSize(maxTeamSize - 1)}
+                      disabled={isLoading}
+                      aria-label="Decrease"
+                    >
+                      <Minus className="h-3.5 w-3.5" strokeWidth={2} />
+                    </button>
+                    <input
+                      id="maxTeamSize"
+                      type="number"
+                      min={2}
+                      max={20}
+                      className={`h-11 min-w-0 flex-1 border-0 bg-transparent text-center text-sm font-semibold outline-none ${mono}`}
+                      disabled={isLoading}
+                      {...register('maxTeamSize', {
+                        valueAsNumber: true,
+                        onChange: (e) => updateMaxTeamSize(Number(e.target.value || maxTeamSize)),
+                      })}
+                    />
+                    <button
+                      type="button"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center border-s transition-colors hover:bg-[rgba(10,10,10,.04)]"
+                      style={{ borderColor: line }}
+                      onClick={() => updateMaxTeamSize(maxTeamSize + 1)}
+                      disabled={isLoading}
+                      aria-label="Increase"
+                    >
+                      <Plus className="h-3.5 w-3.5" strokeWidth={2} />
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-xs" style={{ color: muted }}>
+                    {copy.fields.maxHelp}
+                  </p>
+                  {errors.maxTeamSize ? (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs" style={{ color: danger }}>
+                      <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2} />
+                      {errors.maxTeamSize.message}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-[10px] border px-4 py-3" style={{ borderColor: line, background: '#FCFCFA' }}>
+                <div className="mb-2 text-[12px] font-semibold uppercase tracking-wide" style={{ color: muted2 }}>
+                  {copy.fields.preview}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {Array.from({ length: visibleTeamSlots }, (_, index) => {
+                    const slot = index + 1;
+                    const state =
+                      slot <= minTeamSize ? 'bg-[#0A0A0A] text-[oklch(0.85_0.17_130)]' : slot <= maxTeamSize
+                        ? 'border border-[rgba(10,10,10,.14)] bg-white text-[#2A2A2A]'
+                        : 'border border-dashed border-[rgba(10,10,10,.12)] bg-[#F5F5F0] text-[#9B9B9B]';
+                    return (
+                      <span
+                        key={slot}
+                        className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold ${mono} ${state}`}
+                      >
+                        {slot}
+                      </span>
+                    );
+                  })}
+                  {maxTeamSize > visibleTeamSlots ? (
+                    <span
+                      className={`flex h-9 min-w-9 items-center justify-center rounded-full px-2 text-[11px] font-bold ${mono}`}
+                      style={{ background: accentSoft, color: ink }}
+                    >
+                      +{maxTeamSize - visibleTeamSlots}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-2 text-[12.5px]" style={{ color: muted }}>
+                  {copy.fields.teamRange.replace('{min}', String(minTeamSize)).replace('{max}', String(maxTeamSize))}
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="flex flex-col gap-3 border-t px-6 py-[18px] sm:flex-row sm:items-center sm:justify-between"
+              style={{ borderColor: line, background: '#FCFCFA' }}
+            >
+              <div className="flex items-center gap-2 text-[12.5px]" style={{ color: muted }}>
+                <span
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: accentDeep }}
+                />
+                {copy.footer.status
+                  .replace('{complete}', String(completedSteps))
+                  .replace('{total}', String(steps.length))}
+                <span className="hidden sm:inline">·</span>
+                <span className="sm:ms-0">{copy.footer.requiredHint}</span>
+              </div>
+              <div className="flex flex-wrap gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  disabled={isLoading}
+                  className="inline-flex items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-[13.5px] font-medium transition-colors hover:bg-[rgba(10,10,10,.04)] disabled:opacity-60"
+                  style={{ color: ink2 }}
+                >
+                  {copy.toolbar.cancel}
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center gap-2 rounded-[10px] border border-transparent bg-[#0A0A0A] px-4 py-2.5 text-[13.5px] font-medium text-[#FAFAF7] transition-all hover:-translate-y-px hover:bg-black disabled:opacity-60"
+                  disabled={isLoading}
+                >
+                  {isLoading ? copy.toolbar.creating : copy.toolbar.submit}
+                  {!isLoading && <ChevronRight className="h-4 w-4 rtl:rotate-180" strokeWidth={2} />}
+                </button>
+              </div>
+            </div>
+          </section>
+        </form>
       </div>
     </div>
   );
