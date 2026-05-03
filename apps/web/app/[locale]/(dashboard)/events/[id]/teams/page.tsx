@@ -120,7 +120,7 @@ export default function EventTeamsPage() {
                         <span className="me-2">👤</span>
                         <span>{member.user.name}</span>
                         {member.role === 'LEADER' && (
-                          <span className="ms-2 text-xs bg-orange-100 dark:bg-orange-950/30 text-orange-900 dark:text-orange-300 px-2 py-0.5 rounded">
+                          <span className="ms-2 text-xs bg-teal-100 dark:bg-teal-950/30 text-teal-900 dark:text-teal-300 px-2 py-0.5 rounded">
                             {t('leader')}
                           </span>
                         )}

@@ -48,7 +48,7 @@ function getUserInitials(name: string) {
 function getRoleBadgeColor(roleName: string) {
   switch (roleName) {
     case 'SUPER_ADMIN': return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
-    case 'ORGANIZER':   return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-950/35 dark:text-orange-300 dark:border-orange-800';
+    case 'ORGANIZER':   return 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-950/35 dark:text-teal-300 dark:border-teal-800';
     case 'JUDGE':       return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
     case 'PARTICIPANT': return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
     default:            return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
@@ -203,10 +203,10 @@ export default function AdminUserDetailPage() {
 
       {/* Profile Card */}
       <Card className="border-0 shadow-sm overflow-hidden">
-        <div className="h-24 bg-gradient-to-r from-primary/20 via-orange-500/20 to-amber-500/20" />
+        <div className="h-24 bg-gradient-to-r from-primary/20 via-green-500/20 to-emerald-500/20" />
         <CardContent className="px-6 pb-6 -mt-12">
           <div className="flex items-end gap-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-4 ring-white dark:ring-gray-900">
+            <div className="w-20 h-20 bg-gradient-to-br from-primary to-green-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-4 ring-white dark:ring-gray-900">
               {getUserInitials(user.name)}
             </div>
             <div className="pb-1">

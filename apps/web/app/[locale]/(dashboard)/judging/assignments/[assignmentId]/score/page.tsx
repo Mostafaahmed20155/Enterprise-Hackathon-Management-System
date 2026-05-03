@@ -226,7 +226,7 @@ export default function ScoreSubmissionPage() {
                 href={`/${locale}/submissions/${submission.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-primary dark:text-orange-300 hover:underline"
+                className="text-sm text-primary dark:text-green-300 hover:underline"
               >
                 {locale === 'ar' ? 'عرض المشروع الكامل ←' : 'View full submission →'}
               </a>

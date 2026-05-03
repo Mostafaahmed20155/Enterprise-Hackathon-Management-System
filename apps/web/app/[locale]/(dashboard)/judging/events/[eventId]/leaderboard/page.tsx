@@ -170,7 +170,7 @@ export default function LeaderboardPage() {
               </Card>
 
               {/* 3rd Place */}
-              <Card className="border-orange-300 dark:border-orange-600">
+              <Card className="border-teal-300 dark:border-teal-600">
                 <CardHeader className="text-center pb-2">
                   <div className="text-4xl mb-2">🥉</div>
                   <CardTitle className="text-base leading-tight">
@@ -226,13 +226,13 @@ export default function LeaderboardPage() {
                         <td className="p-3 text-sm text-gray-600 dark:text-gray-400">
                           <Link
                             href={`/submissions/${entry.submissionId}`}
-                            className="hover:text-primary dark:hover:text-orange-300 hover:underline"
+                            className="hover:text-primary dark:hover:text-green-300 hover:underline"
                           >
                             {getText(entry.title, locale)}
                           </Link>
                         </td>
                         <td className="p-3 text-center">
-                          <span className="text-lg font-bold text-primary dark:text-orange-300">
+                          <span className="text-lg font-bold text-primary dark:text-green-300">
                             {entry.totalScore.toFixed(1)}
                           </span>
                         </td>

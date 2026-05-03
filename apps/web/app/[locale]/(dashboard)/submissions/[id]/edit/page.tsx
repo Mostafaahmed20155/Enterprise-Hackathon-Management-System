@@ -369,7 +369,7 @@ export default function EditSubmissionPage() {
             )}
 
             {/* Upload new file */}
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-orange-400 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 transition-colors">
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors">
               <div className="flex flex-col items-center justify-center gap-2">
                 <Upload className="w-6 h-6 text-gray-400" />
                 <span className="text-sm text-gray-500">

@@ -84,7 +84,7 @@ function formatDate(iso: string, locale: string) {
 function getRoleBadgeClass(name: string) {
   const map: Record<string, string> = {
     SUPER_ADMIN: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    ORGANIZER:   'bg-orange-100 text-orange-800 dark:bg-orange-950/35 dark:text-orange-300',
+    ORGANIZER:   'bg-teal-100 text-teal-800 dark:bg-teal-950/35 dark:text-teal-300',
     JUDGE:       'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     PARTICIPANT: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   };
@@ -298,13 +298,13 @@ export default function ProfilePage() {
       {/* ── Profile Header ─────────────────────────────────────────────────── */}
       <div className="relative rounded-2xl overflow-hidden shadow-sm border-0">
         {/* Cover */}
-        <div className="h-28 bg-gradient-to-r from-primary via-orange-500 to-amber-600" />
+        <div className="h-28 bg-gradient-to-r from-primary via-green-500 to-emerald-600" />
 
         {/* Content */}
         <div className="bg-white dark:bg-gray-900 px-6 pb-6">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12">
             {/* Avatar */}
-            <div className="w-24 h-24 bg-gradient-to-br from-primary to-orange-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl shadow-xl ring-4 ring-white dark:ring-gray-900 shrink-0">
+            <div className="w-24 h-24 bg-gradient-to-br from-primary to-green-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl shadow-xl ring-4 ring-white dark:ring-gray-900 shrink-0">
               {getUserInitials(user.name)}
             </div>
 

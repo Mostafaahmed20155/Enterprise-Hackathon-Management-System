@@ -128,7 +128,7 @@ export default function JudgingEventPage() {
         <div className="mb-6">
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-primary to-orange-600 h-2 rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-primary to-green-600 h-2 rounded-full transition-all duration-500"
               style={{ width: `${submissions.length > 0 ? (scoredCount / submissions.length) * 100 : 0}%` }}
             />
           </div>

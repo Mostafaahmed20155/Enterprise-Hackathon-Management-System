@@ -279,14 +279,14 @@ export default function CreateSubmissionPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Submissions
         </Link>
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-orange-600 to-amber-900 p-8 text-white shadow-xl">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-green-600 to-emerald-900 p-8 text-white shadow-xl">
           <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] opacity-30" />
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-2">
               <FileText className="w-6 h-6" />
               <h1 className="text-3xl font-bold">{t('createSubmission')}</h1>
             </div>
-            <p className="text-orange-50/95 text-lg">Submit your project for the hackathon</p>
+            <p className="text-green-50/95 text-lg">Submit your project for the hackathon</p>
           </div>
         </div>
       </div>

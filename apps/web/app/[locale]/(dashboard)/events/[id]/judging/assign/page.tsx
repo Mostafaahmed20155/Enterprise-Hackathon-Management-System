@@ -201,12 +201,12 @@ export default function AssignJudgePage() {
                     onClick={() => setSelectedJudge(judge)}
                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                       selectedJudge?.id === judge.id
-                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/30'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                        ? 'border-green-500 bg-green-50 dark:bg-green-950/30'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-green-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                     }`}
                   >
-                    <div className="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center shrink-0">
-                      <span className="text-orange-800 dark:text-orange-300 font-semibold text-sm">
+                    <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-950/40 flex items-center justify-center shrink-0">
+                      <span className="text-green-800 dark:text-green-300 font-semibold text-sm">
                         {judge.name?.charAt(0)?.toUpperCase() || '?'}
                       </span>
                     </div>
