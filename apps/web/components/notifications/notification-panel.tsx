@@ -33,8 +33,15 @@ export function NotificationPanel({ onClose, locale }: Props) {
     if (!item.isRead) {
       markRead.mutate(item.id);
     }
-    if (item.link) {
-      router.push(item.link as any);
+    const { link } = item;
+    if (
+      typeof link === 'string' &&
+      link.startsWith('/') &&
+      !link.startsWith('//') &&
+      !link.startsWith('/\\') &&
+      !link.includes(':')
+    ) {
+      router.push(link);
     }
     onClose();
   };
