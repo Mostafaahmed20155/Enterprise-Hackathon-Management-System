@@ -10,6 +10,7 @@ import { TeamsModule } from './teams/teams.module';
 import { SubmissionsModule } from './submissions/submissions.module';
 import { JudgingModule } from './judging/judging.module';
 import { StorageModule } from './storage/storage.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { StorageModule } from './storage/storage.module';
     TeamsModule,
     SubmissionsModule,
     JudgingModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}
