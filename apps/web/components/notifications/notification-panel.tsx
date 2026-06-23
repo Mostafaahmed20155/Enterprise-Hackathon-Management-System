@@ -39,7 +39,7 @@ export function NotificationPanel({ onClose, locale }: Props) {
     onClose();
   };
 
-  const notifications = (data?.data ?? []).slice(0, 10);
+  const notifications = data?.data ?? [];
 
   return (
     <div className="ehms-notification-panel">
