@@ -194,3 +194,20 @@ export const usersApi = {
   toggleStatus: (id: string, active: boolean) => api.patch(`/users/${id}/status`, { active }),
   delete: (id: string) => api.delete(`/users/${id}`),
 };
+
+// Notifications API
+export interface NotificationItem {
+  id: string;
+  type: string;
+  title: { en: string; ar: string };
+  body: { en: string; ar: string };
+  link?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export const notificationsApi = {
+  list: () => api.get<{ data: NotificationItem[]; hasUnread: boolean }>('/notifications'),
+  markRead: (id: string) => api.patch<void>(`/notifications/${id}/read`),
+  markAllRead: () => api.patch<void>('/notifications/read-all'),
+};
