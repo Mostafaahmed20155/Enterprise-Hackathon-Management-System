@@ -10,10 +10,14 @@ import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { EventState, InviteStatus } from '@ehms/database';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class TeamsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   /**
    * Create a new team
@@ -461,6 +465,21 @@ export class TeamsService {
       },
     });
 
+    // Notify the invited user if they already have an account
+    if (invitedUser) {
+      const teamName = (team.name as any)?.en || 'a team';
+      await this.notifications.create({
+        userId: invitedUser.id,
+        type: 'TEAM_INVITE_RECEIVED',
+        title: { en: 'Team Invitation', ar: 'دعوة للفريق' },
+        body: {
+          en: `You have been invited to join ${teamName}`,
+          ar: `تمت دعوتك للانضمام إلى ${(team.name as any)?.ar || teamName}`,
+        },
+        link: '/teams',
+      });
+    }
+
     return {
       invite,
       message: {
@@ -545,6 +564,22 @@ export class TeamsService {
         data: { status: InviteStatus.DECLINED },
       });
 
+      // Notify the team leader
+      const decliningUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true },
+      });
+      await this.notifications.create({
+        userId: invite.team.leaderId,
+        type: 'TEAM_INVITE_DECLINED',
+        title: { en: 'Invitation Declined', ar: 'تم رفض الدعوة' },
+        body: {
+          en: `${decliningUser?.name || 'A user'} declined your team invitation`,
+          ar: `${decliningUser?.name || 'مستخدم'} رفض دعوتك للفريق`,
+        },
+        link: '/teams',
+      });
+
       return {
         message: {
           en: 'Invite declined',
@@ -592,6 +627,22 @@ export class TeamsService {
     await this.prisma.teamInvite.update({
       where: { id: inviteId },
       data: { status: InviteStatus.ACCEPTED },
+    });
+
+    // Notify the team leader
+    const joiningUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true },
+    });
+    await this.notifications.create({
+      userId: invite.team.leaderId,
+      type: 'TEAM_INVITE_ACCEPTED',
+      title: { en: 'Invitation Accepted', ar: 'تم قبول الدعوة' },
+      body: {
+        en: `${joiningUser?.name || 'A user'} accepted your invitation and joined the team`,
+        ar: `${joiningUser?.name || 'مستخدم'} قبل دعوتك وانضم إلى الفريق`,
+      },
+      link: '/teams',
     });
 
     return {

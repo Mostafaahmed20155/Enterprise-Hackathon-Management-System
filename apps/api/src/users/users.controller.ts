@@ -112,4 +112,11 @@ export class UsersController {
   async toggleStatus(@Param('id') id: string, @Body() body: { active: boolean }) {
     return this.usersService.toggleUserStatus(id, body.active);
   }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '[Admin] Delete a user account' })
+  @RequirePermissions({ resource: 'USER', action: 'DELETE' })
+  async deleteUser(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.usersService.deleteUser(id, user.sub);
+  }
 }

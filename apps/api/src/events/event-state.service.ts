@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventState } from '@ehms/database';
+import { NotificationsService } from '../notifications/notifications.service';
 
 interface StateTransition {
   from: EventState;
@@ -79,7 +80,24 @@ export class EventStateService {
     },
   ];
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
+
+  private async notifyUsers(
+    userIds: string[],
+    type: string,
+    title: { en: string; ar: string },
+    body: { en: string; ar: string },
+    link: string,
+  ): Promise<void> {
+    await Promise.all(
+      userIds.map((userId) =>
+        this.notifications.create({ userId, type, title, body, link }),
+      ),
+    );
+  }
 
   /**
    * Transition event to new state
@@ -133,6 +151,53 @@ export class EventStateService {
       for (const effect of transition.sideEffects) {
         await effect(event);
       }
+    }
+
+    // Fan-out notifications for key state transitions
+    const eventName = (event.name as any)?.en || 'An event';
+    const eventNameAr = (event.name as any)?.ar || eventName;
+    const eventLink = `/events/${event.id}`;
+
+    if (toState === EventState.REGISTRATION_OPEN) {
+      const registrations = await this.prisma.eventRegistration.findMany({
+        where: { eventId: event.id },
+        select: { userId: true },
+      });
+      await this.notifyUsers(
+        registrations.map((r) => r.userId),
+        'EVENT_STATE_CHANGED',
+        { en: 'Registration Now Open', ar: 'التسجيل مفتوح الآن' },
+        { en: `Registration for ${eventName} is now open`, ar: `التسجيل في ${eventNameAr} مفتوح الآن` },
+        eventLink,
+      );
+    }
+
+    if (toState === EventState.HACKING_PHASE) {
+      const members = await this.prisma.teamMember.findMany({
+        where: { team: { eventId: event.id } },
+        select: { userId: true },
+      });
+      await this.notifyUsers(
+        members.map((m) => m.userId),
+        'EVENT_STATE_CHANGED',
+        { en: 'Hacking Phase Started', ar: 'بدأت مرحلة الهاكاثون' },
+        { en: `The hacking phase for ${eventName} has begun`, ar: `بدأت مرحلة الهاكاثون في ${eventNameAr}` },
+        eventLink,
+      );
+    }
+
+    if (toState === EventState.RESULTS_PUBLISHED) {
+      const members = await this.prisma.teamMember.findMany({
+        where: { team: { eventId: event.id } },
+        select: { userId: true },
+      });
+      await this.notifyUsers(
+        members.map((m) => m.userId),
+        'EVENT_STATE_CHANGED',
+        { en: 'Results Published', ar: 'تم نشر النتائج' },
+        { en: `Results for ${eventName} have been published`, ar: `تم نشر نتائج ${eventNameAr}` },
+        eventLink,
+      );
     }
   }
 

@@ -2,8 +2,9 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
-import { Inter, Cairo } from 'next/font/google';
+import { Cairo, Instrument_Serif, Inter, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
+import { QueryProvider } from '@/components/providers/query-provider';
 import '../globals.css';
 
 const inter = Inter({
@@ -12,12 +13,26 @@ const inter = Inter({
   display: 'swap',
 });
 
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+  weight: '400',
+  style: ['normal', 'italic'],
+});
+
 // Cairo font for beautiful Arabic rendering
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
   variable: '--font-arabic',
   display: 'swap',
   weight: ['400', '500', '600', '700'],
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono-display',
+  display: 'swap',
 });
 
 export function generateStaticParams() {
@@ -47,26 +62,33 @@ export default async function LocaleLayout({
   const fontClass = locale === 'ar' ? cairo.variable : inter.variable;
 
   return (
-    <html lang={locale} dir={dir} className={`${fontClass} ${inter.variable} ${cairo.variable}`}>
-      <body className={locale === 'ar' ? 'font-arabic' : 'font-sans'}>
+    <html
+      lang={locale}
+      dir={dir}
+      className={`${fontClass} ${inter.variable} ${cairo.variable} ${instrumentSerif.variable} ${jetBrainsMono.variable}`}
+      suppressHydrationWarning
+    >
+      <body className={locale === 'ar' ? 'font-arabic' : 'font-sans'} suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
-          {children}
-          <Toaster
-            position={locale === 'ar' ? 'top-left' : 'top-right'}
-            dir={dir}
-            richColors
-            closeButton
-            toastOptions={{
-              classNames: {
-                toast: 'font-medium',
-                title: 'text-sm',
-                description: 'text-xs',
-                actionButton: 'bg-primary text-white',
-                cancelButton: 'bg-gray-200 dark:bg-gray-700',
-                closeButton: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
-              },
-            }}
-          />
+          <QueryProvider>
+            {children}
+            <Toaster
+              position={locale === 'ar' ? 'top-left' : 'top-right'}
+              dir={dir}
+              richColors
+              closeButton
+              toastOptions={{
+                classNames: {
+                  toast: 'font-medium',
+                  title: 'text-sm',
+                  description: 'text-xs',
+                  actionButton: 'bg-primary text-white',
+                  cancelButton: 'bg-gray-200 dark:bg-gray-700',
+                  closeButton: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+                },
+              }}
+            />
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>

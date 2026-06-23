@@ -7,16 +7,95 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
 import { EventState, SubmissionStatus } from '@ehms/database';
+
+function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
 
 @Injectable()
 export class SubmissionsService {
   constructor(
     private prisma: PrismaService,
     private storage: StorageService,
+    private notifications: NotificationsService,
   ) {}
+
+  private async notifySubmissionStatus(
+    submission: { id: string; authorId: string; title: any },
+    newStatus: string,
+  ): Promise<void> {
+    if (newStatus !== 'WINNER' && newStatus !== 'DISQUALIFIED') return;
+
+    const titleEn = (submission.title as any)?.en || 'Your submission';
+    const titleAr = (submission.title as any)?.ar || titleEn;
+
+    const isWinner = newStatus === 'WINNER';
+    await this.notifications.create({
+      userId: submission.authorId,
+      type: 'SUBMISSION_STATUS_CHANGED',
+      title: isWinner
+        ? { en: 'Congratulations!', ar: 'تهانينا!' }
+        : { en: 'Submission Update', ar: 'تحديث المشروع' },
+      body: isWinner
+        ? { en: `"${titleEn}" has been selected as a winner`, ar: `"${titleAr}" تم اختياره فائزاً` }
+        : { en: `"${titleEn}" has been disqualified`, ar: `"${titleAr}" تم استبعاده` },
+      link: `/submissions/${submission.id}`,
+    });
+  }
+
+  /**
+   * Update submission status (admin operation).
+   * Fires a notification when status is set to WINNER or DISQUALIFIED.
+   */
+  async updateStatus(id: string, status: string) {
+    const submission = await this.prisma.submission.findUnique({
+      where: { id },
+    });
+
+    if (!submission) {
+      throw new NotFoundException({
+        en: 'Submission not found',
+        ar: 'التقديم غير موجود',
+      });
+    }
+
+    const updated = await this.prisma.submission.update({
+      where: { id },
+      data: { status: status as any },
+    });
+
+    await this.notifySubmissionStatus(updated, status);
+
+    return updated;
+  }
+
+  /**
+   * Generate a unique URL slug from the English title.
+   * Appends -2, -3, ... on collision with an existing submission slug.
+   */
+  private async generateUniqueSlug(baseEn: string): Promise<string> {
+    const base = slugify(baseEn) || 'submission';
+    let candidate = base;
+    let n = 2;
+    while (await this.prisma.submission.findUnique({ where: { slug: candidate } })) {
+      const suffix = `-${n++}`;
+      candidate = `${base.slice(0, 60 - suffix.length)}${suffix}`;
+    }
+    return candidate;
+  }
 
   /**
    * Create a new submission
@@ -97,6 +176,7 @@ export class SubmissionsService {
         demoUrl: dto.demoUrl,
         repoUrl: dto.repoUrl,
         videoUrl: dto.videoUrl,
+        slug: await this.generateUniqueSlug(dto.title.en),
         status: SubmissionStatus.DRAFT,
       },
       include: {
@@ -204,11 +284,13 @@ export class SubmissionsService {
   }
 
   /**
-   * Get submission by ID
+   * Get submission by ID or slug
    */
-  async findOne(id: string) {
-    const submission = await this.prisma.submission.findUnique({
-      where: { id },
+  async findOne(idOrSlug: string) {
+    const submission = await this.prisma.submission.findFirst({
+      where: {
+        OR: [{ slug: idOrSlug }, { id: idOrSlug }],
+      },
       include: {
         team: {
           include: {

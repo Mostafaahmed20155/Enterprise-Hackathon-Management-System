@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Transit Accessibility Navigator · EHMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#FAFAF7;--ink:#0A0A0A;--ink-2:#2A2A2A;--muted:#6B6B6B;--muted-2:#9B9B9B;--line:rgba(10,10,10,.08);--line-2:rgba(10,10,10,.14);--accent:oklch(.85 .17 130);--accent-deep:oklch(.68 .19 130);--accent-soft:oklch(.93 .09 130);--danger:oklch(.62 .22 25)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.serif{font-family:'Instrument Serif',serif;font-style:italic}.mono{font-family:'JetBrains Mono',monospace}
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.sidebar{background:#fff;border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;padding:4px 10px 22px;letter-spacing:-.02em}
+.logo-mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative}.logo-mark::before{content:"";position:absolute;inset:4px;border-radius:4px;background:var(--accent)}.logo-mark::after{content:"";position:absolute;left:10px;top:10px;width:6px;height:6px;border-radius:2px;background:var(--ink)}
+.side-sec{color:var(--muted-2);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding:12px 10px 6px;font-weight:600}
+.side-item{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;color:var(--ink-2);margin-bottom:2px;font-size:14px;transition:all .2s}
+.side-item:hover{background:#F5F5F0;color:var(--ink)}.side-item.active{background:var(--ink);color:#fff}.side-item.active .side-ico{color:var(--accent)}
+.side-ico{width:17px;height:17px;color:var(--muted);flex-shrink:0}
+.side-foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.user-card{display:flex;align-items:center;gap:10px;padding:8px 10px}.user-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.user-info .un{font-size:13.5px;font-weight:600}.user-info .ue{font-size:11.5px;color:var(--muted)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--line);background:color-mix(in oklab,var(--bg) 78%,transparent);backdrop-filter:blur(12px);position:sticky;top:0;z-index:20}
+.crumb{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center}.crumb b{color:var(--ink);font-weight:500}.crumb .sep{color:var(--muted-2)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;font-size:13.5px;font-weight:500;transition:all .2s;border:1px solid transparent}
+.btn-primary{background:var(--ink);color:var(--bg)}.btn-outline{border-color:var(--line-2);color:var(--ink);background:#fff}
+.btn-outline:hover{border-color:var(--ink)}
+.btn-accent{background:var(--accent);color:var(--ink);font-weight:600}.btn-accent:hover{background:var(--accent-deep);color:#fff}
+.btn-danger{border-color:oklch(.88 .06 25);color:var(--danger);background:#fff}.btn-danger:hover{background:oklch(.96 .04 25)}
+.chev{transition:transform .2s}.btn:hover .chev{transform:translateX(3px)}
+.content{padding:28px 32px 60px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:28px;max-width:1400px}
+/* hero */
+.hero{padding:8px 0 24px;border-bottom:1px solid var(--line);margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+.hero h1{font-size:36px;letter-spacing:-.03em;font-weight:600;line-height:1.05;letter-spacing:-.025em}
+.hero h1 .serif{color:var(--ink-2);font-weight:400}
+.hero .team-row{display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13.5px;margin-top:10px}
+.hero .team-row .tl{width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--accent-deep))}
+.hero .team-row b{color:var(--ink);font-weight:500}
+.hero .team-row .dot{width:3px;height:3px;border-radius:50%;background:var(--muted-2)}
+.bdg{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.bdg.judged{background:var(--accent-soft);color:var(--ink);border:1px solid oklch(.85 .17 130 /.3)}
+.bdg.final{background:var(--ink);color:var(--accent)}
+.bdg.draft{background:#F5F5F0;color:var(--muted)}
+/* sections */
+.sec{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:18px}
+.sec-h{padding:18px 22px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.sec-h h3{font-size:15.5px;font-weight:600;letter-spacing:-.015em;flex:1}
+.sec-h .hint{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.sec-b{padding:22px}
+.prose{font-size:14.5px;line-height:1.7;color:var(--ink-2)}
+.prose p+p{margin-top:12px}
+/* scores */
+.avg-row{display:grid;grid-template-columns:minmax(220px,280px) 1fr;gap:18px;padding:22px;align-items:stretch}
+.avg-card{background:var(--ink);color:#fff;border-radius:14px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.avg-card::before{content:"";position:absolute;top:-20%;right:-20%;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,var(--accent) 0%,transparent 70%);opacity:.45}
+.avg-card .lbl{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
+.avg-card .big{font-size:62px;font-weight:600;letter-spacing:-.04em;line-height:1;margin-top:6px;position:relative;z-index:1}
+.avg-card .big .s{font-size:20px;color:var(--muted-2);font-weight:400}
+.avg-card .sub{font-size:12.5px;color:var(--muted-2);margin-top:10px}
+.avg-bars{display:flex;flex-direction:column;gap:10px;justify-content:center}
+.bar-row{display:grid;grid-template-columns:100px 1fr 48px;gap:12px;align-items:center;font-size:12.5px}
+.bar-row .n{color:var(--ink-2);font-weight:500}
+.bar-row .b{height:7px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar-row .b > div{height:100%;background:linear-gradient(90deg,var(--accent-deep),var(--accent));border-radius:99px}
+.bar-row .v{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;text-align:right}
+/* judge card */
+.judges{display:flex;flex-direction:column;gap:14px;padding:22px;border-top:1px solid var(--line)}
+.judge{border:1px solid var(--line);border-radius:14px;padding:16px;background:#FCFCFA}
+.jh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.jh-l{display:flex;gap:12px;align-items:center}
+.j-av{width:36px;height:36px;border-radius:10px;background:#2A2A2A;color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.jh .name{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.jh .date{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.j-score{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.j-score .d{color:var(--muted-2);font-weight:400}
+.crits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.crit{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px}
+.crit .lbl{font-size:10.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.crit .val{font-size:18px;font-weight:600;margin-top:2px;letter-spacing:-.01em}
+.crit .val .d{color:var(--muted-2);font-weight:400;font-size:13px}
+.feedback{font-size:13.5px;color:var(--ink-2);line-height:1.55;padding:12px 14px;background:var(--accent-soft);border-radius:10px;border:1px solid oklch(.85 .17 130 /.3)}
+.feedback::before{content:"""";display:block;font-family:'Instrument Serif',serif;font-style:italic;font-size:32px;line-height:0;margin-top:10px;color:var(--accent-deep)}
+/* files */
+.files{display:flex;flex-direction:column;gap:8px;padding:16px 22px 22px}
+.file-row{display:grid;grid-template-columns:40px 1fr auto;gap:14px;padding:12px;border:1px solid var(--line);border-radius:11px;background:#FCFCFA;align-items:center}
+.f-ico{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700}
+.f-ico.pdf{background:#FFE4E4;color:#A0281A}.f-ico.zip{background:#FFF2D4;color:#8A5D0A}.f-ico.img{background:#D4E7FF;color:#0A3D73}
+.f-t{font-size:13.5px;font-weight:500}.f-s{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.f-actions{display:flex;gap:6px}
+.icon-btn{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);border:1px solid var(--line)}
+.icon-btn:hover{color:var(--ink);background:#fff;border-color:var(--ink)}
+.icon-btn.danger:hover{color:var(--danger);border-color:var(--danger)}
+.icon-btn svg{width:14px;height:14px}
+/* sidebar */
+.side-panel{position:sticky;top:88px;align-self:start;display:flex;flex-direction:column;gap:16px}
+.sp-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.sp-card h4{padding:16px 18px 10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.sp-card h4 svg{width:14px;height:14px;color:var(--accent-deep)}
+.sp-card .body{padding:0 18px 16px}
+.link-row{display:flex;align-items:center;gap:10px;padding:10px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2);transition:background .15s}
+.link-row:hover{background:#FCFCFA}
+.link-row svg.ico{width:16px;height:16px;color:var(--muted-2)}
+.link-row .u{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.link-row .arr{color:var(--muted-2)}.link-row:hover .arr{color:var(--ink)}
+.link-empty{padding:16px 18px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);text-align:center}
+.action-sp{padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.action-sp .btn{justify-content:center}
+.warn{font-size:12px;color:var(--muted);line-height:1.5;padding:10px 12px;background:#FCFCFA;border:1px solid var(--line);border-radius:8px;margin-top:8px}
+.warn b{color:var(--ink)}
+/* tabs / toc */
+.toc{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.toc a{padding:10px 14px;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.toc a.on{color:var(--ink);border-color:var(--ink)}
+@media (max-width:1100px){.content{grid-template-columns:1fr}.avg-row{grid-template-columns:1fr}.crits{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}}
+</style></head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="side-brand"><span class="logo-mark"></span>EHMS</div>
+    <div class="side-sec">Organize</div>
+    <a class="side-item" href="#"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
+    <a class="side-item" href="#"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Events</a>
+    <a class="side-item" href="event-teams.html"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Teams</a>
+    <a class="side-item active" href="submissions.html"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Submissions</a>
+    <a class="side-item" href="judging-assignments.html"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>Judging</a>
+    <div class="side-foot"><div class="user-card"><div class="user-av">AR</div><div class="user-info"><div class="un">Ayesha R.</div><div class="ue">Organizer</div></div></div></div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb"><a href="submissions.html">Submissions</a><span class="sep">/</span><b>Transit Accessibility Navigator</b></div>
+      <div style="display:flex;gap:10px"><button class="btn btn-outline">Share</button><a class="btn btn-outline" href="score-submission.html">Open scorer <span class="chev">→</span></a></div>
+    </header>
+    <div class="content">
+      <div>
+        <div class="hero">
+          <div>
+            <h1>Transit Accessibility <span class="serif">Navigator.</span></h1>
+            <div class="team-row"><span class="tl"></span><b>Northstar Collective</b><span class="dot"></span>Submitted Apr 18, 14:22 AST<span class="dot"></span>v1.2.0</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center"><span class="bdg final">Final</span><span class="bdg judged">Judged · 4 of 4</span></div>
+        </div>
+
+        <nav class="toc"><a href="#desc" class="on">Description</a><a href="#scores">Scores</a><a href="#files">Files</a></nav>
+
+        <section class="sec" id="desc">
+          <div class="sec-h"><h3>Description</h3><span class="hint">EN · AR available</span></div>
+          <div class="sec-b">
+            <div class="prose">
+              <p>Transit Accessibility Navigator is a routing app for wheelchair users, parents with strollers, and travellers with limited mobility. It surfaces real-time elevator outages, tactile paths, and step-free transfers across the Riyadh Metro network.</p>
+              <p>The app combines live station-equipment feeds from the operator with a citizen-reporting layer (crowd-sourced outage reports, verified within 10 minutes by our volunteer stewards). Routes are scored on accessibility confidence, not just travel time.</p>
+              <p>We ran a 3-week pilot with 42 participants across 6 stations, covering <em>both</em> peak and off-peak journeys. Participants reported a 38% reduction in disrupted transfers and a 2.4-point lift in confidence scores on the WHOQOL mobility scale.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="sec" id="scores">
+          <div class="sec-h"><h3>Judging scores</h3><span class="hint">4 judges · 4 criteria</span></div>
+          <div class="avg-row">
+            <div class="avg-card">
+              <div>
+                <div class="lbl">Average score</div>
+                <div class="big">8.7<span class="s">/10</span></div>
+              </div>
+              <div class="sub">4 judges · Rank <b style="color:#fff">#2 of 48</b></div>
+            </div>
+            <div class="avg-bars">
+              <div class="bar-row"><span class="n">Innovation</span><div class="b"><div style="width:92%"></div></div><span class="v">9.2</span></div>
+              <div class="bar-row"><span class="n">Impact</span><div class="b"><div style="width:90%"></div></div><span class="v">9.0</span></div>
+              <div class="bar-row"><span class="n">Execution</span><div class="b"><div style="width:85%"></div></div><span class="v">8.5</span></div>
+              <div class="bar-row"><span class="n">Presentation</span><div class="b"><div style="width:81%"></div></div><span class="v">8.1</span></div>
+            </div>
+          </div>
+
+          <div class="judges">
+            <article class="judge">
+              <div class="jh"><div class="jh-l"><div class="j-av">FM</div><div><div class="name">Dr. Fahad Al-Mansouri</div><div class="date">Scored Apr 19 · 11:07 AST</div></div></div><div class="j-score">9.1<span class="d">/10</span></div></div>
+              <div class="crits">
+                <div class="crit"><div class="lbl">Innovation · ×30</div><div class="val">9<span class="d">/10</span></div></div>
+                <div class="crit"><div class="lbl">Impact · ×30</div><div class="val">10<span class="d">/10</span></div></div>
+                <div class="crit"><div class="lbl">Execution · ×25</div><div class="val">9<span class="d">/10</span></div></div>
+                <div class="crit"><div class="lbl">Presentation · ×15</div><div class="val">8<span class="d">/10</span></div></div>
+              </div>
+              <div class="feedback">Genuinely impressive grounding in user research. The citizen-reporting layer is clever, and the pilot data is convincing. Would have liked to see a clearer path to operator partnership in the long term.</div>
+            </article>
+
+            <article class="judge">
+              <div class="jh"><div class="jh-l"><div class="j-av" style="background:#8A1E36">NE</div><div><div class="name">Nadia El-Sayed</div><div class="date">Scored Apr 19 · 15:44 AST</div></div></div><div class="j-score">8.5<span class="d">/10</span></div></div>
+              <div class="crits">
+                <div class="crit"><div class="lbl">Innovation · ×30</div><div class="val">9<span class="d">/10</span></div></div>
+                <div class="crit"><div class="lbl">Impact · ×30</div><div class="val">9<span class="d">/10</span></div></div>
+                <div class="crit"><div class="lbl">Execution · ×25</div><div class="val">8<span class="d">/10</span></div></div>
+                <div class="crit"><div class="lbl">Presentation · ×15</div><div class="val">8<span class="d">/10</span></div></div>
+              </div>
+              <div class="feedback">Strong accessibility-first mindset. The WCAG annotations in the demo were a nice touch. Slide 7 density could come down — too many numbers in one frame.</div>
+            </article>
+
+            <article class="judge">
+              <div class="jh"><div class="jh-l"><div class="j-av" style="background:#0A3D73">TK</div><div><div class="name">Tariq Khoury</div><div class="date">Scored Apr 20 · 09:18 AST</div></div></div><div class="j-score">8.8<span class="d">/10</span></div></div>
+              <div class="crits">
+                <div class="crit"><div class="lbl">Innovation · ×30</div><div class="val">9<span class="d">/10</span></div></div>
+                <div class="crit"><div class="lbl">Impact · ×30</div><div class="val">9<span class="d">/10</span></div></div>
+                <div class="crit"><div class="lbl">Execution · ×25</div><div class="val">9<span class="d">/10</span></div></div>
+                <div class="crit"><div class="lbl">Presentation · ×15</div><div class="val">8<span class="d">/10</span></div></div>
+              </div>
+              <div class="feedback">Delivered the most polished demo of the cohort. Deployment plan is realistic; budget assumptions hold up. Consider how this scales to bus networks in smaller cities.</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="sec" id="files">
+          <div class="sec-h"><h3>Files</h3><span class="hint">3 attachments · 34.2 MB</span></div>
+          <div class="files">
+            <div class="file-row"><div class="f-ico pdf">PDF</div><div><div class="f-t">Pitch_Deck_Final.pdf</div><div class="f-s">4.2 MB · 18 slides</div></div><div class="f-actions"><button class="icon-btn" title="Preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="icon-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button></div></div>
+            <div class="file-row"><div class="f-ico zip">ZIP</div><div><div class="f-t">source-v1.2.0.zip</div><div class="f-s">28.9 MB · Source + datasets</div></div><div class="f-actions"><button class="icon-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button></div></div>
+            <div class="file-row"><div class="f-ico img">PNG</div><div><div class="f-t">screenshot-route.png</div><div class="f-s">1.1 MB · Product screenshot</div></div><div class="f-actions"><button class="icon-btn" title="Preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="icon-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></button></div></div>
+          </div>
+          <div style="padding:0 22px 18px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 118 0v4"/></svg> This submission is <b style="color:var(--ink)">Final</b> — files can't be added or removed.</div>
+        </section>
+      </div>
+
+      <aside class="side-panel">
+        <div class="sp-card">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.72"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>Links</h4>
+          <div class="link-row"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>Live demo<span class="u">transit-access.app/demo</span><span class="arr">→</span></div>
+          <div class="link-row"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>Repository<span class="u">github.com/…/transit-access</span><span class="arr">→</span></div>
+          <div class="link-row"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Demo video<span class="u">youtu.be/ta-navigator</span><span class="arr">→</span></div>
+        </div>
+
+        <div class="sp-card">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20l9-9-5-5-9 9v5h5z"/></svg>Actions</h4>
+          <div class="action-sp">
+            <button class="btn btn-accent">Submit Final <span class="chev">→</span></button>
+            <button class="btn btn-outline">Edit submission</button>
+            <button class="btn btn-danger">Withdraw</button>
+            <div class="warn">Submitting <b>Final</b> locks your team and submission. Files, links, and descriptions can't be changed after that.</div>
+          </div>
+        </div>
+
+        <div class="sp-card">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Team</h4>
+          <div class="body" style="display:flex;gap:-6px;padding-bottom:16px">
+            <div style="display:flex"><div style="width:28px;height:28px;border-radius:50%;background:#7A3D00;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;border:2px solid #fff">AR</div><div style="width:28px;height:28px;border-radius:50%;background:#0A3D73;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;border:2px solid #fff;margin-left:-6px">SK</div><div style="width:28px;height:28px;border-radius:50%;background:#2A2A2A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;border:2px solid #fff;margin-left:-6px">OM</div><div style="width:28px;height:28px;border-radius:50%;background:#8A1E36;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;border:2px solid #fff;margin-left:-6px">FH</div><div style="width:28px;height:28px;border-radius:50%;background:#4D5A35;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;border:2px solid #fff;margin-left:-6px">LZ</div></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+</body></html>

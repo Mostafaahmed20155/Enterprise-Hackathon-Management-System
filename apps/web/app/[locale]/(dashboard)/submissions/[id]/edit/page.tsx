@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { submissionsApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Upload, Trash2 } from 'lucide-react';
-import { Link } from '@/i18n/routing';
+import { ArrowLeft, Save, Upload, Trash2, Paperclip } from 'lucide-react';
+import { Link, useRouter } from '@/i18n/routing';
 
 type BilingualText = string | { en: string; ar: string };
 
@@ -109,7 +109,7 @@ export default function EditSubmissionPage() {
     if (repoUrl !== undefined) payload.repoUrl = repoUrl || null;
     if (videoUrl !== undefined) payload.videoUrl = videoUrl || null;
 
-    const promise = submissionsApi.update(submissionId, payload);
+    const promise = submissionsApi.update(submission?.id || submissionId, payload);
 
     toast.promise(promise, {
       loading: t('saving'),
@@ -136,7 +136,7 @@ export default function EditSubmissionPage() {
     toast.promise(
       async () => {
         try {
-          await submissionsApi.uploadFile(submissionId, file);
+          await submissionsApi.uploadFile(submission?.id || submissionId, file);
           await loadSubmission();
         } finally {
           setIsUploading(false);
@@ -154,7 +154,7 @@ export default function EditSubmissionPage() {
   const handleDeleteFile = async (fileId: string) => {
     toast.promise(
       async () => {
-        await submissionsApi.deleteFile(submissionId, fileId);
+        await submissionsApi.deleteFile(submission?.id || submissionId, fileId);
         await loadSubmission();
       },
       {
@@ -169,7 +169,7 @@ export default function EditSubmissionPage() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
@@ -234,7 +234,7 @@ export default function EditSubmissionPage() {
                   type="text"
                   value={titleEn}
                   onChange={(e) => setTitleEn(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   dir="ltr"
                   placeholder="Project title in English"
                 />
@@ -247,7 +247,7 @@ export default function EditSubmissionPage() {
                   type="text"
                   value={titleAr}
                   onChange={(e) => setTitleAr(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   dir="rtl"
                   placeholder="عنوان المشروع بالعربية"
                 />
@@ -263,7 +263,7 @@ export default function EditSubmissionPage() {
                   value={descriptionEn}
                   onChange={(e) => setDescriptionEn(e.target.value)}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-y"
                   dir="ltr"
                   placeholder="Describe your project in English"
                 />
@@ -276,7 +276,7 @@ export default function EditSubmissionPage() {
                   value={descriptionAr}
                   onChange={(e) => setDescriptionAr(e.target.value)}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-y"
                   dir="rtl"
                   placeholder="صف مشروعك بالعربية"
                 />
@@ -299,7 +299,7 @@ export default function EditSubmissionPage() {
                 type="url"
                 value={demoUrl}
                 onChange={(e) => setDemoUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 dir="ltr"
                 placeholder="https://your-demo.example.com"
               />
@@ -312,7 +312,7 @@ export default function EditSubmissionPage() {
                 type="url"
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 dir="ltr"
                 placeholder="https://github.com/your-org/your-repo"
               />
@@ -325,7 +325,7 @@ export default function EditSubmissionPage() {
                 type="url"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 dir="ltr"
                 placeholder="https://youtube.com/watch?v=..."
               />
@@ -348,7 +348,7 @@ export default function EditSubmissionPage() {
                     className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">📎</span>
+                      <Paperclip className="w-5 h-5 text-gray-400" />
                       <div>
                         <p className="font-medium text-sm text-gray-900 dark:text-white">{file.fileName}</p>
                         <p className="text-xs text-gray-500">{(file.fileSize / 1024).toFixed(2)} KB</p>
@@ -369,7 +369,7 @@ export default function EditSubmissionPage() {
             )}
 
             {/* Upload new file */}
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors">
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-green-400 hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors">
               <div className="flex flex-col items-center justify-center gap-2">
                 <Upload className="w-6 h-6 text-gray-400" />
                 <span className="text-sm text-gray-500">

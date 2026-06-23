@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My judging queue · EHMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="ehms-shared.css">
+<style>
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+@media (max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+.stat-card.accent{background:var(--ink);color:#fff;border-color:var(--ink)}
+.stat-card.accent .sc-l{color:rgba(255,255,255,0.65)}
+.stat-card.accent .sc-sub{color:var(--accent)}
+.sc-l{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:'JetBrains Mono',monospace;font-weight:600}
+.sc-v{font-family:'Instrument Serif',serif;font-size:40px;font-weight:400;letter-spacing:-0.03em;line-height:1;margin-top:8px}
+.sc-v .unit{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);font-weight:500;margin-left:4px}
+.stat-card.accent .sc-v .unit{color:rgba(255,255,255,0.55)}
+.sc-sub{font-size:12px;color:var(--muted);margin-top:6px;font-weight:500;display:flex;align-items:center;gap:5px}
+.sc-bar{margin-top:14px;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.stat-card.accent .sc-bar{background:rgba(255,255,255,0.15)}
+.sc-bar-fill{height:100%;background:var(--ink);border-radius:3px}
+.stat-card.accent .sc-bar-fill{background:var(--accent)}
+
+/* Deadline banner */
+.deadline{background:linear-gradient(135deg,oklch(0.96 0.04 70),oklch(0.97 0.02 80));border:1px solid oklch(0.85 0.13 70 / 0.4);border-radius:14px;padding:18px 22px;display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.dl-icon{width:40px;height:40px;border-radius:11px;background:oklch(0.75 0.17 70);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dl-icon svg{width:18px;height:18px}
+.dl-text{flex:1}
+.dl-t{font-size:14.5px;font-weight:600;letter-spacing:-0.01em}
+.dl-s{font-size:12.5px;color:var(--muted);margin-top:2px}
+.dl-countdown{display:flex;gap:8px}
+.dl-countdown .unit{background:#fff;border:1px solid oklch(0.85 0.13 70 / 0.5);border-radius:9px;padding:6px 10px;text-align:center;min-width:48px}
+.dl-countdown .n{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400;line-height:1}
+.dl-countdown .l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-family:'JetBrains Mono',monospace;margin-top:3px}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:20px}
+.tab{padding:10px 16px;font-size:13.5px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;font-weight:500;display:flex;align-items:center;gap:8px;transition:all .2s}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--ink);border-bottom-color:var(--ink);font-weight:600}
+.tab .c{padding:2px 7px;border-radius:100px;background:#F5F5F0;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--ink-2)}
+.tab.on .c{background:var(--ink);color:var(--accent)}
+
+/* Queue list */
+.queue{display:flex;flex-direction:column;gap:10px}
+.q-row{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px;display:grid;grid-template-columns:40px minmax(0,1fr) 200px 100px 120px;gap:18px;align-items:center;transition:all .2s;cursor:pointer}
+.q-row:hover{border-color:var(--line-2);transform:translateY(-1px);box-shadow:0 6px 18px -10px rgba(10,10,10,0.12)}
+.q-num{font-family:'Instrument Serif',serif;font-size:24px;font-style:italic;color:var(--muted-2);text-align:center;line-height:1}
+.q-main{min-width:0}
+.q-title{font-size:15px;font-weight:600;letter-spacing:-0.01em;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-title-ar{font-family:'IBM Plex Sans Arabic',sans-serif;font-size:11.5px;color:var(--muted);margin-top:1px;direction:rtl;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-meta{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.q-meta .d{width:3px;height:3px;border-radius:50%;background:var(--muted-2)}
+.q-team{display:flex;align-items:center;gap:10px;min-width:0}
+.q-team-av{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent-soft),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Instrument Serif',serif;font-style:italic;font-size:15px;color:var(--ink);flex-shrink:0;border:1px solid oklch(0.85 0.17 130 / 0.4)}
+.q-team-av.gray{background:#F0F0EA;color:var(--muted);border-color:var(--line-2)}
+.q-team-info{min-width:0}
+.q-team-name{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.q-team-sub{font-size:11px;color:var(--muted);margin-top:1px;font-family:'JetBrains Mono',monospace}
+
+.q-row.scored{background:#FCFCFA}
+.q-row.urgent{border-color:oklch(0.78 0.13 70 / 0.5);background:oklch(0.98 0.02 70)}
+.q-row.urgent .q-num{color:oklch(0.65 0.17 70)}
+
+.q-prog{display:flex;flex-direction:column;gap:6px}
+.q-prog-top{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-weight:600}
+.q-prog-bar{height:4px;background:var(--line);border-radius:3px;overflow:hidden}
+.q-prog-fill{height:100%;background:var(--ink);border-radius:3px}
+
+.q-action{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+
+.section-divider{display:flex;align-items:center;gap:14px;margin:32px 0 14px;color:var(--muted);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600}
+.section-divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+@media (max-width:1200px){.q-row{grid-template-columns:40px 1fr 110px}.q-team,.q-prog{display:none}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="side-brand"><span class="logo-mark"></span>EHMS</div>
+    <div class="side-sec">Judge</div>
+    <a class="side-item" href="admin-events.html"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Events</a>
+    <a class="side-item" href="submissions.html"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg> All submissions</a>
+    <a class="side-item active" href="judge-assignments.html"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg> My queue <span class="side-badge">5</span></a>
+    <div class="side-foot"><div class="user-card"><div class="user-av" style="background:oklch(0.55 0.13 260);color:#fff">RM</div><div class="user-info"><div class="un">Dr. Reem M.</div><div class="ue">Judge · Panel 2</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb"><b>My judging queue</b></div>
+      <div class="top-actions">
+        <button class="btn btn-ghost">Export scores</button>
+        <a href="score-submission.html" class="btn btn-primary">Resume judging <span class="chev">→</span></a>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <div class="ph">
+        <div>
+          <h1>Your judging <span class="serif">queue.</span></h1>
+          <p>Panel 2 · HealthTech &amp; AI · 8 assigned · 3 scored · 5 remaining</p>
+        </div>
+        <div class="ph-right">
+          <span class="bdg bdg-lime"><span class="bdg-dot"></span>ON TRACK</span>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-card accent">
+          <div class="sc-l">Progress</div>
+          <div class="sc-v">3<span class="unit">/ 8 scored</span></div>
+          <div class="sc-sub">38% complete · 5 to go</div>
+          <div class="sc-bar"><div class="sc-bar-fill" style="width:38%"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-l">Average score</div>
+          <div class="sc-v">8.1<span class="unit">/ 10</span></div>
+          <div class="sc-sub" style="color:oklch(0.45 0.14 130)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg> +0.3 vs. panel</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-l">Time per review</div>
+          <div class="sc-v">14<span class="unit">min avg</span></div>
+          <div class="sc-sub">Panel average 18 min</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-l">Due date</div>
+          <div class="sc-v">2d<span class="unit">left</span></div>
+          <div class="sc-sub">Saturday 18:00 AST</div>
+        </div>
+      </div>
+
+      <!-- DEADLINE -->
+      <div class="deadline">
+        <div class="dl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="dl-text">
+          <div class="dl-t">Final scores due in 2 days, 4 hours</div>
+          <div class="dl-s">Any submissions left unscored after the deadline are escalated to the head judge.</div>
+        </div>
+        <div class="dl-countdown">
+          <div class="unit"><div class="n">02</div><div class="l">DAYS</div></div>
+          <div class="unit"><div class="n">04</div><div class="l">HRS</div></div>
+          <div class="unit"><div class="n">18</div><div class="l">MIN</div></div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <div class="tab on">All <span class="c">8</span></div>
+        <div class="tab">Pending <span class="c">5</span></div>
+        <div class="tab">In progress <span class="c">1</span></div>
+        <div class="tab">Scored <span class="c">3</span></div>
+        <div class="tab">Flagged <span class="c">1</span></div>
+      </div>
+
+      <!-- URGENT -->
+      <div class="section-divider">Due soonest · review first</div>
+      <div class="queue">
+
+        <div class="q-row urgent">
+          <div class="q-num">01</div>
+          <div class="q-main">
+            <div class="q-title">Triage AI for ER wards</div>
+            <div class="q-title-ar">ذكاء الفرز لأقسام الطوارئ</div>
+            <div class="q-meta">
+              <span>HealthTech</span><span class="d"></span>
+              <span>v3.2</span><span class="d"></span>
+              <span style="color:oklch(0.55 0.17 70)">⚡ Needs scoring</span>
+            </div>
+          </div>
+          <div class="q-team">
+            <div class="q-team-av">P</div>
+            <div class="q-team-info"><div class="q-team-name">Phoenix Rising</div><div class="q-team-sub">5 MEMBERS</div></div>
+          </div>
+          <div><span class="bdg bdg-warn">PENDING</span></div>
+          <div class="q-action"><a href="score-submission.html" class="btn btn-accent">Score <span class="chev">→</span></a></div>
+        </div>
+
+        <div class="q-row">
+          <div class="q-num">02</div>
+          <div class="q-main">
+            <div class="q-title">CarbonLens for SMEs</div>
+            <div class="q-title-ar">عدسة الكربون للشركات</div>
+            <div class="q-meta">
+              <span>ClimateTech</span><span class="d"></span>
+              <span>v1.1</span><span class="d"></span>
+              <span>Submitted 6h ago</span>
+            </div>
+          </div>
+          <div class="q-team">
+            <div class="q-team-av">G</div>
+            <div class="q-team-info"><div class="q-team-name">Green Pathways</div><div class="q-team-sub">4 MEMBERS</div></div>
+          </div>
+          <div><span class="bdg bdg-soft">IN PROGRESS</span></div>
+          <div class="q-action"><a href="score-submission.html" class="btn btn-outline">Resume</a></div>
+        </div>
+
+        <div class="q-row">
+          <div class="q-num">03</div>
+          <div class="q-main">
+            <div class="q-title">Nova Public Services AI</div>
+            <div class="q-title-ar">الذكاء الاصطناعي لخدمات نوفا</div>
+            <div class="q-meta">
+              <span>AI &amp; ML</span><span class="d"></span>
+              <span>v2.0</span><span class="d"></span>
+              <span>Just submitted</span>
+            </div>
+          </div>
+          <div class="q-team">
+            <div class="q-team-av">N</div>
+            <div class="q-team-info"><div class="q-team-name">Nova Collective</div><div class="q-team-sub">3 MEMBERS</div></div>
+          </div>
+          <div><span class="bdg bdg-outline">NEW</span></div>
+          <div class="q-action"><a href="submission-detail.html" class="btn btn-outline">Review</a></div>
+        </div>
+
+        <div class="q-row">
+          <div class="q-num">04</div>
+          <div class="q-main">
+            <div class="q-title">EdgeGrid</div>
+            <div class="q-title-ar">شبكة الحافة</div>
+            <div class="q-meta">
+              <span>Infra</span><span class="d"></span>
+              <span>v2.1</span><span class="d"></span>
+              <span>Flagged: unclear scope</span>
+            </div>
+          </div>
+          <div class="q-team">
+            <div class="q-team-av">Q</div>
+            <div class="q-team-info"><div class="q-team-name">Quantum Leap</div><div class="q-team-sub">2 MEMBERS</div></div>
+          </div>
+          <div><span class="bdg bdg-warn">FLAGGED</span></div>
+          <div class="q-action"><a href="submission-detail.html" class="btn btn-outline">Review</a></div>
+        </div>
+
+        <div class="q-row">
+          <div class="q-num">05</div>
+          <div class="q-main">
+            <div class="q-title">Atlas Cash-flow</div>
+            <div class="q-title-ar">تدفق النقد أطلس</div>
+            <div class="q-meta">
+              <span>FinTech</span><span class="d"></span>
+              <span>v1.4</span><span class="d"></span>
+              <span>Submitted 2d ago</span>
+            </div>
+          </div>
+          <div class="q-team">
+            <div class="q-team-av">A</div>
+            <div class="q-team-info"><div class="q-team-name">Atlas Forge</div><div class="q-team-sub">3 MEMBERS</div></div>
+          </div>
+          <div><span class="bdg bdg-outline">NEW</span></div>
+          <div class="q-action"><a href="submission-detail.html" class="btn btn-outline">Review</a></div>
+        </div>
+      </div>
+
+      <!-- SCORED -->
+      <div class="section-divider">Scored · you can still edit until deadline</div>
+      <div class="queue">
+
+        <div class="q-row scored">
+          <div class="q-num">06</div>
+          <div class="q-main">
+            <div class="q-title">Spatial Museums</div>
+            <div class="q-title-ar">متاحف مكانية</div>
+            <div class="q-meta">
+              <span>Creative</span><span class="d"></span>
+              <span>v1.0</span><span class="d"></span>
+              <span>Scored yesterday</span>
+            </div>
+          </div>
+          <div class="q-team">
+            <div class="q-team-av gray">H</div>
+            <div class="q-team-info"><div class="q-team-name">Helix Studio</div><div class="q-team-sub">3 MEMBERS</div></div>
+          </div>
+          <div class="q-prog"><div class="q-prog-top"><span>SCORE</span><span>8.3 / 10</span></div><div class="q-prog-bar"><div class="q-prog-fill" style="width:83%"></div></div></div>
+          <div class="q-action"><button class="btn btn-ghost">Edit</button></div>
+        </div>
+
+        <div class="q-row scored">
+          <div class="q-num">07</div>
+          <div class="q-main">
+            <div class="q-title">MedReach Outreach</div>
+            <div class="q-title-ar">ميدريتش للتوعية</div>
+            <div class="q-meta">
+              <span>HealthTech</span><span class="d"></span>
+              <span>v2.2</span><span class="d"></span>
+              <span>Scored 2d ago</span>
+            </div>
+          </div>
+          <div class="q-team">
+            <div class="q-team-av gray">M</div>
+            <div class="q-team-info"><div class="q-team-name">MedReach</div><div class="q-team-sub">4 MEMBERS</div></div>
+          </div>
+          <div class="q-prog"><div class="q-prog-top"><span>SCORE</span><span>7.8 / 10</span></div><div class="q-prog-bar"><div class="q-prog-fill" style="width:78%"></div></div></div>
+          <div class="q-action"><button class="btn btn-ghost">Edit</button></div>
+        </div>
+
+        <div class="q-row scored">
+          <div class="q-num">08</div>
+          <div class="q-main">
+            <div class="q-title">BioBridge Diagnostics</div>
+            <div class="q-title-ar">بيو بريدج للتشخيص</div>
+            <div class="q-meta">
+              <span>BioTech</span><span class="d"></span>
+              <span>v3.0</span><span class="d"></span>
+              <span>Scored 3d ago</span>
+            </div>
+          </div>
+          <div class="q-team">
+            <div class="q-team-av gray">B</div>
+            <div class="q-team-info"><div class="q-team-name">BioBridge</div><div class="q-team-sub">5 MEMBERS</div></div>
+          </div>
+          <div class="q-prog"><div class="q-prog-top"><span>SCORE</span><span>9.1 / 10</span></div><div class="q-prog-bar"><div class="q-prog-fill" style="width:91%"></div></div></div>
+          <div class="q-action"><button class="btn btn-ghost">Edit</button></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body></html>

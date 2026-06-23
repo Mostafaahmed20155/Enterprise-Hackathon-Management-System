@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Create account · EHMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#FAFAF7; --ink:#0A0A0A; --ink-2:#2A2A2A; --muted:#6B6B6B; --muted-2:#9B9B9B;
+  --line:rgba(10,10,10,0.08); --line-2:rgba(10,10,10,0.14);
+  --accent:oklch(0.85 0.17 130); --accent-deep:oklch(0.68 0.19 130); --accent-soft:oklch(0.93 0.09 130);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.serif{font-family:'Instrument Serif',serif;font-weight:400;font-style:italic}
+.mono{font-family:'JetBrains Mono',monospace}
+
+.wrap{display:grid;grid-template-columns:1fr 1fr;min-height:100vh}
+
+/* LEFT */
+.left{position:relative;overflow:hidden;background:
+  radial-gradient(70% 55% at 30% 30%, oklch(0.85 0.17 130 / 0.55), transparent 70%),
+  radial-gradient(90% 70% at 70% 90%, oklch(0.68 0.19 130 / 0.22), transparent 75%),
+  #F5F5F0;
+  display:flex;flex-direction:column;padding:32px 40px;justify-content:space-between}
+.left::before{content:"";position:absolute;inset:0;
+  background-image:
+    radial-gradient(rgba(10,10,10,0.07) 1px, transparent 1px),
+    radial-gradient(rgba(10,10,10,0.04) 1px, transparent 1px);
+  background-size:22px 22px, 11px 11px;
+  background-position:0 0, 11px 11px;
+  -webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 40%, #000 40%, transparent 85%);
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 40%, #000 40%, transparent 85%);
+  pointer-events:none;z-index:0}
+.left > *{position:relative;z-index:1}
+
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:-0.02em}
+.logo-mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative;overflow:hidden;flex-shrink:0}
+.logo-mark::before{content:"";position:absolute;inset:4px;border-radius:4px;background:var(--accent)}
+.logo-mark::after{content:"";position:absolute;left:10px;top:10px;width:6px;height:6px;border-radius:2px;background:var(--ink)}
+
+/* value pitch */
+.pitch{max-width:440px;margin:auto 0}
+.pitch .tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.1em;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.pitch .tag::before{content:"";width:22px;height:1px;background:var(--ink)}
+.pitch h2{font-size:40px;letter-spacing:-0.03em;font-weight:600;line-height:1.05;color:var(--ink);margin-bottom:14px}
+.pitch h2 .serif{color:var(--ink-2)}
+.pitch > p{color:var(--muted);font-size:14.5px;line-height:1.6;max-width:400px}
+
+.feats{margin-top:28px;display:flex;flex-direction:column;gap:12px}
+.feat{display:flex;gap:12px;align-items:flex-start}
+.feat-ico{width:32px;height:32px;border-radius:9px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);flex-shrink:0}
+.feat-ico svg{width:14px;height:14px}
+.feat .tt{font-size:13.5px;font-weight:600;letter-spacing:-0.01em}
+.feat .dd{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.5;max-width:360px}
+
+/* logos */
+.logos{margin-top:28px;border-top:1px solid var(--line);padding-top:18px}
+.logos .l{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:0.1em;margin-bottom:10px}
+.logos .row{display:flex;gap:22px;align-items:center;flex-wrap:wrap;font-family:'Instrument Serif',serif;font-size:19px;color:var(--ink-2);font-style:italic}
+.logos .row span{opacity:0.7}
+
+.left-foot{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.left-foot .dot{width:5px;height:5px;border-radius:50%;background:var(--accent-deep);display:inline-block;margin-right:6px;box-shadow:0 0 0 3px oklch(0.68 0.19 130 / 0.15)}
+
+/* RIGHT */
+.right{display:flex;flex-direction:column;padding:32px 40px}
+.brand-bar{display:flex;align-items:center;justify-content:space-between}
+.bb-right{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:14px}
+.bb-right a.ghost{padding:7px 14px;border-radius:8px;border:1px solid var(--line-2);color:var(--ink);font-weight:500;transition:all .2s;background:#fff}
+.bb-right a.ghost:hover{border-color:var(--ink)}
+
+.form-shell{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 0}
+.form-box{width:100%;max-width:440px}
+
+/* role toggle */
+.role{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:22px;padding:5px;border:1px solid var(--line);border-radius:12px;background:#FCFCFA}
+.role-btn{padding:9px 8px;border-radius:8px;font-size:12.5px;font-weight:500;color:var(--muted);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.role-btn svg{width:13px;height:13px}
+.role-btn:hover{color:var(--ink)}
+.role-btn.active{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(10,10,10,0.08),0 0 0 1px var(--line-2)}
+
+.step-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.08em;display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.step-tag::before{content:"";width:24px;height:1px;background:var(--ink)}
+.form-box h1{font-size:36px;letter-spacing:-0.03em;font-weight:600;line-height:1.05}
+.form-box h1 .serif{color:var(--ink-2)}
+.sub{color:var(--muted);font-size:14px;margin-top:6px;line-height:1.55;max-width:380px}
+
+.sso-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+.sso-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 14px;border-radius:10px;background:#fff;border:1px solid var(--line-2);font-size:13.5px;font-weight:500;color:var(--ink);transition:all .2s}
+.sso-btn:hover{border-color:var(--ink)}
+.sso-btn svg{width:15px;height:15px}
+
+.divider{display:flex;align-items:center;gap:14px;margin:22px 0;color:var(--muted-2);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.fld{display:flex;flex-direction:column;margin-bottom:14px}
+.fld-label{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px}
+.inp-wrap{position:relative}
+.inp-wrap .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted-2);pointer-events:none}
+.inp-wrap .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:6px;color:var(--muted);display:inline-flex;align-items:center;justify-content:center}
+.inp-wrap .eye:hover{background:#F5F5F0;color:var(--ink)}
+.inp-wrap .eye svg{width:14px;height:14px}
+.inp{width:100%;padding:12px 14px 12px 36px;background:#fff;border:1px solid var(--line-2);border-radius:10px;font:inherit;font-size:14px;color:var(--ink);transition:all .2s;outline:none}
+.inp.no-ico{padding-left:14px}
+.inp:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(10,10,10,0.05)}
+.inp::placeholder{color:var(--muted-2)}
+
+/* password strength */
+.strength{margin-top:8px;display:flex;gap:4px}
+.strength .seg{flex:1;height:3px;background:#EFEFEA;border-radius:100px;transition:background .25s}
+.strength .seg.on1{background:#E57373}
+.strength .seg.on2{background:#FFB74D}
+.strength .seg.on3{background:var(--accent)}
+.strength .seg.on4{background:var(--accent-deep)}
+.str-label{font-size:11.5px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between}
+.str-label b{color:var(--ink);font-weight:600}
+
+/* terms */
+.check{display:flex;align-items:flex-start;gap:10px;font-size:12.5px;color:var(--ink-2);cursor:pointer;line-height:1.55;margin:8px 0 22px}
+.check input{display:none}
+.check .box{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--line-2);background:#fff;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;margin-top:1px}
+.check .box svg{width:10px;height:10px;color:var(--ink);opacity:0;transition:opacity .15s}
+.check input:checked + .box{background:var(--accent);border-color:var(--accent-deep)}
+.check input:checked + .box svg{opacity:1}
+.check a{color:var(--ink);border-bottom:1px dashed var(--line-2);padding-bottom:1px}
+.check a:hover{border-color:var(--ink)}
+
+.sub-btn{width:100%;padding:12.5px 16px;border-radius:10px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14.5px;letter-spacing:-0.01em;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s}
+.sub-btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px -12px rgba(10,10,10,0.4);background:#000}
+.sub-btn:hover .arr{transform:translateX(4px)}
+.arr{transition:transform .2s}
+
+.alt-cta{text-align:center;margin-top:20px;font-size:13.5px;color:var(--muted)}
+.alt-cta a{color:var(--ink);font-weight:600;border-bottom:1px dashed var(--line-2);padding-bottom:1px}
+
+.legal{text-align:center;font-size:11.5px;color:var(--muted-2);margin-top:28px;line-height:1.6}
+.legal a{color:var(--muted);border-bottom:1px dashed var(--line-2)}
+
+@media (max-width:960px){
+  .wrap{grid-template-columns:1fr}
+  .left{display:none}
+  .right{padding:24px 20px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- LEFT -->
+  <div class="left">
+
+    <a class="brand" href="index.html"><span class="logo-mark"></span>EHMS</a>
+
+    <div class="pitch">
+      <div class="tag">JOIN THE PLATFORM</div>
+      <h2>Run better <span class="serif">hackathons.</span></h2>
+      <p>One workspace for organizers, mentors, judges and participants — registration to results.</p>
+
+      <div class="feats">
+        <div class="feat">
+          <div class="feat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+          <div>
+            <div class="tt">Free for up to 3 events</div>
+            <div class="dd">No credit card required. Scale up only when you're ready.</div>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg></div>
+          <div>
+            <div class="tt">Setup in under 10 minutes</div>
+            <div class="dd">Guided event creation with bilingual EN/AR templates.</div>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 118 0v4"/></svg></div>
+          <div>
+            <div class="tt">Enterprise-grade security</div>
+            <div class="dd">SOC 2 Type II, SAML SSO and row-level audit trails.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="logos">
+        <div class="l">TRUSTED BY TEAMS AT</div>
+        <div class="row">
+          <span>Ministry of Tech</span>
+          <span>KAUST</span>
+          <span>Aramco Digital</span>
+          <span>NEOM</span>
+        </div>
+      </div>
+      <div class="left-foot" style="margin-top:20px">
+        <span><span class="dot"></span>All systems normal</span>
+        <span>© 2026 EHMS · RIYADH · KSA</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+
+    <div class="brand-bar">
+      <div style="font-size:13px;color:var(--muted)">Creating account as</div>
+      <div class="bb-right">
+        <span>Already have an account?</span>
+        <a href="login.html" class="ghost">Sign in</a>
+      </div>
+    </div>
+
+    <div class="form-shell">
+      <div class="form-box">
+
+        <div class="step-tag">STEP 01 OF 03 · ACCOUNT</div>
+        <h1>Create your <span class="serif">account.</span></h1>
+        <p class="sub">Pick a role to get the right defaults. You can add more roles later.</p>
+
+        <!-- ROLE PICKER -->
+        <div class="role" style="margin-top:24px">
+          <button class="role-btn active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4"/></svg>
+            Organizer
+          </button>
+          <button class="role-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Participant
+          </button>
+          <button class="role-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+            Judge
+          </button>
+        </div>
+
+        <div class="sso-row">
+          <button class="sso-btn">
+            <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.2c0-.8-.1-1.6-.2-2.3H12v4.4h5.9c-.3 1.4-1.1 2.5-2.3 3.3v2.8h3.7c2.2-2 3.5-5 3.2-8.2z"/><path fill="#34A853" d="M12 23c3.1 0 5.6-1 7.5-2.8l-3.7-2.8c-1 .7-2.3 1.1-3.8 1.1-2.9 0-5.4-2-6.3-4.6H1.9v2.9C3.8 20.5 7.6 23 12 23z"/><path fill="#FBBC05" d="M5.7 13.9c-.2-.7-.4-1.4-.4-2.1s.1-1.4.4-2.1V6.8H1.9C1.1 8.3.6 10.1.6 12s.5 3.7 1.3 5.2l3.8-3.3z"/><path fill="#EA4335" d="M12 5.3c1.6 0 3.1.6 4.2 1.7l3.2-3.2C17.5 2 15 1 12 1 7.6 1 3.8 3.5 1.9 6.8l3.8 2.9C6.6 7.3 9.1 5.3 12 5.3z"/></svg>
+            Google
+          </button>
+          <button class="sso-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.9c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8-.6 0-1.7-.7-2.8-.7-1.4 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.5 2.1 2.7 2.1 1.1 0 1.5-.7 2.8-.7 1.3 0 1.7.7 2.8.7 1.2 0 1.9-1 2.6-2 .8-1.2 1.2-2.3 1.2-2.4-.1 0-2.4-.9-2.5-3.5zM14.1 6.4c.6-.7 1-1.7 .9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2z"/></svg>
+            Apple
+          </button>
+        </div>
+
+        <div class="divider">or with email</div>
+
+        <div class="two-col">
+          <div class="fld" style="margin-bottom:0">
+            <label class="fld-label">First name</label>
+            <input class="inp no-ico" type="text" placeholder="Ayesha">
+          </div>
+          <div class="fld" style="margin-bottom:0">
+            <label class="fld-label">Last name</label>
+            <input class="inp no-ico" type="text" placeholder="Rahman">
+          </div>
+        </div>
+
+        <div class="fld">
+          <label class="fld-label">Work email</label>
+          <div class="inp-wrap">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 6l8 6 8-6"/></svg>
+            <input class="inp" type="email" placeholder="you@company.com">
+          </div>
+        </div>
+
+        <div class="fld">
+          <label class="fld-label">Password</label>
+          <div class="inp-wrap">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 118 0v4"/></svg>
+            <input class="inp" id="pw" type="password" placeholder="8+ characters, mixed case & a number" value="Hackathon2026!">
+            <button class="eye" id="eye" aria-label="Toggle password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+          <div class="strength">
+            <div class="seg on1"></div>
+            <div class="seg on2"></div>
+            <div class="seg on3"></div>
+            <div class="seg on4"></div>
+          </div>
+          <div class="str-label"><span>Password strength</span><b>Strong</b></div>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" checked>
+          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. I also agree to receive occasional product updates by email.
+        </label>
+
+        <button class="sub-btn">Create account <span class="arr">→</span></button>
+
+        <div class="alt-cta">
+          Already have an account? <a href="login.html">Sign in</a>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="legal">
+      Protected by reCAPTCHA · <a href="#">Privacy</a> · <a href="#">Terms</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// role toggle
+document.querySelectorAll('.role-btn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.role-btn').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+}));
+
+// password toggle
+const eye = document.getElementById('eye');
+const pw = document.getElementById('pw');
+eye.addEventListener('click', () => { pw.type = pw.type === 'password' ? 'text' : 'password'; });
+
+// simple strength calc
+pw.addEventListener('input', () => {
+  const v = pw.value;
+  let score = 0;
+  if (v.length >= 8) score++;
+  if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const segs = document.querySelectorAll('.strength .seg');
+  segs.forEach((s, i) => {
+    s.className = 'seg' + (i < score ? ' on' + score : '');
+  });
+  const labels = ['Too short', 'Weak', 'Okay', 'Good', 'Strong'];
+  document.querySelector('.str-label b').textContent = labels[score] || 'Too short';
+});
+</script>
+
+</body>
+</html>

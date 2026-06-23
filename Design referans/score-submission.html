@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Score · Triage AI · EHMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="ehms-shared.css">
+<style>
+.score-layout{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:24px;align-items:start}
+@media (max-width:1200px){.score-layout{grid-template-columns:1fr}}
+
+/* Left pane — submission preview */
+.preview{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;position:sticky;top:96px}
+.pv-meta{display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px}
+.pv-meta .d{width:3px;height:3px;border-radius:50%;background:var(--muted-2)}
+.pv h2{font-size:24px;font-weight:600;letter-spacing:-0.02em;line-height:1.15;margin-bottom:3px}
+.pv h2 .serif{font-family:'Instrument Serif',serif;font-weight:400;font-style:italic}
+.pv-ar{font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;color:var(--muted);direction:rtl;text-align:left;margin-bottom:14px}
+.pv-summary{font-size:13.5px;color:var(--ink-2);line-height:1.6;margin-bottom:16px}
+
+.pv-video{aspect-ratio:16/9;background:#1a1a1a;border-radius:12px;position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.pv-video::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 40%,oklch(0.45 0.15 130) 0%,transparent 60%),radial-gradient(circle at 70% 70%,oklch(0.35 0.18 220) 0%,transparent 50%);opacity:.7}
+.pv-video .play{position:relative;z-index:1;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.95);color:#1a1a1a;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.pv-video .play svg{width:18px;height:18px;margin-left:2px}
+.pv-video .lbl{position:absolute;bottom:12px;left:12px;padding:4px 9px;border-radius:100px;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);color:#fff;font-size:11px;font-weight:500;z-index:1}
+
+.pv-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.pv-q{background:#FCFCFA;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.pv-q-l{font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:'JetBrains Mono',monospace;font-weight:600}
+.pv-q-v{font-family:'Instrument Serif',serif;font-size:20px;font-weight:400;margin-top:4px;line-height:1}
+.pv-q-v .u{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:2px}
+
+.pv-files{display:flex;flex-direction:column;gap:6px}
+.pv-file{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:12.5px;transition:all .2s;cursor:pointer}
+.pv-file:hover{border-color:var(--line-2);background:#FCFCFA}
+.pv-file svg{width:13px;height:13px;color:var(--muted-2);flex-shrink:0}
+.pv-file .sz{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)}
+
+/* Right pane — rubric */
+.rubric{display:flex;flex-direction:column;gap:16px}
+.ru-head{background:var(--ink);color:#fff;border-radius:14px;padding:18px 22px}
+.ru-head-top{display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:8px}
+.ru-head-top .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.8s ease-in-out infinite}
+.ru-head h3{font-size:19px;font-weight:600;letter-spacing:-0.015em}
+.ru-head h3 .serif{font-family:'Instrument Serif',serif;font-weight:400;font-style:italic}
+.ru-head p{color:rgba(255,255,255,0.65);font-size:12.5px;margin-top:4px;line-height:1.5}
+.ru-head-foot{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1)}
+.ru-head-foot .ts{font-size:11.5px;color:rgba(255,255,255,0.6);font-family:'JetBrains Mono',monospace}
+.ru-head-foot .ts b{color:#fff;font-weight:600}
+.ru-head-foot .as{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.ru-head-foot .as .d{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px oklch(0.68 0.19 130 / 0.3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* Criterion card */
+.crit{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+.crit-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.crit-num{width:24px;height:24px;border-radius:7px;background:#F5F5F0;color:var(--muted);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0}
+.crit.scored .crit-num{background:var(--accent);color:var(--ink)}
+.crit-body{flex:1;min-width:0}
+.crit-name{font-size:14.5px;font-weight:600;letter-spacing:-0.01em;display:flex;align-items:center;gap:8px}
+.crit-weight{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);padding:2px 7px;background:#F5F5F0;border-radius:100px}
+.crit-hint{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+
+.scale{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:10px 0}
+.scale-btn{aspect-ratio:1;background:#fff;border:1px solid var(--line-2);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.scale-btn:hover{border-color:var(--ink);transform:translateY(-1px)}
+.scale-btn.on{background:var(--ink);color:var(--accent);border-color:var(--ink);transform:scale(1.05);box-shadow:0 4px 10px -3px rgba(10,10,10,0.2)}
+.scale-lbls{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:0.05em;text-transform:uppercase}
+
+.crit-note{margin-top:12px}
+.crit-note textarea{width:100%;min-height:70px;border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;font:inherit;font-size:13px;background:#FCFCFA;resize:vertical;outline:none;transition:all .2s}
+.crit-note textarea:focus{border-color:var(--ink);background:#fff;box-shadow:0 0 0 3px rgba(10,10,10,0.05)}
+.crit-note-help{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px;font-family:'JetBrains Mono',monospace}
+
+/* Overall comment */
+.overall{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}
+.overall h3{font-size:14.5px;font-weight:600;letter-spacing:-0.01em;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.overall p{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.overall textarea{width:100%;min-height:100px;border:1px solid var(--line-2);border-radius:10px;padding:12px;font:inherit;font-size:13px;background:#FCFCFA;resize:vertical;outline:none}
+.overall textarea:focus{border-color:var(--ink);background:#fff;box-shadow:0 0 0 3px rgba(10,10,10,0.05)}
+
+/* Footer */
+.score-foot{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:14px 32px 14px calc(248px + 32px);display:flex;justify-content:space-between;align-items:center;z-index:30;gap:20px}
+.sf-total{display:flex;align-items:center;gap:12px}
+.sf-total-v{font-family:'Instrument Serif',serif;font-size:34px;font-weight:400;letter-spacing:-0.02em;line-height:1}
+.sf-total-v .d{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--muted)}
+.sf-total-l{font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-family:'JetBrains Mono',monospace;font-weight:600}
+.sf-total-s{font-size:12px;color:var(--muted);margin-top:2px}
+.sf-bar{width:120px;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.sf-bar-fill{height:100%;background:var(--ink);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="side-brand"><span class="logo-mark"></span>EHMS</div>
+    <div class="side-sec">Judge</div>
+    <a class="side-item" href="admin-events.html"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Events</a>
+    <a class="side-item" href="submissions.html"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg> All submissions</a>
+    <a class="side-item active" href="judge-assignments.html"><svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg> My queue <span class="side-badge">5</span></a>
+    <div class="side-foot"><div class="user-card"><div class="user-av" style="background:oklch(0.55 0.13 260);color:#fff">RM</div><div class="user-info"><div class="un">Dr. Reem M.</div><div class="ue">Judge · Panel 2</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb">
+        <a href="judge-assignments.html">My queue</a><span class="sep">/</span>
+        <a href="submission-detail.html">Triage AI for ER wards</a><span class="sep">/</span>
+        <b>Score</b>
+      </div>
+      <div class="top-actions">
+        <button class="btn btn-ghost"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg> Prev in queue</button>
+        <button class="btn btn-ghost">Next <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+    </header>
+
+    <div class="content" style="padding-bottom:110px">
+
+      <div class="ph">
+        <div>
+          <h1>Score this <span class="serif">submission.</span></h1>
+          <p>Panel 2 · 4 criteria · each 1–10 · written feedback required for scores below 6.</p>
+        </div>
+        <div class="ph-right">
+          <span class="bdg bdg-soft">01 / 08 IN QUEUE</span>
+        </div>
+      </div>
+
+      <div class="score-layout">
+
+        <!-- LEFT: PREVIEW -->
+        <aside class="preview">
+          <div class="pv-meta"><span>HealthTech</span><span class="d"></span><span>PHOENIX RISING</span><span class="d"></span><span>v3.2</span></div>
+          <h2>Triage AI for <span class="serif">ER wards.</span></h2>
+          <div class="pv-ar">ذكاء الفرز لأقسام الطوارئ</div>
+          <p class="pv-summary">An LLM-assisted triage tool that ranks incoming ER patients by severity using vitals, symptoms and history. Sits inside existing EMR workflows — nurses keep full decision authority.</p>
+
+          <div class="pv-video">
+            <div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+            <div class="lbl">demo-walkthrough.mp4 · 2:48</div>
+          </div>
+
+          <div class="pv-quick">
+            <div class="pv-q"><div class="pv-q-l">Team</div><div class="pv-q-v">5<span class="u">mbrs</span></div></div>
+            <div class="pv-q-l" style="display:none"></div>
+            <div class="pv-q"><div class="pv-q-l">Category</div><div class="pv-q-v" style="font-size:14px;font-family:Inter;font-weight:600;padding-top:6px">HealthTech</div></div>
+            <div class="pv-q"><div class="pv-q-l">Version</div><div class="pv-q-v">v3.2</div></div>
+          </div>
+
+          <div class="pv-files">
+            <div class="pv-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>phoenix-triage-deck.pdf<span class="sz">12.4 MB</span></div>
+            <div class="pv-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>demo-walkthrough.mp4<span class="sz">64 MB</span></div>
+            <div class="pv-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>source-snapshot.zip<span class="sz">22.1 MB</span></div>
+          </div>
+
+          <a href="submission-detail.html" style="display:block;margin-top:14px;text-align:center;font-size:12.5px;color:var(--muted);padding:10px;border-top:1px dashed var(--line)">View full submission detail →</a>
+        </aside>
+
+        <!-- RIGHT: RUBRIC -->
+        <div class="rubric">
+
+          <div class="ru-head">
+            <div class="ru-head-top"><span class="dot"></span>SCORING RUBRIC · PANEL 2</div>
+            <h3>Four criteria, weighted <span class="serif">equally.</span></h3>
+            <p>Scores are confidential until all judges submit. Drafts autosave every 10 seconds.</p>
+            <div class="ru-head-foot">
+              <div class="ts"><b>2 / 4</b> scored</div>
+              <div class="sf-bar"><div class="sf-bar-fill" style="width:50%"></div></div>
+              <div class="as"><span class="d"></span>Draft saved 3s ago</div>
+            </div>
+          </div>
+
+          <!-- CRIT 1 - scored -->
+          <div class="crit scored">
+            <div class="crit-top">
+              <div class="crit-num">01</div>
+              <div class="crit-body">
+                <div class="crit-name">Innovation <span class="crit-weight">25%</span></div>
+                <div class="crit-hint">Novelty of approach, differentiation from existing solutions, and creative use of technology.</div>
+              </div>
+            </div>
+            <div class="scale">
+              <button class="scale-btn">1</button><button class="scale-btn">2</button><button class="scale-btn">3</button>
+              <button class="scale-btn">4</button><button class="scale-btn">5</button><button class="scale-btn">6</button>
+              <button class="scale-btn">7</button><button class="scale-btn">8</button><button class="scale-btn on">9</button>
+              <button class="scale-btn">10</button>
+            </div>
+            <div class="scale-lbls"><span>Weak</span><span>Average</span><span>Exceptional</span></div>
+            <div class="crit-note">
+              <textarea>Ranked-list-not-decision-maker framing is the standout — puts the model where it belongs: assisting nurses, not replacing them. FHIR adapter shows real awareness of hospital procurement realities.</textarea>
+              <div class="crit-note-help"><span>Feedback visible to team after deadline.</span><span>214 / 600</span></div>
+            </div>
+          </div>
+
+          <!-- CRIT 2 - scored -->
+          <div class="crit scored">
+            <div class="crit-top">
+              <div class="crit-num">02</div>
+              <div class="crit-body">
+                <div class="crit-name">Technical execution <span class="crit-weight">25%</span></div>
+                <div class="crit-hint">Code quality, architecture, robustness of the working demo, test coverage.</div>
+              </div>
+            </div>
+            <div class="scale">
+              <button class="scale-btn">1</button><button class="scale-btn">2</button><button class="scale-btn">3</button>
+              <button class="scale-btn">4</button><button class="scale-btn">5</button><button class="scale-btn">6</button>
+              <button class="scale-btn">7</button><button class="scale-btn on">8</button><button class="scale-btn">9</button>
+              <button class="scale-btn">10</button>
+            </div>
+            <div class="scale-lbls"><span>Weak</span><span>Average</span><span>Exceptional</span></div>
+            <div class="crit-note">
+              <textarea>Solid stack. FastAPI service is clean; FHIR adapter has tests but coverage drops around the intake-form parser. Would love to see failure-mode handling for low-quality vitals.</textarea>
+              <div class="crit-note-help"><span>Feedback visible to team after deadline.</span><span>198 / 600</span></div>
+            </div>
+          </div>
+
+          <!-- CRIT 3 - active -->
+          <div class="crit">
+            <div class="crit-top">
+              <div class="crit-num">03</div>
+              <div class="crit-body">
+                <div class="crit-name">Impact &amp; feasibility <span class="crit-weight">25%</span></div>
+                <div class="crit-hint">Scale of problem addressed, evidence of real-world value, path to deployment.</div>
+              </div>
+            </div>
+            <div class="scale">
+              <button class="scale-btn">1</button><button class="scale-btn">2</button><button class="scale-btn">3</button>
+              <button class="scale-btn">4</button><button class="scale-btn">5</button><button class="scale-btn">6</button>
+              <button class="scale-btn">7</button><button class="scale-btn">8</button><button class="scale-btn">9</button>
+              <button class="scale-btn">10</button>
+            </div>
+            <div class="scale-lbls"><span>Weak</span><span>Average</span><span>Exceptional</span></div>
+            <div class="crit-note">
+              <textarea placeholder="Justify your score — be specific about what the team did well, and what you'd like to see strengthened."></textarea>
+              <div class="crit-note-help"><span>Required for scores under 6.</span><span>0 / 600</span></div>
+            </div>
+          </div>
+
+          <!-- CRIT 4 - pending -->
+          <div class="crit">
+            <div class="crit-top">
+              <div class="crit-num">04</div>
+              <div class="crit-body">
+                <div class="crit-name">Presentation &amp; clarity <span class="crit-weight">25%</span></div>
+                <div class="crit-hint">Quality of deck, demo walkthrough and written narrative (EN + AR).</div>
+              </div>
+            </div>
+            <div class="scale">
+              <button class="scale-btn">1</button><button class="scale-btn">2</button><button class="scale-btn">3</button>
+              <button class="scale-btn">4</button><button class="scale-btn">5</button><button class="scale-btn">6</button>
+              <button class="scale-btn">7</button><button class="scale-btn">8</button><button class="scale-btn">9</button>
+              <button class="scale-btn">10</button>
+            </div>
+            <div class="scale-lbls"><span>Weak</span><span>Average</span><span>Exceptional</span></div>
+            <div class="crit-note">
+              <textarea placeholder="Optional notes on presentation quality…"></textarea>
+              <div class="crit-note-help"><span>Feedback visible to team after deadline.</span><span>0 / 600</span></div>
+            </div>
+          </div>
+
+          <!-- OVERALL -->
+          <div class="overall">
+            <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Overall feedback for the team</h3>
+            <p>A short paragraph that ties it together — shared with the team after the final deadline.</p>
+            <textarea>Strong healthcare entry. The decision is to keep clinicians in the loop — not out — which is the right call for ER triage. Where I'd push: tighten the failure-mode story around low-quality vitals, and add at least one scenario where the model declines to rank. Pilot numbers (96% sensitivity) look credible but lean hard on one hospital.</textarea>
+          </div>
+
+          <!-- FLAG -->
+          <div style="background:#FCFCFA;border:1px dashed var(--line-2);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:oklch(0.6 0.17 30);flex-shrink:0"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <div style="flex:1;font-size:12.5px;color:var(--ink-2);line-height:1.5">Noticed something off? <b>Flag for head judge</b> — conflict of interest, duplicate work, or missing materials.</div>
+            <button class="btn btn-ghost" style="padding:6px 11px;font-size:12px">Flag</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER BAR -->
+<div class="score-foot">
+  <div class="sf-total">
+    <div>
+      <div class="sf-total-l">Your score so far</div>
+      <div class="sf-total-v">8.5<span class="d"> / 10</span></div>
+      <div class="sf-total-s">Avg of 2 of 4 criteria · 2 remaining</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="btn btn-ghost">Save &amp; exit</button>
+    <button class="btn btn-outline">Skip for now</button>
+    <button class="btn btn-accent">Submit scores <span class="chev">→</span></button>
+  </div>
+</div>
+
+</body></html>

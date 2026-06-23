@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>كأس الشباب للابتكار — Admin · EHMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg: #FAFAF7;
+  --bg-elev: #FFFFFF;
+  --ink: #0A0A0A;
+  --ink-2: #2A2A2A;
+  --muted: #6B6B6B;
+  --muted-2: #9B9B9B;
+  --line: rgba(10,10,10,0.08);
+  --line-2: rgba(10,10,10,0.14);
+  --accent: oklch(0.85 0.17 130);
+  --accent-deep: oklch(0.68 0.19 130);
+  --accent-soft: oklch(0.93 0.09 130);
+  --warn: oklch(0.78 0.13 70);
+  --danger: oklch(0.62 0.22 25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Inter','IBM Plex Sans Arabic',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.mono{font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:-0.01em}
+.serif{font-family:'Instrument Serif',serif;font-weight:400;font-style:italic}
+.ar{font-family:'IBM Plex Sans Arabic',sans-serif;direction:rtl;unicode-bidi:embed}
+
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+
+/* sidebar (condensed) */
+.sidebar{background:#fff;border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.side-brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-0.02em;font-size:17px;padding:4px 10px 22px}
+.logo-mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative;overflow:hidden;flex-shrink:0}
+.logo-mark::before{content:"";position:absolute;inset:4px;border-radius:4px;background:var(--accent)}
+.logo-mark::after{content:"";position:absolute;left:10px;top:10px;width:6px;height:6px;border-radius:2px;background:var(--ink)}
+.admin-tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;background:var(--ink);color:var(--accent);padding:2px 6px;border-radius:5px;letter-spacing:0.08em;margin-left:6px}
+.side-sec{color:var(--muted-2);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 10px 6px;font-weight:600}
+.side-item{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;color:var(--ink-2);margin-bottom:2px;font-size:14px;transition:all .2s}
+.side-item:hover{background:#F5F5F0;color:var(--ink)}
+.side-item.active{background:var(--ink);color:#fff}
+.side-item.active .side-ico{color:var(--accent)}
+.side-ico{width:17px;height:17px;color:var(--muted);flex-shrink:0}
+.side-badge{margin-left:auto;background:var(--accent);color:var(--ink);font-size:10.5px;padding:1px 7px;border-radius:6px;font-weight:600}
+.side-foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.user-card{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px}
+.user-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--ink);font-size:13px}
+.user-info .un{font-size:13.5px;font-weight:600;letter-spacing:-0.01em}
+.user-info .ue{font-size:11.5px;color:var(--muted)}
+
+/* main */
+.main{min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--line);background:color-mix(in oklab, var(--bg) 78%, transparent);backdrop-filter:blur(12px);position:sticky;top:0;z-index:20}
+.crumb{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.crumb a:hover{color:var(--ink)}
+.crumb b{color:var(--ink);font-weight:500}
+.crumb .sep{color:var(--muted-2)}
+.top-actions{display:flex;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;font-size:13.5px;font-weight:500;transition:all .2s;border:1px solid transparent;white-space:nowrap}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-primary:hover{background:#000;transform:translateY(-1px);box-shadow:0 6px 20px -8px rgba(10,10,10,0.4)}
+.btn-outline{border-color:var(--line-2);color:var(--ink);background:#fff}
+.btn-outline:hover{border-color:var(--ink)}
+.btn-accent{background:var(--accent);color:var(--ink)}
+.btn-accent:hover{background:var(--accent-deep);color:#fff}
+.btn-ghost{color:var(--ink-2)}
+.btn-ghost:hover{background:rgba(10,10,10,0.04)}
+.chev{transition:transform .2s}
+.btn:hover .chev{transform:translateX(3px)}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line-2);background:#fff;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2);transition:all .2s}
+.icon-btn:hover{border-color:var(--ink);color:var(--ink)}
+.icon-btn svg{width:16px;height:16px}
+
+.content{padding:28px 32px 60px;max-width:1400px}
+
+/* ============ PAGE HEADER (event hero) ============ */
+.ph{position:relative;border:1px solid var(--line);border-radius:20px;padding:28px 32px;background:#fff;margin-bottom:24px;overflow:hidden}
+.ph::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(ellipse 50% 80% at 0% 0%, oklch(0.88 0.17 130 / 0.28) 0%, transparent 55%),
+  radial-gradient(ellipse 40% 70% at 100% 120%, oklch(0.82 0.15 130 / 0.18) 0%, transparent 55%);
+  pointer-events:none}
+.ph-inner{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;gap:32px;flex-wrap:wrap}
+.ph-left{max-width:700px}
+.badge-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.bg-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:100px;font-size:11.5px;font-weight:600;letter-spacing:0.02em;font-family:'JetBrains Mono',monospace;text-transform:uppercase}
+.bg-tag.results{background:var(--ink);color:var(--accent)}
+.bg-tag.results .d{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px oklch(0.85 0.17 130 / 0.3)}
+.bg-tag.region{background:rgba(255,255,255,.7);border:1px solid var(--line-2);color:var(--ink-2);backdrop-filter:blur(8px)}
+.bg-tag.id{background:rgba(255,255,255,.7);border:1px solid var(--line-2);color:var(--muted);backdrop-filter:blur(8px);text-transform:none;letter-spacing:0.06em}
+
+.ph h1{font-size:38px;letter-spacing:-0.025em;font-weight:600;line-height:1.1;margin-bottom:4px}
+.ph h1.ar{font-weight:700;letter-spacing:-0.01em}
+.ph .subt{font-size:15px;color:var(--muted);font-family:'Inter',sans-serif;margin-top:6px;max-width:520px;line-height:1.5}
+.ph .subt.ar{font-family:'IBM Plex Sans Arabic',sans-serif;direction:rtl}
+.ph-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.btn-advance{background:var(--accent);color:var(--ink);font-weight:600;padding:11px 18px}
+.btn-advance:hover{background:var(--accent-deep);color:#fff;transform:translateY(-1px);box-shadow:0 10px 24px -10px oklch(0.68 0.19 130 / 0.5)}
+
+/* metric pills row under hero */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:26px;position:relative;z-index:1}
+.kpi{background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:14px;padding:18px 20px;backdrop-filter:blur(8px);display:flex;align-items:center;gap:16px;transition:all .25s}
+.kpi:hover{background:#fff;border-color:var(--line-2);transform:translateY(-2px)}
+.kpi-ico{width:42px;height:42px;border-radius:11px;background:var(--ink);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.kpi-ico svg{width:18px;height:18px}
+.kpi .v{font-size:28px;letter-spacing:-0.025em;font-weight:600;line-height:1}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;font-family:'JetBrains Mono',monospace;margin-top:4px}
+.kpi.empty .v{color:var(--muted-2)}
+
+/* ============ BANNER ============ */
+.banner{background:linear-gradient(135deg, var(--accent-soft), #fff);border:1px solid oklch(0.85 0.17 130 / 0.35);border-radius:16px;padding:18px 22px;margin-bottom:24px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden}
+.banner::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 50% 120% at 100% 50%, oklch(0.85 0.17 130 / 0.2), transparent 60%);pointer-events:none}
+.banner-ico{width:44px;height:44px;border-radius:12px;background:var(--ink);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1}
+.banner-ico svg{width:20px;height:20px}
+.banner-body{position:relative;z-index:1;flex:1}
+.banner-body .t{font-size:15.5px;font-weight:600;letter-spacing:-0.01em;margin-bottom:2px}
+.banner-body .s{font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.banner-cta{position:relative;z-index:1}
+
+/* ============ LAYOUT 2-COL ============ */
+.layout{display:grid;grid-template-columns:1fr 360px;gap:20px}
+
+/* cards shared */
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:20px}
+.card-head{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.card-head h3{font-size:16px;font-weight:600;letter-spacing:-0.015em}
+.card-head .sub{font-size:12.5px;color:var(--muted);margin-top:2px}
+.card-body{padding:20px 24px}
+
+/* ============ EVENT PROGRESS STEPPER ============ */
+.stepper{padding:28px 24px 24px;display:flex;align-items:stretch;gap:0;overflow-x:auto;position:relative}
+.stepper-track{position:absolute;top:52px;left:52px;right:52px;height:2px;background:var(--line);border-radius:2px}
+.stepper-fill{position:absolute;top:52px;left:52px;height:2px;background:linear-gradient(90deg,var(--ink),var(--accent-deep));border-radius:2px;box-shadow:0 0 8px oklch(0.85 0.17 130 / 0.6);width:calc(((100% - 104px) / 7) * 6)}
+.stepper-fill::after{content:"";position:absolute;right:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px oklch(0.85 0.17 130 / 0.3),0 0 12px var(--accent-deep)}
+.step{flex:1;min-width:100px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:1}
+.step .dot{width:38px;height:38px;border-radius:50%;background:#fff;border:2px solid var(--line-2);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--muted-2);font-family:'JetBrains Mono',monospace;position:relative;transition:all .2s}
+.step.done .dot{background:var(--ink);border-color:var(--ink);color:var(--accent)}
+.step.current .dot{background:var(--accent);border-color:var(--accent);color:var(--ink);box-shadow:0 0 0 4px oklch(0.85 0.17 130 / 0.22)}
+.step .check{width:13px;height:13px}
+.step .lbl{margin-top:10px;font-size:12.5px;color:var(--muted);font-weight:500}
+.step.done .lbl{color:var(--ink-2)}
+.step.current .lbl{color:var(--ink);font-weight:600}
+.step .count{font-size:10.5px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.step.current .count{color:var(--accent-deep);font-weight:600}
+
+/* ============ TIMELINE SECTIONS (registration / hackathon / team) ============ */
+.info-group{padding:0}
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:18px 24px;border-top:1px solid var(--line)}
+.info-row:first-child{border-top:0}
+.info-cell{display:flex;flex-direction:column;gap:4px}
+.info-cell .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px}
+.info-cell .lbl svg{width:11px;height:11px}
+.info-cell .val{font-size:15px;font-weight:500;letter-spacing:-0.01em;color:var(--ink)}
+.info-cell .val .d{font-size:13px;color:var(--muted);font-weight:400;display:block;margin-top:2px}
+
+.group-title{display:flex;align-items:center;gap:10px;padding:16px 24px;background:#FCFCFA;border-top:1px solid var(--line);font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-2);font-weight:600;font-family:'JetBrains Mono',monospace}
+.group-title:first-child{border-top:0}
+.group-ico{width:26px;height:26px;border-radius:7px;background:var(--accent-soft);color:var(--ink);display:flex;align-items:center;justify-content:center;border:1px solid oklch(0.85 0.17 130 / 0.3)}
+.group-ico svg{width:13px;height:13px}
+.group-title .pill{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:2px 8px;border-radius:100px;font-weight:600;letter-spacing:0.05em;text-transform:none}
+.pill.closed{background:var(--ink);color:#fff}
+.pill.upcoming{background:#F5F5F0;color:var(--muted)}
+
+/* ============ PARTICIPANTS TABLE ============ */
+.pt-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px;flex-wrap:wrap}
+.pt-top-left .t{font-size:17px;font-weight:600;letter-spacing:-0.015em;display:flex;align-items:center;gap:8px}
+.pt-top-left .t .count{font-family:'JetBrains Mono',monospace;color:var(--muted-2);font-weight:500;font-size:15px}
+.pt-top-left .s{font-size:13px;color:var(--muted);margin-top:3px}
+.pt-tools{display:flex;gap:8px;align-items:center}
+.pt-search{display:flex;align-items:center;gap:8px;padding:7px 12px;background:#FBFBF9;border:1px solid var(--line);border-radius:9px;font-size:13px;color:var(--muted);width:240px;transition:all .2s}
+.pt-search:focus-within{background:#fff;border-color:var(--ink)}
+.pt-search svg{width:14px;height:14px;color:var(--muted-2)}
+.pt-search input{border:none;outline:none;flex:1;font:inherit;background:transparent;color:var(--ink)}
+
+.empty-state{padding:56px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;border-top:1px solid var(--line);background:#FCFCFA}
+.empty-ico{width:64px;height:64px;border-radius:16px;background:#fff;border:1px dashed var(--line-2);display:flex;align-items:center;justify-content:center;color:var(--muted-2);margin-bottom:6px}
+.empty-ico svg{width:26px;height:26px}
+.empty-state h4{font-size:16px;font-weight:600;letter-spacing:-0.01em}
+.empty-state p{font-size:13.5px;color:var(--muted);max-width:360px;line-height:1.5}
+.empty-state .btn{margin-top:10px}
+
+/* ============ SIDEBAR (right column) ============ */
+.side-col{display:flex;flex-direction:column;gap:16px;position:sticky;top:82px;align-self:start}
+.qa-card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.qa-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.qa-head .t{font-size:15.5px;font-weight:600;letter-spacing:-0.015em}
+.qa-head .ended{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:3px 8px;border-radius:100px;background:var(--ink);color:#fff;letter-spacing:0.05em;font-weight:600}
+.qa-body{padding:14px}
+.qa-item{display:flex;align-items:center;gap:12px;padding:12px 10px;border-radius:10px;transition:all .2s;cursor:pointer;position:relative}
+.qa-item:hover{background:#FCFCFA}
+.qa-item + .qa-item{border-top:1px dashed var(--line-2)}
+.qa-ico{width:36px;height:36px;border-radius:10px;background:var(--accent-soft);color:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid oklch(0.85 0.17 130 / 0.3)}
+.qa-item.dark .qa-ico{background:var(--ink);color:var(--accent);border-color:var(--ink)}
+.qa-ico svg{width:16px;height:16px}
+.qa-item .b{flex:1;min-width:0}
+.qa-item .b .t2{font-size:14px;font-weight:500;letter-spacing:-0.01em}
+.qa-item .b .s2{font-size:12px;color:var(--muted);margin-top:1px}
+.qa-item .chev{color:var(--muted-2);transition:transform .2s, color .2s;width:14px;height:14px}
+.qa-item:hover .chev{transform:translateX(3px);color:var(--ink)}
+
+.meta-card{background:var(--ink);color:#fff;border-radius:18px;padding:22px;position:relative;overflow:hidden}
+.meta-card::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 100% 120%, oklch(0.85 0.17 130 / 0.4) 0%, transparent 55%);pointer-events:none}
+.meta-inner{position:relative;z-index:1}
+.meta-card h4{font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,.55);font-weight:600;margin-bottom:12px;font-family:'JetBrains Mono',monospace}
+.meta-row{display:flex;justify-content:space-between;padding:9px 0;font-size:13px;border-bottom:1px dashed rgba(255,255,255,0.1)}
+.meta-row:last-child{border-bottom:0}
+.meta-row .lbl{color:rgba(255,255,255,.55)}
+.meta-row .val{font-weight:500;letter-spacing:-0.01em}
+
+.danger-card{background:#fff;border:1px solid oklch(0.88 0.06 25);border-radius:18px;padding:18px 20px}
+.danger-card h4{font-size:13px;font-weight:600;color:var(--danger);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.danger-card p{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.danger-card .btn-d{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid oklch(0.88 0.06 25);color:var(--danger);border-radius:8px;font-size:12.5px;font-weight:500;transition:all .2s}
+.danger-card .btn-d:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+
+@media (max-width:1100px){
+  .layout{grid-template-columns:1fr}
+  .side-col{position:static}
+  .kpis{grid-template-columns:1fr}
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+}
+@media (max-width:640px){
+  .content{padding:20px 16px 48px}
+  .ph{padding:22px}
+  .ph h1{font-size:26px}
+  .stepper{padding:20px 12px}
+  .info-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="side-brand"><span class="logo-mark"></span>EHMS <span class="admin-tag">ADMIN</span></div>
+    <div class="side-sec">Organize</div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </div>
+    <div class="side-item active">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Events <span class="side-badge">24</span>
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Teams
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+      Submissions
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+      Judging
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      Sponsors
+    </div>
+    <div class="side-sec">Analyze</div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18M7 14l4-4 3 3 5-7"/></svg>
+      Analytics
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.1A1.6 1.6 0 009 19.4a1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.1A1.6 1.6 0 004.6 9a1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg>
+      Settings
+    </div>
+    <div class="side-foot">
+      <div class="user-card">
+        <div class="user-av">AR</div>
+        <div class="user-info">
+          <div class="un">Ayesha R.</div>
+          <div class="ue">Admin</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+
+    <header class="topbar">
+      <div class="crumb">
+        <a href="#">Admin</a>
+        <span class="sep">/</span>
+        <a href="admin-events.html">Events</a>
+        <span class="sep">/</span>
+        <b>كأس الشباب للابتكار — رؤية ٢٠٣٠</b>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" aria-label="Preview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Share">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+        </button>
+        <button class="btn btn-outline">Edit event</button>
+        <button class="btn btn-primary">Advance state <span class="chev">→</span></button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ============ HERO ============ -->
+      <div class="ph">
+        <div class="ph-inner">
+          <div class="ph-left">
+            <div class="badge-row">
+              <span class="bg-tag results"><span class="d"></span> Results Published</span>
+              <span class="bg-tag region">📍 Riyadh, KSA · Nationwide</span>
+              <span class="bg-tag id">EVT-2025-V30-001</span>
+            </div>
+            <h1 class="ar">كأس الشباب للابتكار — رؤية ٢٠٣٠</h1>
+            <p class="subt ar">مسار شبابي على مستوى المملكة — إعلان الفائزين من الرياض.</p>
+          </div>
+          <div class="ph-actions">
+            <button class="btn btn-outline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Export report
+            </button>
+            <button class="btn btn-advance">Advance State <span class="chev">→</span></button>
+          </div>
+        </div>
+
+        <!-- KPIs inside hero -->
+        <div class="kpis">
+          <div class="kpi empty">
+            <div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
+            <div>
+              <div class="v">0</div>
+              <div class="l">Participants</div>
+            </div>
+          </div>
+          <div class="kpi empty">
+            <div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="3"/><circle cx="17" cy="7" r="2.5"/><path d="M3 20v-1a4 4 0 014-4h4a4 4 0 014 4v1M15 20v-1a3 3 0 013-3h2a3 3 0 013 3v1"/></svg></div>
+            <div>
+              <div class="v">0</div>
+              <div class="l">Teams</div>
+            </div>
+          </div>
+          <div class="kpi empty">
+            <div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></div>
+            <div>
+              <div class="v">0</div>
+              <div class="l">Submissions</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ BANNER ============ -->
+      <div class="banner">
+        <div class="banner-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3"/></svg>
+        </div>
+        <div class="banner-body">
+          <div class="t">Results Published</div>
+          <div class="s">Results are in! Winners and rankings are now visible to all participants.</div>
+        </div>
+        <div class="banner-cta">
+          <a href="#" class="btn btn-primary">View Leaderboard <span class="chev">→</span></a>
+        </div>
+      </div>
+
+      <!-- ============ LAYOUT ============ -->
+      <div class="layout">
+
+        <!-- LEFT -->
+        <div class="main-col">
+
+          <!-- event progress stepper -->
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Event Progress</h3>
+                <div class="sub">Lifecycle state · 7 of 8 steps completed</div>
+              </div>
+              <span class="bg-tag results" style="text-transform:none"><span class="d"></span> Step 08 · Results</span>
+            </div>
+            <div class="stepper">
+              <div class="stepper-track"></div>
+              <div class="stepper-fill"></div>
+
+              <div class="step done">
+                <div class="dot">
+                  <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div class="lbl">Draft</div>
+                <div class="count">CLOSED</div>
+              </div>
+              <div class="step done">
+                <div class="dot"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="lbl">Published</div>
+                <div class="count">OCT 3</div>
+              </div>
+              <div class="step done">
+                <div class="dot"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="lbl">Registration</div>
+                <div class="count">1,248</div>
+              </div>
+              <div class="step done">
+                <div class="dot"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="lbl">Teams</div>
+                <div class="count">312</div>
+              </div>
+              <div class="step done">
+                <div class="dot"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="lbl">Hacking</div>
+                <div class="count">72H</div>
+              </div>
+              <div class="step done">
+                <div class="dot"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="lbl">Submissions</div>
+                <div class="count">284</div>
+              </div>
+              <div class="step done">
+                <div class="dot"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div class="lbl">Judging</div>
+                <div class="count">42 JUDGES</div>
+              </div>
+              <div class="step current">
+                <div class="dot">8</div>
+                <div class="lbl">Results</div>
+                <div class="count">PUBLISHED</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- timeline card -->
+          <div class="card info-group">
+
+            <div class="group-title">
+              <span class="group-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+              Registration Period
+              <span class="pill closed">CLOSED</span>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <div class="lbl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>
+                  STARTS
+                </div>
+                <div class="val">October 3, 2025<span class="d">07:41 PM · Asia/Riyadh</span></div>
+              </div>
+              <div class="info-cell">
+                <div class="lbl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 19l-7-7 7-7"/></svg>
+                  ENDS
+                </div>
+                <div class="val">November 2, 2025<span class="d">07:41 PM · Asia/Riyadh</span></div>
+              </div>
+            </div>
+
+            <div class="group-title">
+              <span class="group-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg></span>
+              Hackathon Period
+              <span class="pill closed">CLOSED</span>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <div class="lbl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>
+                  STARTS
+                </div>
+                <div class="val">November 12, 2025<span class="d">07:41 PM · Asia/Riyadh</span></div>
+              </div>
+              <div class="info-cell">
+                <div class="lbl">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 19l-7-7 7-7"/></svg>
+                  ENDS
+                </div>
+                <div class="val">November 22, 2025<span class="d">07:41 PM · Asia/Riyadh</span></div>
+              </div>
+            </div>
+
+            <div class="group-title">
+              <span class="group-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
+              Team Size
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg> MINIMUM</div>
+                <div class="val">2 members</div>
+              </div>
+              <div class="info-cell">
+                <div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> MAXIMUM</div>
+                <div class="val">5 members</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Participants -->
+          <div class="card">
+            <div class="pt-top">
+              <div class="pt-top-left">
+                <div class="t">Registered Participants <span class="count">(0)</span></div>
+                <div class="s">All users who registered for this event</div>
+              </div>
+              <div class="pt-tools">
+                <div class="pt-search">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                  <input type="text" placeholder="Search by name, email…">
+                </div>
+                <button class="btn btn-outline">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 11-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            <div class="empty-state">
+              <div class="empty-ico">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/></svg>
+              </div>
+              <h4>No registered participants yet</h4>
+              <p>When users register for this event, they'll appear here. You can filter, export, or message them in bulk.</p>
+              <button class="btn btn-outline">Invite participants</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT -->
+        <div class="side-col">
+
+          <div class="qa-card">
+            <div class="qa-head">
+              <div class="t">Quick Actions</div>
+              <span class="ended">EVENT ENDED</span>
+            </div>
+            <div class="qa-body">
+              <a href="#" class="qa-item">
+                <div class="qa-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/></svg></div>
+                <div class="b">
+                  <div class="t2">View Teams</div>
+                  <div class="s2">0 teams · rosters &amp; members</div>
+                </div>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+              </a>
+
+              <a href="#" class="qa-item">
+                <div class="qa-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg></div>
+                <div class="b">
+                  <div class="t2">Assign Judge</div>
+                  <div class="s2">Add reviewers &amp; scoring panel</div>
+                </div>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+              </a>
+
+              <a href="#" class="qa-item dark">
+                <div class="qa-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4zM7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3"/></svg></div>
+                <div class="b">
+                  <div class="t2">View Leaderboard</div>
+                  <div class="s2">Final rankings · certified</div>
+                </div>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <div class="meta-card">
+            <div class="meta-inner">
+              <h4>Event Meta</h4>
+              <div class="meta-row"><span class="lbl">Event ID</span><span class="val mono">EVT-2025-V30-001</span></div>
+              <div class="meta-row"><span class="lbl">Created</span><span class="val">Sep 14, 2025</span></div>
+              <div class="meta-row"><span class="lbl">Visibility</span><span class="val">Public</span></div>
+              <div class="meta-row"><span class="lbl">Host</span><span class="val">Vision 2030 Found.</span></div>
+              <div class="meta-row"><span class="lbl">Language</span><span class="val">AR / EN</span></div>
+              <div class="meta-row"><span class="lbl">Timezone</span><span class="val">Asia/Riyadh</span></div>
+            </div>
+          </div>
+
+          <div class="danger-card">
+            <h4>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0zM12 9v4M12 17h.01"/></svg>
+              Danger zone
+            </h4>
+            <p>Archive this event to hide it from public listings. Archived events stay available for reports and audits.</p>
+            <button class="btn-d">Archive event</button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

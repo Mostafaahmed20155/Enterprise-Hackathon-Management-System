@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,8 +17,9 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, FileText, Upload, X, CheckCircle2,
   AlertCircle, Loader2, Paperclip, File as FileIcon,
+  Image as ImageIcon, Film, FileArchive, FileSpreadsheet, Presentation,
 } from 'lucide-react';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 
 interface Team {
   id: string;
@@ -62,16 +63,16 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function getFileIcon(name: string) {
+function SubmissionFileIcon({ name }: { name: string }) {
   const ext = name.split('.').pop()?.toLowerCase() ?? '';
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return '🖼️';
-  if (['mp4', 'mpeg', 'mov', 'avi'].includes(ext)) return '🎬';
-  if (['zip', 'rar', '7z', 'gz', 'tar'].includes(ext)) return '📦';
-  if (['pdf'].includes(ext)) return '📄';
-  if (['doc', 'docx'].includes(ext)) return '📝';
-  if (['xls', 'xlsx'].includes(ext)) return '📊';
-  if (['ppt', 'pptx'].includes(ext)) return '📋';
-  return '📎';
+  let Icon = Paperclip;
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) Icon = ImageIcon;
+  else if (['mp4', 'mpeg', 'mov', 'avi'].includes(ext)) Icon = Film;
+  else if (['zip', 'rar', '7z', 'gz', 'tar'].includes(ext)) Icon = FileArchive;
+  else if (['pdf', 'doc', 'docx'].includes(ext)) Icon = FileText;
+  else if (['xls', 'xlsx'].includes(ext)) Icon = FileSpreadsheet;
+  else if (['ppt', 'pptx'].includes(ext)) Icon = Presentation;
+  return <Icon className="w-5 h-5 shrink-0 text-gray-400" />;
 }
 
 export default function CreateSubmissionPage() {
@@ -185,6 +186,7 @@ export default function CreateSubmissionPage() {
 
       const submissionData = response.data?.data || response.data;
       const submissionId: string = submissionData?.id;
+      const submissionSlug: string = submissionData?.slug;
 
       if (!submissionId) throw new Error('No submission ID returned');
 
@@ -226,7 +228,7 @@ export default function CreateSubmissionPage() {
         toast.success(successMsg, { duration: 4000 });
       }
 
-      router.push(`/submissions/${submissionId}`);
+      router.push(`/submissions/${submissionSlug || submissionId}`);
     } catch (err: any) {
       const errorData = err.response?.data;
       const errorMessage = errorData?.error?.message || errorData?.message;
@@ -279,14 +281,13 @@ export default function CreateSubmissionPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Submissions
         </Link>
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-purple-600 to-indigo-700 p-8 text-white shadow-xl">
-          <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] opacity-30" />
+        <div className="relative overflow-hidden rounded-2xl bg-primary p-8 text-primary-foreground shadow-sm">
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-2">
               <FileText className="w-6 h-6" />
               <h1 className="text-3xl font-bold">{t('createSubmission')}</h1>
             </div>
-            <p className="text-indigo-100 text-lg">Submit your project for the hackathon</p>
+            <p className="text-primary-foreground/80 text-lg">Submit your project for the hackathon</p>
           </div>
         </div>
       </div>
@@ -454,7 +455,7 @@ export default function CreateSubmissionPage() {
                           : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50'
                       }`}
                     >
-                      <span className="text-xl shrink-0">{getFileIcon(sf.file.name)}</span>
+                      <SubmissionFileIcon name={sf.file.name} />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{sf.file.name}</p>
                         <p className="text-xs text-gray-500">{formatBytes(sf.file.size)}</p>

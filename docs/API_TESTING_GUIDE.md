@@ -35,19 +35,21 @@ npm install
 cd apps/api
 npm run dev
 ```
+```bash
 
 API will be available at: http://localhost:3001/api/v1
 Swagger docs: http://localhost:3001/api/docs
+```
 
 ## Demo User Accounts
-
+```bash
 | Role | Email | Password |
 |------|-------|----------|
 | Super Admin | admin@ehms.com | Password123! |
 | Organizer | organizer@ehms.com | Password123! |
 | Participant | participant1@ehms.com | Password123! |
 | Judge | judge@ehms.com | Password123! |
-
+```
 ## API Endpoints
 
 ### Authentication

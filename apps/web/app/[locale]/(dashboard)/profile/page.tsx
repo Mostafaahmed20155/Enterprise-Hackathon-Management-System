@@ -9,6 +9,7 @@ import { usersApi, authApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import {
@@ -84,7 +85,7 @@ function formatDate(iso: string, locale: string) {
 function getRoleBadgeClass(name: string) {
   const map: Record<string, string> = {
     SUPER_ADMIN: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    ORGANIZER:   'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    ORGANIZER:   'bg-teal-100 text-teal-800 dark:bg-teal-950/35 dark:text-teal-300',
     JUDGE:       'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     PARTICIPANT: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   };
@@ -131,7 +132,7 @@ function SkillsInput({ skills, onChange, placeholder, disabled }: {
 
   return (
     <div
-      className="flex flex-wrap gap-2 min-h-[42px] px-3 py-2 border border-input rounded-md bg-background cursor-text focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+      className="flex min-h-[44px] cursor-text flex-wrap gap-2 rounded-lg border-2 border-gray-200 bg-white px-3 py-2 transition-all duration-200 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600"
       onClick={() => inputRef.current?.focus()}
     >
       {skills.map(skill => (
@@ -290,7 +291,9 @@ export default function ProfilePage() {
   }
 
   const isOAuthOnly = !!user.googleId && !user.email;
-  const globalRoles = user.userRoles?.filter((ur: any) => !ur.event) ?? [];
+  const globalRoles = [...new Map(
+    (user.userRoles?.filter((ur: any) => !ur.event) ?? []).map((ur: any) => [ur.role?.name, ur])
+  ).values()];
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -298,13 +301,13 @@ export default function ProfilePage() {
       {/* ── Profile Header ─────────────────────────────────────────────────── */}
       <div className="relative rounded-2xl overflow-hidden shadow-sm border-0">
         {/* Cover */}
-        <div className="h-28 bg-gradient-to-r from-primary via-purple-500 to-pink-500" />
+        <div className="h-28 bg-[#0a0a0a]" />
 
         {/* Content */}
         <div className="bg-white dark:bg-gray-900 px-6 pb-6">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12">
             {/* Avatar */}
-            <div className="w-24 h-24 bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl shadow-xl ring-4 ring-white dark:ring-gray-900 shrink-0">
+            <div className="w-24 h-24 bg-[#0a0a0a] rounded-2xl flex items-center justify-center font-bold text-3xl shadow-xl ring-4 ring-white dark:ring-gray-900 shrink-0" style={{ color: 'oklch(0.85 0.17 130)' }}>
               {getUserInitials(user.name)}
             </div>
 
@@ -377,11 +380,11 @@ export default function ProfilePage() {
             {/* Bio */}
             <div className="space-y-1.5">
               <Label htmlFor="bio">{t('bio')}</Label>
-              <textarea
+              <Textarea
                 id="bio"
                 rows={3}
                 placeholder={t('bioPlaceholder')}
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                className="resize-none"
                 {...register('bio')}
               />
             </div>

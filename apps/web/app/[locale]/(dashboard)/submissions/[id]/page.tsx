@@ -1,473 +1,247 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { submissionsApi } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Trophy, Star, Pencil } from 'lucide-react';
+import {
+  AlertCircle,
+  ChevronRight,
+  Download,
+  Eye,
+  Github,
+  Globe,
+  Link2,
+  Lock,
+  PenLine,
+  Trash2,
+  Video,
+} from 'lucide-react';
 
 type BilingualText = string | { en: string; ar: string };
+
+interface TeamMemberRow {
+  user: {
+    id: string;
+    name?: string | null;
+    email?: string;
+  };
+}
 
 interface Submission {
   id: string;
   title: BilingualText;
   description: BilingualText;
   status: string;
-  demoUrl?: string;
-  repoUrl?: string;
-  videoUrl?: string;
+  demoUrl?: string | null;
+  repoUrl?: string | null;
+  videoUrl?: string | null;
   team: {
     id: string;
     name: BilingualText;
+    leader?: { id: string; name?: string | null; email?: string };
+    members?: TeamMemberRow[];
   };
+  event?: { id: string; name: BilingualText; state?: string };
   files: Array<{
     id: string;
     fileName: string;
     fileSize: number;
     fileUrl: string;
+    mimeType?: string;
   }>;
-  // Real API shape: scores array with scores as a JSON map and totalScore
   scores?: Array<{
-    judge: {
-      id?: string;
-      name: string;
-    };
-    scores?: Record<string, number>;       // API field name
-    criteriaScores?: Record<string, number>; // mock field name
+    judge: { id?: string; name: string };
+    scores?: Record<string, number>;
+    criteriaScores?: Record<string, number>;
     totalScore: number;
-    feedback?: {
-      en: string;
-      ar: string;
-    };
+    feedback?: { en: string; ar: string } | null;
     submittedAt?: string;
     createdAt?: string;
+    updatedAt?: string;
   }>;
-  averageScore?: number;
+  averageScore?: number | null;
   createdAt: string;
   updatedAt: string;
+  submittedAt?: string | null;
 }
 
-function getText(value: BilingualText, locale: string): string {
+function getText(value: BilingualText | undefined, locale: string): string {
+  if (!value) return '';
   if (typeof value === 'string') return value;
   return value[locale as 'en' | 'ar'] || value.en || '';
 }
 
-const statusColors: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
-  SUBMITTED: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-  UNDER_REVIEW: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-  DISQUALIFIED: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-  WINNER: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-};
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
-// Mock data disabled — using real API
-const USE_MOCK_DATA = false;
+function fileKind(name: string): 'pdf' | 'zip' | 'img' | 'vid' | 'file' {
+  const ext = name.split('.').pop()?.toLowerCase() ?? '';
+  if (ext === 'pdf') return 'pdf';
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return 'zip';
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) return 'img';
+  if (['mp4', 'webm', 'mov', 'mkv'].includes(ext)) return 'vid';
+  return 'file';
+}
 
-const MOCK_SUBMISSIONS: Record<string, Submission> = {
-  '1': {
-    id: '1',
-    title: 'Smart City Traffic Management System',
-    description: `Our Smart City Traffic Management System leverages cutting-edge AI and IoT technologies to revolutionize urban traffic flow. The system uses real-time data from thousands of sensors, cameras, and connected vehicles to predict traffic patterns and dynamically adjust traffic signals.
+function initials(name: string): string {
+  const p = name.trim().split(/\s+/).filter(Boolean);
+  if (p.length >= 2) return (p[0][0] + p[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase() || '?';
+}
 
-Key Features:
-- Real-time traffic monitoring and prediction
-- AI-powered signal optimization
-- Mobile app for citizens with live traffic updates
-- Integration with public transportation systems
-- Emergency vehicle priority routing
-- Comprehensive analytics dashboard for city planners
+const AVATAR_BACKGROUNDS = ['#7A3D00', '#0A3D73', '#2A2A2A', '#8A1E36', '#4D5A35', '#1a5c4a', '#5c3d8c'];
 
-The system has been tested in simulation and shows a potential 35% reduction in average commute times and a 28% decrease in carbon emissions from reduced idling.`,
-    status: 'SUBMITTED',
-    demoUrl: 'https://smartcity-demo.example.com',
-    repoUrl: 'https://github.com/techinnovators/smart-traffic',
-    videoUrl: 'https://youtube.com/watch?v=demo123',
-    team: {
-      id: 'team-1',
-      name: 'Tech Innovators',
-    },
-    files: [
-      {
-        id: 'file-1',
-        fileName: 'Technical_Documentation.pdf',
-        fileSize: 2457600,
-        fileUrl: '/files/tech-doc.pdf',
-      },
-      {
-        id: 'file-2',
-        fileName: 'System_Architecture_Diagram.png',
-        fileSize: 856320,
-        fileUrl: '/files/architecture.png',
-      },
-      {
-        id: 'file-3',
-        fileName: 'Test_Results_Report.xlsx',
-        fileSize: 1245184,
-        fileUrl: '/files/test-results.xlsx',
-      },
-    ],
-    scores: [
-      {
-        judge: {
-          name: 'Dr. Sarah Ahmed',
-        },
-        criteriaScores: {
-          'Innovation': 90.0,
-          'Technical Implementation': 88.0,
-          'Business Impact': 87.0,
-          'Presentation': 89.0,
-        },
-        totalScore: 88.7,
-        feedback: {
-          en: 'Excellent implementation of AI-powered traffic optimization. The integration with existing infrastructure is particularly impressive. The team demonstrated strong technical skills and a clear understanding of urban challenges.',
-          ar: 'تنفيذ ممتاز لتحسين حركة المرور بالذكاء الاصطناعي. التكامل مع البنية التحتية الحالية مثير للإعجاب بشكل خاص. أظهر الفريق مهارات تقنية قوية وفهم واضح للتحديات الحضرية.',
-        },
-        submittedAt: '2026-02-10T14:30:00Z',
-      },
-      {
-        judge: {
-          name: 'Prof. Mohammed Ali',
-        },
-        criteriaScores: {
-          'Innovation': 92.0,
-          'Technical Implementation': 85.0,
-          'Business Impact': 88.0,
-          'Presentation': 87.0,
-        },
-        totalScore: 88.2,
-        feedback: {
-          en: 'Very innovative approach to traffic management. The predictive analytics component is well-designed. Some concerns about scalability to very large cities, but overall an outstanding solution.',
-          ar: 'نهج مبتكر جداً لإدارة حركة المرور. مكون التحليلات التنبؤية مصمم بشكل جيد. بعض المخاوف بشأن قابلية التوسع للمدن الكبيرة جداً، ولكن بشكل عام حل متميز.',
-        },
-        submittedAt: '2026-02-10T16:45:00Z',
-      },
-      {
-        judge: {
-          name: 'Eng. Fatima Hassan',
-        },
-        criteriaScores: {
-          'Innovation': 88.0,
-          'Technical Implementation': 90.0,
-          'Business Impact': 86.0,
-          'Presentation': 91.0,
-        },
-        totalScore: 88.9,
-        feedback: {
-          en: 'Strong technical implementation with clean code architecture. The demo was very well-presented and the potential impact on urban mobility is significant. Great work!',
-          ar: 'تنفيذ تقني قوي مع بنية كود نظيفة. كان العرض التوضيحي مقدماً بشكل جيد جداً والتأثير المحتمل على التنقل الحضري كبير. عمل رائع!',
-        },
-        submittedAt: '2026-02-11T10:20:00Z',
-      },
-    ],
-    averageScore: 88.6,
-    createdAt: '2026-02-01T10:00:00Z',
-    updatedAt: '2026-02-07T15:30:00Z',
-  },
-  '2': {
-    id: '2',
-    title: 'Healthcare Analytics Platform',
-    description: `Our Healthcare Analytics Platform transforms patient care through advanced machine learning and predictive analytics. By analyzing vast amounts of historical patient data, the platform can predict potential health issues before they become critical, enabling preventive care.
+function getCriteriaMap(row: {
+  scores?: Record<string, number>;
+  criteriaScores?: Record<string, number>;
+}): Record<string, number> {
+  return row.criteriaScores ?? row.scores ?? {};
+}
 
-Features:
-- Predictive health risk assessment
-- Personalized treatment recommendations
-- Real-time patient monitoring integration
-- HIPAA-compliant data handling
-- Interactive physician dashboard
-- Patient outcome tracking and analysis
+function criterionAverages(
+  rows: NonNullable<Submission['scores']>
+): { name: string; avg: number }[] {
+  const acc = new Map<string, { sum: number; n: number }>();
+  for (const row of rows) {
+    const obj = getCriteriaMap(row);
+    for (const [k, v] of Object.entries(obj)) {
+      const cur = acc.get(k) ?? { sum: 0, n: 0 };
+      cur.sum += Number(v);
+      cur.n += 1;
+      acc.set(k, cur);
+    }
+  }
+  return [...acc.entries()].map(([name, { sum, n }]) => ({ name, avg: sum / n }));
+}
 
-Clinical trials show 42% improvement in early disease detection and 31% reduction in hospital readmissions.`,
-    status: 'UNDER_REVIEW',
-    demoUrl: 'https://healthanalytics-demo.example.com',
-    repoUrl: 'https://github.com/medtechwarriors/health-platform',
-    videoUrl: 'https://youtube.com/watch?v=health456',
-    team: {
-      id: 'team-2',
-      name: 'MedTech Warriors',
-    },
-    files: [
-      {
-        id: 'file-4',
-        fileName: 'Platform_Overview.pdf',
-        fileSize: 3145728,
-        fileUrl: '/files/platform-overview.pdf',
-      },
-      {
-        id: 'file-5',
-        fileName: 'Clinical_Trial_Results.pdf',
-        fileSize: 1835008,
-        fileUrl: '/files/clinical-trials.pdf',
-      },
-    ],
-    createdAt: '2026-02-02T14:20:00Z',
-    updatedAt: '2026-02-08T09:15:00Z',
-  },
-  '3': {
-    id: '3',
-    title: 'E-Learning Interactive Platform',
-    description: `An innovative e-learning platform that makes education engaging through gamification and interactive content. Students earn points, badges, and unlock achievements while learning, making education fun and motivating.
+function splitTitleForHero(title: string): { lead: string; accentWord: string } {
+  const parts = title.trim().split(/\s+/);
+  if (parts.length <= 1) return { lead: '', accentWord: title.trim() };
+  const accentWord = parts.pop() ?? '';
+  return { lead: parts.join(' '), accentWord };
+}
 
-Core Features:
-- Gamified learning paths
-- Real-time collaboration tools
-- AI-powered personalized learning
-- Progress tracking and analytics
-- Virtual classrooms with breakout rooms
-- Interactive quizzes and assessments
-- Peer-to-peer learning communities
+function displayUrl(u: string): string {
+  try {
+    const url = u.startsWith('http') ? u : `https://${u}`;
+    return new URL(url).hostname + new URL(url).pathname.replace(/\/$/, '').slice(0, 48);
+  } catch {
+    return u.length > 40 ? `${u.slice(0, 37)}…` : u;
+  }
+}
 
-Beta testing showed 67% increase in student engagement and 45% improvement in knowledge retention.`,
-    status: 'DRAFT',
-    demoUrl: 'https://edutech-demo.example.com',
-    repoUrl: 'https://github.com/edutechpioneers/elearning',
-    team: {
-      id: 'team-3',
-      name: 'EduTech Pioneers',
-    },
-    files: [
-      {
-        id: 'file-6',
-        fileName: 'User_Interface_Mockups.pdf',
-        fileSize: 4194304,
-        fileUrl: '/files/ui-mockups.pdf',
-      },
-    ],
-    createdAt: '2026-02-03T08:45:00Z',
-    updatedAt: '2026-02-05T11:20:00Z',
-  },
-  '4': {
-    id: '4',
-    title: 'Sustainable Energy Monitor',
-    description: `Revolutionary IoT-based system that helps buildings reduce energy consumption through real-time monitoring and intelligent automation. Our system uses machine learning to understand usage patterns and optimize energy usage automatically.
-
-Technical Highlights:
-- Network of IoT sensors throughout the building
-- Machine learning-based usage prediction
-- Automated HVAC and lighting control
-- Solar panel integration and optimization
-- Real-time energy consumption dashboard
-- Mobile app for facility managers
-- Cost savings calculator and reports
-
-Field tests demonstrate 40% reduction in energy costs and 52% decrease in carbon footprint.`,
-    status: 'WINNER',
-    demoUrl: 'https://greenmonitor-demo.example.com',
-    repoUrl: 'https://github.com/greencoders/energy-monitor',
-    videoUrl: 'https://youtube.com/watch?v=green789',
-    team: {
-      id: 'team-4',
-      name: 'Green Coders',
-    },
-    files: [
-      {
-        id: 'file-7',
-        fileName: 'Energy_Savings_Report.pdf',
-        fileSize: 2621440,
-        fileUrl: '/files/savings-report.pdf',
-      },
-      {
-        id: 'file-8',
-        fileName: 'IoT_Sensor_Specifications.pdf',
-        fileSize: 1048576,
-        fileUrl: '/files/sensor-specs.pdf',
-      },
-      {
-        id: 'file-9',
-        fileName: 'Installation_Guide.pdf',
-        fileSize: 1572864,
-        fileUrl: '/files/installation.pdf',
-      },
-      {
-        id: 'file-10',
-        fileName: 'Demo_Video_Presentation.mp4',
-        fileSize: 15728640,
-        fileUrl: '/files/demo-video.mp4',
-      },
-    ],
-    scores: [
-      {
-        judge: {
-          name: 'Dr. Sarah Ahmed',
-        },
-        criteriaScores: {
-          'Innovation': 95.0,
-          'Technical Implementation': 92.0,
-          'Business Impact': 90.0,
-          'Presentation': 93.0,
-        },
-        totalScore: 92.5,
-        feedback: {
-          en: 'Outstanding solution with exceptional potential for environmental impact. The IoT integration is seamless and the ML algorithms are well-tuned. This is a winning project that deserves recognition.',
-          ar: 'حل متميز بإمكانيات استثنائية للتأثير البيئي. تكامل إنترنت الأشياء سلس وخوارزميات التعلم الآلي محسّنة بشكل جيد. هذا مشروع فائز يستحق التقدير.',
-        },
-        submittedAt: '2026-02-10T15:00:00Z',
-      },
-      {
-        judge: {
-          name: 'Prof. Mohammed Ali',
-        },
-        criteriaScores: {
-          'Innovation': 94.0,
-          'Technical Implementation': 93.0,
-          'Business Impact': 91.0,
-          'Presentation': 92.0,
-        },
-        totalScore: 92.7,
-        feedback: {
-          en: 'Brilliant implementation of sustainable technology. The energy savings demonstrated are remarkable and the system is production-ready. Highly impressed with the technical depth and business viability.',
-          ar: 'تنفيذ رائع للتكنولوجيا المستدامة. توفير الطاقة المُثبت ملحوظ والنظام جاهز للإنتاج. معجب جداً بالعمق التقني والجدوى التجارية.',
-        },
-        submittedAt: '2026-02-10T17:30:00Z',
-      },
-      {
-        judge: {
-          name: 'Eng. Fatima Hassan',
-        },
-        criteriaScores: {
-          'Innovation': 96.0,
-          'Technical Implementation': 91.0,
-          'Business Impact': 89.0,
-          'Presentation': 94.0,
-        },
-        totalScore: 92.3,
-        feedback: {
-          en: 'Exceptional work on all fronts. The system architecture is robust, the presentation was clear and compelling, and the environmental benefits are substantial. This sets a new standard for sustainable tech solutions.',
-          ar: 'عمل استثنائي على جميع الجبهات. بنية النظام قوية، والعرض كان واضحاً ومقنعاً، والفوائد البيئية كبيرة. هذا يضع معياراً جديداً لحلول التكنولوجيا المستدامة.',
-        },
-        submittedAt: '2026-02-11T11:15:00Z',
-      },
-    ],
-    averageScore: 92.5,
-    createdAt: '2026-01-28T16:30:00Z',
-    updatedAt: '2026-02-08T12:00:00Z',
-  },
-  '5': {
-    id: '5',
-    title: 'Blockchain Supply Chain Tracker',
-    description: `Transparent and secure supply chain tracking system built on blockchain technology. Every step of the product journey is recorded immutably, ensuring authenticity and preventing counterfeiting.
-
-Key Capabilities:
-- Immutable record of product journey
-- QR code scanning for product verification
-- Real-time location tracking
-- Temperature and condition monitoring
-- Multi-party verification system
-- Smart contract automation
-- Consumer-facing transparency portal
-
-Successfully tested with 3 major retailers, showing 99.7% reduction in counterfeit products.`,
-    status: 'SUBMITTED',
-    demoUrl: 'https://blockchain-supply.example.com',
-    repoUrl: 'https://github.com/chainmasters/supply-tracker',
-    videoUrl: 'https://youtube.com/watch?v=chain101',
-    team: {
-      id: 'team-5',
-      name: 'Chain Masters',
-    },
-    files: [
-      {
-        id: 'file-11',
-        fileName: 'Blockchain_Architecture.pdf',
-        fileSize: 2097152,
-        fileUrl: '/files/blockchain-arch.pdf',
-      },
-      {
-        id: 'file-12',
-        fileName: 'Smart_Contract_Code.zip',
-        fileSize: 524288,
-        fileUrl: '/files/smart-contracts.zip',
-      },
-    ],
-    createdAt: '2026-02-04T13:15:00Z',
-    updatedAt: '2026-02-07T18:45:00Z',
-  },
-  '6': {
-    id: '6',
-    title: 'AR Shopping Experience',
-    description: `Augmented reality mobile application that revolutionizes online shopping by letting customers virtually try products before purchasing. Using advanced 3D modeling and AR technology, customers can see exactly how products look in their space or on their person.
-
-Features:
-- Virtual try-on for clothing and accessories
-- Furniture placement in real spaces
-- 360-degree product visualization
-- Social sharing capabilities
-- Size and fit recommendations
-- One-click purchasing
-- Integration with major e-commerce platforms
-
-User testing showed 78% increase in purchase confidence and 65% reduction in product returns.`,
-    status: 'DISQUALIFIED',
-    demoUrl: 'https://ar-shopping-demo.example.com',
-    repoUrl: 'https://github.com/arinnovators/ar-shopping',
-    team: {
-      id: 'team-6',
-      name: 'AR Innovators',
-    },
-    files: [
-      {
-        id: 'file-13',
-        fileName: 'AR_Technical_Specifications.pdf',
-        fileSize: 3670016,
-        fileUrl: '/files/ar-specs.pdf',
-      },
-    ],
-    createdAt: '2026-02-05T10:00:00Z',
-    updatedAt: '2026-02-06T14:30:00Z',
-  },
-};
+function statusBadgeKey(
+  status: string
+): 'draft' | 'final' | 'review' | 'disqualified' | 'winner' {
+  if (status === 'DRAFT') return 'draft';
+  if (status === 'SUBMITTED') return 'final';
+  if (status === 'UNDER_REVIEW') return 'review';
+  if (status === 'DISQUALIFIED') return 'disqualified';
+  if (status === 'WINNER') return 'winner';
+  return 'draft';
+}
 
 export default function SubmissionDetailPage() {
   const params = useParams();
   const t = useTranslations('submissions');
   const locale = useLocale();
+  const router = useRouter();
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tocActive, setTocActive] = useState<'desc' | 'scores' | 'files'>('desc');
 
   const submissionId = params.id as string;
 
-  useEffect(() => {
-    if (USE_MOCK_DATA && MOCK_SUBMISSIONS[submissionId]) {
-      // Use mock data only if the ID matches a known mock submission
-      setTimeout(() => {
-        setSubmission(MOCK_SUBMISSIONS[submissionId]);
-        setIsLoading(false);
-      }, 300);
-    } else {
-      // Fall back to real API for real submission IDs
-      loadSubmission();
-    }
-  }, [submissionId]);
+  const ink = '#0A0A0A';
+  const ink2 = '#2A2A2A';
+  const muted = '#6B6B6B';
+  const muted2 = '#9B9B9B';
+  const line = 'rgba(10,10,10,.08)';
+  const line2 = 'rgba(10,10,10,.14)';
+  const bgPage = '#FAFAF7';
+  const accentColor = 'oklch(0.85 0.17 130)';
+  const accentDeep = 'oklch(0.68 0.19 130)';
+  const accentSoft = 'oklch(0.93 0.09 130)';
+  const danger = 'oklch(0.62 0.22 25)';
+  const mono = "font-[family-name:var(--font-mono-display),ui-monospace,monospace]";
+  const displaySerif = "font-[family-name:var(--font-display),ui-serif,Georgia,serif]";
 
-  const loadSubmission = async () => {
+  const loadSubmission = useCallback(async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await submissionsApi.getById(submissionId);
-      // API returns submission directly (not wrapped in { data: ... })
-      const submission = response.data?.id ? response.data : response.data?.data;
-      setSubmission(submission ?? null);
-      if (!submission) setError(t('notFound'));
-    } catch (err: any) {
-      const errData = err.response?.data;
-      const msg = errData?.error?.message || errData?.message;
-      setError(typeof msg === 'object' ? (msg[locale] || msg.en || t('loadError')) : (msg || t('loadError')));
+      const data = response.data?.id ? response.data : response.data?.data;
+      setSubmission(data ?? null);
+      if (!data) setError(t('notFound'));
+    } catch (err: unknown) {
+      const errData =
+        err && typeof err === 'object' && 'response' in err
+          ? (err as { response?: { data?: { error?: { message?: unknown }; message?: unknown } } }).response?.data
+          : undefined;
+      const raw = errData?.error?.message ?? errData?.message;
+      const msg =
+        typeof raw === 'object' && raw !== null && 'en' in (raw as object)
+          ? ((raw as { en?: string; ar?: string })[locale as 'en' | 'ar'] ??
+            (raw as { en?: string }).en ??
+            t('loadError'))
+          : typeof raw === 'string'
+            ? raw
+            : t('loadError');
+      setError(msg);
+      setSubmission(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [submissionId, t, locale]);
+
+  useEffect(() => {
+    loadSubmission();
+  }, [loadSubmission]);
+
+  useEffect(() => {
+    if (submission && (!submission.scores || submission.scores.length === 0) && tocActive === 'scores') {
+      setTocActive('desc');
+    }
+  }, [submission, tocActive]);
+
+  useEffect(() => {
+    if (!submission) return;
+    const ids =
+      submission.scores && submission.scores.length > 0
+        ? (['desc', 'scores', 'files'] as const)
+        : (['desc', 'files'] as const);
+    const els = ids.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    if (els.length === 0) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible?.target.id && (ids as readonly string[]).includes(visible.target.id)) {
+          setTocActive(visible.target.id as 'desc' | 'scores' | 'files');
+        }
+      },
+      { rootMargin: '-12% 0px -55% 0px', threshold: [0.08, 0.15, 0.25] }
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, [submission]);
 
   const handleSubmitFinal = () => {
     setIsSubmitting(true);
-
     toast.promise(
       async () => {
         try {
-          const response = await submissionsApi.submitFinal(submissionId);
+          const response = await submissionsApi.submitFinal(submission?.id || submissionId);
           await loadSubmission();
           return response;
         } finally {
@@ -476,295 +250,747 @@ export default function SubmissionDetailPage() {
       },
       {
         loading: t('submitting'),
-        success: (data: any) => {
+        success: (data: { data?: { message?: unknown } }) => {
           const message = data?.data?.message;
-          return typeof message === 'object'
-            ? (message[locale] || message.en || t('submitSuccess'))
-            : (message || t('submitSuccess'));
+          return typeof message === 'object' && message !== null && 'en' in (message as object)
+            ? ((message as { en?: string; ar?: string })[locale as 'en' | 'ar'] ??
+              (message as { en?: string }).en ??
+              t('submitSuccess'))
+            : ((message as string) || t('submitSuccess'));
         },
-        error: (err: any) => {
-          const errorData = err.response?.data;
+        error: (err: unknown) => {
+          const errorData =
+            err && typeof err === 'object' && 'response' in err
+              ? (err as { response?: { data?: { error?: { message?: unknown }; message?: unknown } } }).response
+                  ?.data
+              : undefined;
           const errorMessage = errorData?.error?.message || errorData?.message;
           return errorMessage && typeof errorMessage === 'object'
-            ? (errorMessage[locale] || errorMessage.en || t('submitError'))
-            : (errorMessage || t('submitError'));
+            ? ((errorMessage as { en?: string; ar?: string })[locale as 'en' | 'ar'] ??
+              (errorMessage as { en?: string }).en ??
+              t('submitError'))
+            : ((errorMessage as string) || t('submitError'));
         },
       }
     );
   };
 
   const handleDeleteFile = async (fileId: string) => {
+    if (!window.confirm(t('confirmDeleteFile'))) return;
     toast.promise(
       async () => {
-        const response = await submissionsApi.deleteFile(submissionId, fileId);
+        await submissionsApi.deleteFile(submission?.id || submissionId, fileId);
         await loadSubmission();
-        return response;
       },
       {
-        loading: t('deleting') || 'Deleting file...',
-        success: (data) => {
-          const message = data?.data?.message;
-          return typeof message === 'object'
-            ? (message[locale] || message.en || t('deleteFileSuccess') || 'File deleted successfully')
-            : (message || t('deleteFileSuccess') || 'File deleted successfully');
-        },
-        error: (err: any) => {
-          const errorData = err.response?.data;
+        loading: t('deleting'),
+        success: () => t('deleteFileSuccess'),
+        error: (err: unknown) => {
+          const errorData =
+            err && typeof err === 'object' && 'response' in err
+              ? (err as { response?: { data?: { error?: { message?: unknown }; message?: unknown } } }).response
+                  ?.data
+              : undefined;
           const errorMessage = errorData?.error?.message || errorData?.message;
           return errorMessage && typeof errorMessage === 'object'
-            ? (errorMessage[locale] || errorMessage.en || t('deleteFileError'))
-            : (errorMessage || t('deleteFileError'));
+            ? ((errorMessage as { en?: string; ar?: string })[locale as 'en' | 'ar'] ??
+              (errorMessage as { en?: string }).en ??
+              t('deleteFileError'))
+            : ((errorMessage as string) || t('deleteFileError'));
         },
       }
     );
   };
 
+  const badgeClass = (status: string) => {
+    const k = statusBadgeKey(status);
+    if (k === 'draft') return 'bg-[#F5F5F0] text-[#6B6B6B]';
+    if (k === 'final') return 'bg-[#0A0A0A] text-[oklch(0.85_0.17_130)]';
+    if (k === 'review') return 'bg-[oklch(0.93_0.09_130)] text-[#0A0A0A] border border-[oklch(0.85_0.17_130/0.3)]';
+    if (k === 'disqualified')
+      return 'bg-[oklch(0.95_0.05_25)] text-[oklch(0.62_0.22_25)] border border-[oklch(0.88_0.06_25)]';
+    if (k === 'winner') return 'bg-[oklch(0.93_0.09_130)] text-[#0A0A0A] border border-[oklch(0.85_0.17_130/0.3)]';
+    return '';
+  };
+
+  const roster = useMemo(() => {
+    if (!submission) return [];
+    const seen = new Set<string>();
+    const out: { id: string; name: string }[] = [];
+    const leader = submission.team.leader;
+    if (leader?.id) {
+      seen.add(leader.id);
+      out.push({ id: leader.id, name: leader.name || leader.email || '?' });
+    }
+    for (const m of submission.team.members ?? []) {
+      const u = m.user;
+      if (!u?.id || seen.has(u.id)) continue;
+      seen.add(u.id);
+      out.push({ id: u.id, name: u.name || u.email || '?' });
+    }
+    return out;
+  }, [submission]);
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
+      <div className="min-h-[420px] px-1 py-2" style={{ color: ink, backgroundColor: bgPage }}>
+        <div className="mx-auto max-w-[1400px]">
+          <div className="mb-6 h-10 w-2/3 max-w-md animate-pulse rounded-lg bg-neutral-200/80" />
+          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="h-64 animate-pulse rounded-2xl bg-white" style={{ border: `1px solid ${line}` }} />
+            <div className="h-48 animate-pulse rounded-2xl bg-white" style={{ border: `1px solid ${line}` }} />
+          </div>
         </div>
+        <p className={`mt-6 text-center text-sm ${mono}`} style={{ color: muted }}>
+          {t('loading')}
+        </p>
       </div>
     );
   }
 
   if (error || !submission) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">{error || t('notFound')}</p>
+      <div
+        className="flex min-h-[420px] items-center justify-center px-4 py-10"
+        style={{ backgroundColor: bgPage, color: ink }}
+      >
+        <div
+          className="flex max-w-md flex-col items-center gap-3 rounded-2xl border bg-white px-6 py-10 text-center"
+          style={{ borderColor: line }}
+        >
+          <div
+            className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl border text-[oklch(0.62_0.22_25)]"
+            style={{
+              backgroundColor: 'oklch(0.95 0.05 25)',
+              borderColor: 'oklch(0.88 0.06 25)',
+            }}
+          >
+            <AlertCircle className="h-6 w-6" strokeWidth={1.8} />
+          </div>
+          <h3 className="text-lg font-semibold tracking-tight">{t('loadError')}</h3>
+          <p className={`text-sm ${mono}`} style={{ color: danger }}>
+            {error || t('notFound')}
+          </p>
+          <div className="mt-2 flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2 rounded-[10px] border bg-white px-4 py-2.5 text-[13.5px] font-medium transition-colors hover:border-[#0A0A0A]"
+              style={{ borderColor: line2, color: ink }}
+            >
+              {t('back')}
+            </button>
+            <button
+              type="button"
+              onClick={() => loadSubmission()}
+              className="inline-flex items-center gap-2 rounded-[10px] border border-transparent bg-[#0A0A0A] px-4 py-2.5 text-[13.5px] font-medium text-[#FAFAF7] transition-colors hover:bg-black"
+            >
+              {t('retry')}
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
+  const titleText = getText(submission.title, locale);
+  const { lead, accentWord } = splitTitleForHero(titleText);
+  const descText = getText(submission.description, locale);
+  const descParagraphs = descText.split(/\n\n+/).filter(Boolean);
+  const titleObj = submission.title;
+  const hasBothLangTitles =
+    typeof titleObj === 'object' &&
+    titleObj?.en?.trim() &&
+    titleObj?.ar?.trim() &&
+    titleObj.en.trim() !== titleObj.ar.trim();
+
+  const scores = submission.scores ?? [];
+  const critAvgs = scores.length ? criterionAverages(scores) : [];
+  const maxCritVal = Math.max(10, ...critAvgs.map((c) => c.avg), 1);
+  const totals = scores.map((s) => s.totalScore);
+  const maxTotal = Math.max(...totals, 0);
+  const showSlashTen = maxTotal <= 10.0001;
+  const avgTotal =
+    scores.length > 0
+      ? scores.reduce((a, s) => a + s.totalScore, 0) / scores.length
+      : typeof submission.averageScore === 'number'
+        ? submission.averageScore
+        : null;
+
+  const filesTotalBytes = submission.files.reduce((a, f) => a + f.fileSize, 0);
+  const submittedTs = submission.submittedAt || submission.updatedAt;
+
+  const tocLink = (id: 'desc' | 'scores' | 'files', label: string) => (
+    <a
+      key={id}
+      href={`#${id}`}
+      onClick={() => setTocActive(id)}
+      className={`mb-[-1px] border-b-2 px-3.5 py-2.5 text-[13px] transition-colors ${
+        tocActive === id
+          ? 'border-[#0A0A0A] font-medium text-[#0A0A0A]'
+          : 'border-transparent text-[#6B6B6B] hover:text-[#2A2A2A]'
+      }`}
+    >
+      {label}
+    </a>
+  );
+
+  const badgeLabel = (status: string) => t(`statusBadge.${statusBadgeKey(status)}`);
+
+  const sharePage = async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(t('detailShareCopied'));
+    } catch {
+      toast.error(t('comingSoon'));
+    }
+  };
+
+  const fileIconClass = (kind: string) => {
+    if (kind === 'pdf') return 'bg-[#FFE4E4] text-[#A0281A]';
+    if (kind === 'zip') return 'bg-[#FFF2D4] text-[#8A5D0A]';
+    if (kind === 'img') return 'bg-[#D4E7FF] text-[#0A3D73]';
+    if (kind === 'vid') return 'bg-[#E9DFFF] text-[#4E2680]';
+    return 'bg-[#F5F5F0] text-[#6B6B6B]';
+  };
+
+  const fileIconLabel = (kind: string, name: string) => {
+    if (kind === 'pdf') return 'PDF';
+    if (kind === 'zip') return 'ZIP';
+    if (kind === 'img') return name.split('.').pop()?.toUpperCase().slice(0, 4) || 'IMG';
+    if (kind === 'vid') return name.split('.').pop()?.toUpperCase().slice(0, 4) || 'VID';
+    return (name.split('.').pop() || 'FILE').slice(0, 4).toUpperCase();
+  };
+
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="mb-8">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">{getText(submission.title, locale)}</h1>
-            <p className="text-sm text-gray-500">
-              {t('teamLabel')}: {getText(submission.team.name, locale)}
-            </p>
+    <div className="pb-16 [-webkit-font-smoothing:antialiased]" style={{ backgroundColor: bgPage, color: ink }}>
+      <div className="mx-auto max-w-[1400px] space-y-6 px-1 sm:px-0">
+        {/* Top bar (crumb + actions) */}
+        <div
+          className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between"
+          style={{ borderColor: line }}
+        >
+          <div className="flex flex-wrap items-center gap-2 text-[13px]" style={{ color: muted }}>
+            <Link href="/submissions" className="transition-colors hover:text-[#0A0A0A]">
+              {t('detailBreadcrumb')}
+            </Link>
+            <span style={{ color: muted2 }}>/</span>
+            <span className="max-w-[min(100%,280px)] truncate font-medium" style={{ color: ink }}>
+              {titleText}
+            </span>
           </div>
-          <span className={`px-3 py-1 text-sm font-medium rounded-full ${statusColors[submission.status]}`}>
-            {t(`statuses.${submission.status}`)}
-          </span>
+          <div className="flex flex-wrap gap-2.5">
+            <button
+              type="button"
+              onClick={sharePage}
+              className="inline-flex items-center gap-2 rounded-[10px] border bg-white px-4 py-2.5 text-[13.5px] font-medium transition-colors hover:border-[#0A0A0A]"
+              style={{ borderColor: line2, color: ink }}
+            >
+              {t('detailShare')}
+            </button>
+            <Link
+              href="/judging"
+              className="inline-flex items-center gap-2 rounded-[10px] border bg-white px-4 py-2.5 text-[13.5px] font-medium transition-colors hover:border-[#0A0A0A]"
+              style={{ borderColor: line2, color: ink }}
+            >
+              {t('detailOpenScorer')}
+              <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+            </Link>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('description')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{getText(submission.description, locale)}</p>
-            </CardContent>
-          </Card>
+        <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div>
+            {/* Hero */}
+            <div
+              className="mb-6 flex flex-wrap items-start justify-between gap-5 border-b pb-6"
+              style={{ borderColor: line }}
+            >
+              <div className="min-w-0">
+                <h1 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.025em]">
+                  {lead ? (
+                    <>
+                      {lead}{' '}
+                      <span className={`${displaySerif} font-normal italic`} style={{ color: ink2 }}>
+                        {accentWord.endsWith('.') ? accentWord : `${accentWord}.`}
+                      </span>
+                    </>
+                  ) : (
+                    <span className={`${displaySerif} font-normal italic`} style={{ color: ink2 }}>
+                      {accentWord}
+                    </span>
+                  )}
+                </h1>
+                <div className="mt-2.5 flex flex-wrap items-center gap-2.5 text-[13.5px]" style={{ color: muted }}>
+                  <span
+                    className="inline-block h-5 w-5 shrink-0 rounded-md bg-gradient-to-br"
+                    style={{
+                      backgroundImage: `linear-gradient(135deg, ${accentColor}, ${accentDeep})`,
+                    }}
+                  />
+                  <b className="font-medium" style={{ color: ink }}>
+                    {getText(submission.team.name, locale)}
+                  </b>
+                  <span className="inline-block h-0.5 w-0.5 shrink-0 rounded-full bg-[#9B9B9B]" />
+                  <span>
+                    {t('detailSubmitted')}{' '}
+                    {new Date(submittedTs).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.04em] ${mono} ${badgeClass(submission.status)}`}
+                >
+                  {badgeLabel(submission.status)}
+                </span>
+                {scores.length > 0 ? (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full border border-[oklch(0.85_0.17_130/0.3)] bg-[oklch(0.93_0.09_130)] px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.04em] text-[#0A0A0A] ${mono}`}
+                  >
+                    {t('detailBadgeJudged', { count: scores.length })}
+                  </span>
+                ) : null}
+              </div>
+            </div>
 
-          {/* Judging Scores */}
-          {submission.scores && submission.scores.length > 0 && (
-            <Card className="border-2 border-indigo-200 dark:border-indigo-800">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    <CardTitle>Judging Scores</CardTitle>
-                  </div>
-                  {submission.averageScore && (
-                    <div className="text-center px-4 py-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
-                      <div className="text-3xl font-bold">
-                        {submission.averageScore.toFixed(1)}
-                      </div>
-                      <div className="text-xs opacity-90">Average Score</div>
-                    </div>
+            {/* TOC */}
+            <nav className="mb-4 flex flex-wrap gap-1 border-b" style={{ borderColor: line }}>
+              {tocLink('desc', t('detailTocDescription'))}
+              {scores.length > 0 ? tocLink('scores', t('detailTocScores')) : null}
+              {tocLink('files', t('detailTocFiles'))}
+            </nav>
+
+            {/* Description */}
+            <section id="desc" className="mb-[18px] overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+              <div
+                className="flex items-center gap-2.5 border-b px-[22px] py-4"
+                style={{ borderColor: line }}
+              >
+                <h3 className="flex-1 text-[15.5px] font-semibold tracking-[-0.015em]">{t('description')}</h3>
+                <span className={`text-xs ${mono}`} style={{ color: muted }}>
+                  {hasBothLangTitles ? t('detailDescHint') : t('detailDescHintSingle')}
+                </span>
+              </div>
+              <div className="px-[22px] py-[22px]">
+                <div className="space-y-3 text-[14.5px] leading-[1.7]" style={{ color: ink2 }}>
+                  {descParagraphs.length > 0 ? (
+                    descParagraphs.map((p, i) => (
+                      <p key={i} className="whitespace-pre-wrap">
+                        {p}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="whitespace-pre-wrap">{descText}</p>
                   )}
                 </div>
-                <CardDescription>
-                  Scored by {submission.scores.length} {submission.scores.length === 1 ? 'judge' : 'judges'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {submission.scores.map((score, index) => (
-                    <div key={index} className="border-b border-gray-200 dark:border-gray-700 last:border-0 pb-6 last:pb-0">
-                      {/* Judge Name and Total */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                            <h4 className="font-semibold text-gray-900 dark:text-white">{score.judge.name}</h4>
-                          </div>
-                          {(score.submittedAt || score.createdAt) && (
-                            <p className="text-sm text-gray-500 ms-6">
-                              {new Date(score.submittedAt || score.createdAt!).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-center px-3 py-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                          <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                            {score.totalScore.toFixed(1)}
-                          </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">Total</div>
-                        </div>
-                      </div>
+              </div>
+            </section>
 
-                      {/* Criteria Scores — supports both mock (criteriaScores) and real API (scores) field names */}
-                      {(score.criteriaScores || score.scores) && (
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          {Object.entries(score.criteriaScores ?? score.scores ?? {}).map(([criterion, value]) => (
-                            <div key={criterion} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800/50 rounded">
-                              <span className="text-sm text-gray-700 dark:text-gray-300">{criterion}</span>
-                              <span className="text-sm font-semibold text-gray-900 dark:text-white">{(value as number).toFixed(1)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Feedback */}
-                      {score.feedback && (
-                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                          <h5 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Feedback</h5>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">
-                            {score.feedback[locale as 'en' | 'ar'] || score.feedback.en}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+            {/* Scores */}
+            {scores.length > 0 && avgTotal != null ? (
+              <section id="scores" className="mb-[18px] overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+                <div
+                  className="flex items-center gap-2.5 border-b px-[22px] py-4"
+                  style={{ borderColor: line }}
+                >
+                  <h3 className="flex-1 text-[15.5px] font-semibold tracking-[-0.015em]">
+                    {t('detailJudgingScores')}
+                  </h3>
+                  <span className={`text-xs ${mono}`} style={{ color: muted }}>
+                    {t('detailScoresHint', {
+                      judges: scores.length,
+                      criteria: critAvgs.length || Object.keys(getCriteriaMap(scores[0])).length,
+                    })}
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Files */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('files')} ({submission.files.length})</CardTitle>
-              <CardDescription>{t('filesDescription')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {submission.files.length === 0 ? (
-                <p className="text-gray-500 text-sm">{t('noFiles')}</p>
-              ) : (
-                <div className="space-y-2">
-                  {submission.files.map((file) => (
+                <div className="grid gap-[18px] p-[22px] lg:grid-cols-[minmax(220px,280px)_1fr]">
+                  <div
+                    className="relative flex flex-col justify-between overflow-hidden rounded-[14px] px-5 py-5 text-white"
+                    style={{ backgroundColor: ink }}
+                  >
                     <div
-                      key={file.id}
-                      className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
-                    >
-                      <div className="flex items-center space-s-3">
-                        <span className="text-2xl">📎</span>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{file.fileName}</p>
-                          <p className="text-sm text-gray-500">
-                            {(file.fileSize / 1024).toFixed(2)} KB
-                          </p>
-                        </div>
+                      className="pointer-events-none absolute -end-[20%] -top-[20%] h-40 w-40 rounded-full opacity-45"
+                      style={{
+                        background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)`,
+                      }}
+                    />
+                    <div className="relative z-[1]">
+                      <div className={`text-[10.5px] font-semibold uppercase tracking-[0.1em] ${mono}`} style={{ color: accentColor }}>
+                        {t('detailAvgScore')}
                       </div>
-                      <div className="flex items-center space-s-2">
-                        <a href={file.fileUrl} download>
-                          <Button variant="outline" size="sm">
-                            {t('download')}
-                          </Button>
-                        </a>
-                        {submission.status === 'DRAFT' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteFile(file.id)}
-                          >
-                            {t('delete')}
-                          </Button>
-                        )}
+                      <div className="mt-1.5 text-[62px] font-semibold leading-none tracking-[-0.04em]">
+                        {avgTotal.toFixed(1)}
+                        {showSlashTen ? (
+                          <span className="text-xl font-normal text-[#9B9B9B]">/10</span>
+                        ) : null}
                       </div>
                     </div>
-                  ))}
+                    <div className={`relative z-[1] mt-2.5 text-[12.5px] text-[#9B9B9B] ${mono}`}>
+                      {t('detailAvgSub', { count: scores.length })}
+                    </div>
+                  </div>
+                  {critAvgs.length > 0 ? (
+                    <div className="flex flex-col justify-center gap-2.5">
+                      {critAvgs.map(({ name, avg }) => (
+                        <div
+                          key={name}
+                          className="grid items-center gap-3 text-[12.5px]"
+                          style={{ gridTemplateColumns: '100px 1fr 48px' }}
+                        >
+                          <span className="font-medium" style={{ color: ink2 }}>
+                            {name}
+                          </span>
+                          <div className="h-[7px] overflow-hidden rounded-full bg-[rgba(10,10,10,.08)]">
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${Math.min(100, (avg / maxCritVal) * 100)}%`,
+                                background: `linear-gradient(90deg, ${accentDeep}, ${accentColor})`,
+                              }}
+                            />
+                          </div>
+                          <span className={`text-right text-xs font-semibold ${mono}`} style={{ color: ink }}>
+                            {avg.toFixed(1)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Links */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('links')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {submission.demoUrl && (
-                <a
-                  href={submission.demoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-s-2 text-indigo-600 hover:text-indigo-500"
-                >
-                  <span>🌐</span>
-                  <span>{t('viewDemo')}</span>
-                </a>
-              )}
-              {submission.repoUrl && (
-                <a
-                  href={submission.repoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-s-2 text-indigo-600 hover:text-indigo-500"
-                >
-                  <span>💻</span>
-                  <span>{t('viewRepo')}</span>
-                </a>
-              )}
-              {submission.videoUrl && (
-                <a
-                  href={submission.videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-s-2 text-indigo-600 hover:text-indigo-500"
-                >
-                  <span>🎥</span>
-                  <span>{t('watchVideo')}</span>
-                </a>
-              )}
-              {!submission.demoUrl && !submission.repoUrl && !submission.videoUrl && (
-                <p className="text-sm text-gray-500">{t('noLinks')}</p>
-              )}
-            </CardContent>
-          </Card>
+                <div className="flex flex-col gap-3.5 border-t px-[22px] py-[22px]" style={{ borderColor: line }}>
+                  {scores.map((row, idx) => {
+                    const cmap = getCriteriaMap(row);
+                    const critEntries = Object.entries(cmap);
+                    const when = row.submittedAt || row.createdAt || row.updatedAt;
+                    const fb = row.feedback;
+                    const fbText =
+                      fb && typeof fb === 'object'
+                        ? fb[locale as 'en' | 'ar'] || fb.en || ''
+                        : '';
+                    const ji = initials(row.judge.name);
+                    return (
+                      <article
+                        key={idx}
+                        className="rounded-[14px] border bg-[#FCFCFA] p-4"
+                        style={{ borderColor: line }}
+                      >
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <div
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[13px] font-bold"
+                                style={{
+                                background: AVATAR_BACKGROUNDS[idx % AVATAR_BACKGROUNDS.length],
+                                color: accentColor,
+                              }}
+                            >
+                              {ji}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate text-sm font-semibold tracking-tight">{row.judge.name}</div>
+                              {when ? (
+                                <div className={`mt-0.5 text-xs ${mono}`} style={{ color: muted }}>
+                                  {new Date(when).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className={`shrink-0 text-[22px] font-bold leading-none tracking-[-0.02em] ${mono}`}>
+                            {row.totalScore.toFixed(1)}
+                            <span className="text-base font-normal text-[#9B9B9B]">
+                              {showSlashTen ? '/10' : ''}
+                            </span>
+                          </div>
+                        </div>
+                        {critEntries.length > 0 ? (
+                          <div className="mb-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+                            {critEntries.map(([k, v]) => (
+                              <div
+                                key={k}
+                                className="rounded-[10px] border bg-white p-2.5"
+                                style={{ borderColor: line }}
+                              >
+                                <div className={`text-[10.5px] font-semibold uppercase tracking-[0.04em] ${mono}`} style={{ color: muted }}>
+                                  {k}
+                                </div>
+                                <div className="mt-0.5 text-lg font-semibold tracking-tight">
+                                  {Number(v).toFixed(1)}
+                                  <span className="text-[13px] font-normal text-[#9B9B9B]">/10</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                        {fbText ? (
+                          <div
+                            className={`relative rounded-[10px] border px-3.5 py-3 text-[13.5px] leading-[1.55] ${displaySerif}`}
+                            style={{
+                              color: ink2,
+                              backgroundColor: accentSoft,
+                              borderColor: 'oklch(0.85 0.17 130 / 0.3)',
+                            }}
+                          >
+                            <span
+                              className="mb-1 block text-[32px] leading-none text-[oklch(0.68_0.19_130)]"
+                              style={{ fontStyle: 'italic' }}
+                              aria-hidden
+                            >
+                              &ldquo;
+                            </span>
+                            {fbText}
+                          </div>
+                        ) : null}
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
 
-          {/* Actions */}
-          {submission.status === 'DRAFT' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('actions')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Link href={`/submissions/${submissionId}/edit`}>
-                  <Button variant="outline" className="w-full flex items-center gap-2">
-                    <Pencil className="w-4 h-4" />
+            {/* Files */}
+            <section id="files" className="overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+              <div
+                className="flex flex-wrap items-center gap-2 border-b px-[22px] py-4"
+                style={{ borderColor: line }}
+              >
+                <h3 className="flex-1 text-[15.5px] font-semibold tracking-[-0.015em]">{t('files')}</h3>
+                <span className={`text-xs ${mono}`} style={{ color: muted }}>
+                  {t('detailFilesHint', {
+                    count: submission.files.length,
+                    size: formatBytes(filesTotalBytes),
+                  })}
+                </span>
+              </div>
+              <div className="flex flex-col gap-2 px-[22px] pb-[22px] pt-4">
+                {submission.files.length === 0 ? (
+                  <p className="text-center text-[12.5px]" style={{ color: muted }}>
+                    {t('noFiles')}
+                  </p>
+                ) : (
+                  submission.files.map((file) => {
+                    const kind = fileKind(file.fileName);
+                    const canPreview = kind === 'img' || kind === 'pdf';
+                    return (
+                      <div
+                        key={file.id}
+                        className="grid items-center gap-3.5 rounded-[11px] border bg-[#FCFCFA] p-3"
+                        style={{ borderColor: line, gridTemplateColumns: '40px 1fr auto' }}
+                      >
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-[9px] text-[10px] font-bold ${mono} ${fileIconClass(kind)}`}
+                        >
+                          {fileIconLabel(kind, file.fileName)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-[13.5px] font-medium">{file.fileName}</div>
+                          <div className={`mt-0.5 text-[11.5px] ${mono}`} style={{ color: muted }}>
+                            {formatBytes(file.fileSize)}
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 gap-1.5">
+                          {canPreview ? (
+                            <a
+                              href={file.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors hover:border-[#0A0A0A] hover:text-[#0A0A0A]"
+                              style={{ borderColor: line, color: muted }}
+                              title={t('detailPreview')}
+                            >
+                              <Eye className="h-3.5 w-3.5" strokeWidth={2} />
+                            </a>
+                          ) : null}
+                          <a
+                            href={file.fileUrl}
+                            download
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors hover:border-[#0A0A0A] hover:text-[#0A0A0A]"
+                            style={{ borderColor: line, color: muted }}
+                            title={t('download')}
+                          >
+                            <Download className="h-3.5 w-3.5" strokeWidth={2} />
+                          </a>
+                          {submission.status === 'DRAFT' ? (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteFile(file.id)}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border transition-colors hover:border-[oklch(0.62_0.22_25)] hover:text-[oklch(0.62_0.22_25)]"
+                              style={{ borderColor: line, color: muted }}
+                              title={t('delete')}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              {submission.status !== 'DRAFT' ? (
+                <div className="flex items-start gap-2 px-[22px] pb-[18px] text-xs" style={{ color: muted }}>
+                  <Lock className="mt-0.5 h-3 w-3 shrink-0" strokeWidth={2} />
+                  <span>
+                    {t('detailFileLock', { status: t(`statuses.${submission.status}`) })}
+                  </span>
+                </div>
+              ) : null}
+            </section>
+          </div>
+
+          {/* Side panel */}
+          <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+            <div className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: line }}>
+              <h4 className="flex items-center gap-2 px-[18px] pb-2.5 pt-4 text-[13px] font-semibold" style={{ color: ink }}>
+                <Link2 className="h-3.5 w-3.5 shrink-0 text-[oklch(0.68_0.19_130)]" strokeWidth={2} />
+                {t('links')}
+              </h4>
+              {submission.demoUrl ? (
+                <a
+                  href={submission.demoUrl.startsWith('http') ? submission.demoUrl : `https://${submission.demoUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 border-t px-[18px] py-2.5 text-[13px] transition-colors hover:bg-[#FCFCFA]"
+                  style={{ borderColor: line, color: ink2 }}
+                >
+                  <Globe className="h-4 w-4 shrink-0 text-[#9B9B9B]" strokeWidth={2} />
+                  <span className="shrink-0">{t('detailLinkDemo')}</span>
+                  <span className={`min-w-0 flex-1 truncate text-end text-[11.5px] ${mono}`} style={{ color: muted }}>
+                    {displayUrl(submission.demoUrl)}
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-[#9B9B9B] rtl:rotate-180" />
+                </a>
+              ) : null}
+              {submission.repoUrl ? (
+                <a
+                  href={submission.repoUrl.startsWith('http') ? submission.repoUrl : `https://${submission.repoUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 border-t px-[18px] py-2.5 text-[13px] transition-colors hover:bg-[#FCFCFA]"
+                  style={{ borderColor: line, color: ink2 }}
+                >
+                  <Github className="h-4 w-4 shrink-0 text-[#9B9B9B]" strokeWidth={2} />
+                  <span className="shrink-0">{t('detailLinkRepo')}</span>
+                  <span className={`min-w-0 flex-1 truncate text-end text-[11.5px] ${mono}`} style={{ color: muted }}>
+                    {displayUrl(submission.repoUrl)}
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-[#9B9B9B] rtl:rotate-180" />
+                </a>
+              ) : null}
+              {submission.videoUrl ? (
+                <a
+                  href={submission.videoUrl.startsWith('http') ? submission.videoUrl : `https://${submission.videoUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 border-t px-[18px] py-2.5 text-[13px] transition-colors hover:bg-[#FCFCFA]"
+                  style={{ borderColor: line, color: ink2 }}
+                >
+                  <Video className="h-4 w-4 shrink-0 text-[#9B9B9B]" strokeWidth={2} />
+                  <span className="shrink-0">{t('detailLinkVideo')}</span>
+                  <span className={`min-w-0 flex-1 truncate text-end text-[11.5px] ${mono}`} style={{ color: muted }}>
+                    {displayUrl(submission.videoUrl)}
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-[#9B9B9B] rtl:rotate-180" />
+                </a>
+              ) : null}
+              {!submission.demoUrl && !submission.repoUrl && !submission.videoUrl ? (
+                <p className="border-t px-[18px] py-4 text-center text-[12.5px]" style={{ borderColor: line, color: muted }}>
+                  {t('noLinks')}
+                </p>
+              ) : null}
+            </div>
+
+            {submission.status === 'DRAFT' ? (
+              <div className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: line }}>
+                <h4 className="flex items-center gap-2 px-[18px] pb-2.5 pt-4 text-[13px] font-semibold">
+                  <PenLine className="h-3.5 w-3.5 shrink-0 text-[oklch(0.68_0.19_130)]" strokeWidth={2} aria-hidden />
+                  {t('actions')}
+                </h4>
+                <div className="flex flex-col gap-2 px-[18px] pb-4">
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={handleSubmitFinal}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-[10px] px-4 py-2.5 text-[13.5px] font-semibold transition-all hover:-translate-y-px disabled:opacity-60"
+                    style={{ backgroundColor: accentColor, color: ink }}
+                  >
+                    {isSubmitting ? t('submitting') : t('submitFinal')}
+                    <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+                  </button>
+                  <Link
+                    href={`/submissions/${submissionId}/edit`}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-[10px] border bg-white px-4 py-2.5 text-[13.5px] font-medium transition-colors hover:border-[#0A0A0A]"
+                    style={{ borderColor: line2, color: ink }}
+                  >
                     {t('editSubmission')}
-                  </Button>
-                </Link>
-                <Button className="w-full" onClick={handleSubmitFinal} disabled={isSubmitting}>
-                  {isSubmitting ? t('submitting') : t('submitFinal')}
-                </Button>
-                <p className="text-xs text-gray-500">{t('submitWarning')}</p>
-              </CardContent>
-            </Card>
-          )}
+                  </Link>
+                  <p className="rounded-lg border bg-[#FCFCFA] p-2.5 text-xs leading-relaxed" style={{ borderColor: line, color: muted }}>
+                    <span className="font-semibold" style={{ color: ink }}>
+                      {t('submitFinal')}
+                    </span>{' '}
+                    {t('submitWarning')}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="overflow-hidden rounded-2xl border bg-white" style={{ borderColor: line }}>
+              <h4 className="flex items-center gap-2 px-[18px] pb-2.5 pt-4 text-[13px] font-semibold">
+                <span className="text-[oklch(0.68_0.19_130)]">
+                  {/* users icon inline */}
+                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                  </svg>
+                </span>
+                {t('detailTeam')}
+              </h4>
+              <div className="px-[18px] pb-4">
+                {roster.length > 0 ? (
+                  <div className="flex">
+                    {roster.slice(0, 8).map((person, i) => (
+                      <div
+                        key={person.id}
+                        className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[10.5px] font-bold text-white"
+                        style={{
+                          marginInlineStart: i > 0 ? -6 : 0,
+                          backgroundColor: AVATAR_BACKGROUNDS[i % AVATAR_BACKGROUNDS.length],
+                          zIndex: 8 - i,
+                        }}
+                        title={person.name}
+                      >
+                        {initials(person.name)}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Link
+                    href={`/teams/${submission.team.id}`}
+                    className={`text-sm font-medium hover:underline ${mono}`}
+                    style={{ color: ink2 }}
+                  >
+                    {getText(submission.team.name, locale)}
+                  </Link>
+                )}
+                {roster.length > 0 ? (
+                  <p className="mt-2 text-[12.5px]" style={{ color: muted }}>
+                    {getText(submission.team.name, locale)}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </div>

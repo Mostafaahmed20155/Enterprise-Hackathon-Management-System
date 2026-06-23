@@ -4,9 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { judgingApi } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { FileText, Trophy, ChevronRight, CheckCircle } from 'lucide-react';
+import { Trophy, ChevronRight, CheckCircle, FileText, ListChecks } from 'lucide-react';
 
 type BilingualText = string | { en: string; ar: string };
 
@@ -35,11 +33,31 @@ function getText(value: BilingualText | undefined, locale: string): string {
   return value[locale as 'en' | 'ar'] || value.en || '';
 }
 
-const STATE_COLORS: Record<string, string> = {
-  JUDGING: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-  RESULTS_PUBLISHED: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-  ARCHIVED: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
-};
+// Brand tokens (match the platform's bespoke pages — flat, no gradients)
+const ink = '#0A0A0A';
+const ink2 = '#2A2A2A';
+const muted = '#6B6B6B';
+const muted2 = '#9B9B9B';
+const line = 'rgba(10,10,10,.08)';
+const line2 = 'rgba(10,10,10,.14)';
+const bgPage = '#FAFAF7';
+const accent = 'oklch(0.85 0.17 130)';
+const accentDeep = 'oklch(0.68 0.19 130)';
+const accentSoft = 'oklch(0.93 0.09 130)';
+const neutral = '#EFEFEA';
+const mono = 'font-[family-name:var(--font-mono),ui-monospace,monospace]';
+const serif = 'font-[family-name:var(--font-display),ui-serif,Georgia,serif]';
+
+function statePill(state: string): { bg: string; fg: string; label: string } {
+  switch (state) {
+    case 'JUDGING':
+      return { bg: accentSoft, fg: ink2, label: state.replace(/_/g, ' ') };
+    case 'RESULTS_PUBLISHED':
+      return { bg: accent, fg: ink, label: state.replace(/_/g, ' ') };
+    default:
+      return { bg: neutral, fg: muted, label: state.replace(/_/g, ' ') };
+  }
+}
 
 export default function JudgingPage() {
   const t = useTranslations('judging');
@@ -56,29 +74,39 @@ export default function JudgingPage() {
     try {
       setIsLoading(true);
       const response = await judgingApi.getAssignments();
-      const data = Array.isArray(response.data)
+      const data: Assignment[] = Array.isArray(response.data)
         ? response.data
-        : (response.data?.data || []);
+        : response.data?.data || [];
       setAssignments(data);
     } catch (err: any) {
       const msg = err.response?.data?.message;
       setError(
-        typeof msg === 'object' ? (msg[locale] || msg.en || t('loadError')) : (msg || t('loadError'))
+        typeof msg === 'object' ? msg[locale] || msg.en || t('loadError') : msg || t('loadError')
       );
     } finally {
       setIsLoading(false);
     }
   };
 
+  const btnPrimary =
+    'inline-flex items-center gap-2 rounded-[10px] border border-transparent bg-[#0A0A0A] px-4 py-2.5 text-[13.5px] font-medium text-[#FAFAF7] transition-all hover:-translate-y-px hover:bg-black disabled:opacity-60';
+  const btnOutline =
+    'inline-flex items-center gap-2 rounded-[10px] border bg-white px-4 py-2.5 text-[13.5px] font-medium text-[#0A0A0A] transition-colors hover:bg-[rgba(10,10,10,.04)]';
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 dark:border-gray-700 mx-auto"></div>
-            <div className="absolute inset-0 animate-spin rounded-full h-16 w-16 border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent mx-auto"></div>
-          </div>
-          <p className="text-gray-600 dark:text-gray-400 font-medium">{t('loading')}</p>
+      <div
+        className="flex min-h-[420px] items-center justify-center [-webkit-font-smoothing:antialiased]"
+        style={{ backgroundColor: bgPage, color: ink }}
+      >
+        <div className="text-center">
+          <div
+            className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2"
+            style={{ borderColor: line2, borderTopColor: ink }}
+          />
+          <p className="text-[13px]" style={{ color: muted }}>
+            {t('loading')}
+          </p>
         </div>
       </div>
     );
@@ -86,94 +114,144 @@ export default function JudgingPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto">
-            <FileText className="w-8 h-8 text-red-600 dark:text-red-400" />
+      <div
+        className="flex min-h-[420px] items-center justify-center [-webkit-font-smoothing:antialiased]"
+        style={{ backgroundColor: bgPage, color: ink }}
+      >
+        <div className="text-center">
+          <div
+            className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full"
+            style={{ background: neutral }}
+          >
+            <FileText className="h-5 w-5" style={{ color: muted }} strokeWidth={1.8} />
           </div>
-          <p className="text-red-600 dark:text-red-400">{error}</p>
-          <Button onClick={loadAssignments}>{t('retry')}</Button>
+          <p className="mb-4 text-sm" style={{ color: 'oklch(0.62 0.22 25)' }}>
+            {error}
+          </p>
+          <button type="button" onClick={loadAssignments} className={btnPrimary}>
+            {t('retry')}
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-purple-600 to-indigo-700 p-8 text-white shadow-xl">
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,transparent,black)] opacity-30" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <Trophy className="w-6 h-6" />
-            <h1 className="text-3xl font-bold">{t('title')}</h1>
+    <div
+      className="w-full space-y-0 pb-16 pt-1 [-webkit-font-smoothing:antialiased]"
+      style={{ backgroundColor: bgPage, color: ink }}
+    >
+      {/* Header — flat brand card, no gradient */}
+      <div
+        className="mb-8 overflow-hidden rounded-[18px] border bg-white"
+        style={{ borderColor: line }}
+      >
+        <div className="flex flex-col gap-5 p-7 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border"
+              style={{ background: ink, borderColor: ink }}
+            >
+              <Trophy className="h-5 w-5" style={{ color: accent }} strokeWidth={1.8} />
+            </div>
+            <div>
+              <div
+                className={`mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] ${mono}`}
+                style={{ color: muted2 }}
+              >
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: accentDeep, boxShadow: '0 0 0 3px oklch(0.68 0.19 130 / 0.15)' }}
+                />
+                {locale === 'ar' ? 'التحكيم' : 'JUDGING'}
+              </div>
+              <h1 className="text-[30px] font-semibold leading-[1.05] tracking-[-0.03em]">
+                {t('title')}{' '}
+                <span className={`${serif} font-normal italic`} style={{ color: ink2 }}>
+                  {locale === 'ar' ? 'اللوحة' : 'desk.'}
+                </span>
+              </h1>
+              <p className="mt-1.5 max-w-[520px] text-[14.5px] leading-snug" style={{ color: muted }}>
+                {t('subtitle')}
+              </p>
+            </div>
           </div>
-          <p className="text-indigo-100 text-lg">{t('subtitle')}</p>
         </div>
       </div>
 
       {/* Assignments */}
       {assignments.length === 0 ? (
-        <Card className="card-modern">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center mb-6">
-              <Trophy className="w-10 h-10 text-gray-400" />
+        <div className="overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div
+              className="mb-5 flex h-16 w-16 items-center justify-center rounded-full border"
+              style={{ borderColor: line2, background: bgPage }}
+            >
+              <Trophy className="h-7 w-7" style={{ color: muted2 }} strokeWidth={1.6} />
             </div>
-            <p className="text-gray-600 dark:text-gray-400 text-center text-lg mb-2">
+            <p className="text-[15px] font-medium" style={{ color: ink2 }}>
               {t('noAssignments')}
             </p>
-            <p className="text-gray-500 dark:text-gray-500 text-sm text-center max-w-md">
+            <p className="mt-1 max-w-[420px] text-[13px]" style={{ color: muted }}>
               {locale === 'ar'
                 ? 'لم تتم إضافتك كمحكّم في أي فعاليات حتى الآن'
                 : "You haven't been assigned to judge any events yet"}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {assignments.map((assignment) => (
-            <div key={assignment.id} className="card-modern overflow-hidden">
-              <div className="p-6 flex items-center justify-between">
-                {/* Left: event info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1 flex-wrap">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white truncate">
-                      {getText(assignment.event.name, locale)}
-                    </h2>
-                    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full shrink-0 ${STATE_COLORS[assignment.event.state] || STATE_COLORS.ARCHIVED}`}>
-                      {assignment.event.state.replace(/_/g, ' ')}
-                    </span>
+        <div className="space-y-3">
+          {assignments.map((assignment) => {
+            const pill = statePill(assignment.event.state);
+            return (
+              <div
+                key={assignment.id}
+                className="overflow-hidden rounded-[14px] border bg-white transition-colors hover:bg-[rgba(10,10,10,.015)]"
+                style={{ borderColor: line }}
+              >
+                <div className="flex items-center justify-between gap-4 p-5">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1.5 flex flex-wrap items-center gap-2.5">
+                      <h2 className="truncate text-[17px] font-semibold tracking-[-0.015em]" style={{ color: ink }}>
+                        {getText(assignment.event.name, locale)}
+                      </h2>
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.04em] ${mono}`}
+                        style={{ background: pill.bg, color: pill.fg }}
+                      >
+                        {pill.label}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 text-[12.5px]" style={{ color: muted }}>
+                      <span className="inline-flex items-center gap-1.5">
+                        <CheckCircle className="h-3.5 w-3.5" style={{ color: accentDeep }} strokeWidth={2} />
+                        {assignment._count.scores} {t('scored')}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <ListChecks className="h-3.5 w-3.5" style={{ color: muted2 }} strokeWidth={2} />
+                        {assignment.criteria.length} {locale === 'ar' ? 'معايير تحكيم' : 'criteria'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      {assignment._count.scores} {t('scored')}
-                    </span>
-                    <span className="text-gray-400">
-                      {assignment.criteria.length}{' '}
-                      {locale === 'ar' ? 'معايير تحكيم' : 'criteria'}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Right: actions */}
-                <div className="flex items-center gap-2 ms-4 shrink-0">
-                  <Link href={`/judging/events/${assignment.event.id}/leaderboard`}>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
-                      <Trophy className="w-4 h-4" />
-                      {t('viewLeaderboard')}
-                    </Button>
-                  </Link>
-                  <Link href={`/judging/events/${assignment.event.id}`}>
-                    <Button size="sm" className="flex items-center gap-1">
-                      {t('yourAssignments')}
-                      <ChevronRight className="w-4 h-4 rtl:rotate-180" />
-                    </Button>
-                  </Link>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Link href={`/judging/events/${assignment.event.id}/leaderboard`}>
+                      <span className={btnOutline}>
+                        <Trophy className="h-3.5 w-3.5" strokeWidth={2} />
+                        {t('viewLeaderboard')}
+                      </span>
+                    </Link>
+                    <Link href={`/judging/events/${assignment.event.id}`}>
+                      <span className={btnPrimary}>
+                        {t('yourAssignments')}
+                        <ChevronRight className="h-4 w-4 rtl:rotate-180" strokeWidth={2} />
+                      </span>
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — EHMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg: #FAFAF7;
+  --bg-elev: #FFFFFF;
+  --ink: #0A0A0A;
+  --ink-2: #2A2A2A;
+  --muted: #6B6B6B;
+  --muted-2: #9B9B9B;
+  --line: rgba(10,10,10,0.08);
+  --line-2: rgba(10,10,10,0.14);
+  --accent: oklch(0.85 0.17 130);
+  --accent-deep: oklch(0.68 0.19 130);
+  --accent-soft: oklch(0.93 0.09 130);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.mono{font-family:'JetBrains Mono',monospace;font-weight:500;letter-spacing:-0.01em}
+.serif{font-family:'Instrument Serif',serif;font-weight:400;font-style:italic}
+
+/* ============ LAYOUT ============ */
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+
+/* sidebar */
+.sidebar{background:#fff;border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side-brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-0.02em;font-size:17px;padding:4px 10px 22px}
+.logo-mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative;overflow:hidden;flex-shrink:0}
+.logo-mark::before{content:"";position:absolute;inset:4px;border-radius:4px;background:var(--accent)}
+.logo-mark::after{content:"";position:absolute;left:10px;top:10px;width:6px;height:6px;border-radius:2px;background:var(--ink)}
+.side-sec{color:var(--muted-2);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 10px 6px;font-weight:600}
+.side-item{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;color:var(--ink-2);margin-bottom:2px;font-size:14px;transition:all .2s ease;cursor:pointer}
+.side-item:hover{background:#F5F5F0;color:var(--ink)}
+.side-item.active{background:var(--ink);color:#fff}
+.side-item.active .side-ico{color:var(--accent)}
+.side-ico{width:17px;height:17px;color:var(--muted);flex-shrink:0}
+.side-item.active .side-ico{color:var(--accent)}
+.side-badge{margin-left:auto;background:var(--accent);color:var(--ink);font-size:10.5px;padding:1px 7px;border-radius:6px;font-weight:600}
+.side-foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.user-card{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;transition:background .2s;cursor:pointer}
+.user-card:hover{background:#F5F5F0}
+.user-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--ink);font-size:13px;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-info .un{font-size:13.5px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-info .ue{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* main */
+.main{padding:0;min-width:0}
+
+/* top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 36px;border-bottom:1px solid var(--line);background:color-mix(in oklab, var(--bg) 75%, transparent);backdrop-filter:blur(12px);position:sticky;top:0;z-index:20}
+.search{display:flex;align-items:center;gap:10px;padding:8px 14px;background:#fff;border:1px solid var(--line-2);border-radius:10px;width:380px;max-width:100%;font-size:13.5px;color:var(--muted)}
+.search svg{width:15px;height:15px;color:var(--muted-2)}
+.search input{border:none;outline:none;flex:1;font:inherit;background:transparent;color:var(--ink)}
+.search kbd{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;padding:2px 6px;border:1px solid var(--line);border-radius:5px;background:#FBFBF9;color:var(--muted)}
+.top-actions{display:flex;gap:10px;align-items:center}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line-2);background:#fff;display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2);position:relative;transition:all .2s}
+.icon-btn:hover{border-color:var(--ink);color:var(--ink)}
+.icon-btn svg{width:16px;height:16px}
+.icon-btn .pip{position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--accent-deep);border:2px solid #fff;box-sizing:content-box}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:500;transition:all .2s ease;border:1px solid transparent;white-space:nowrap}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-primary:hover{background:#000;transform:translateY(-1px);box-shadow:0 6px 20px -8px rgba(10,10,10,0.4)}
+.btn-outline{border-color:var(--line-2);color:var(--ink);background:#fff}
+.btn-outline:hover{border-color:var(--ink)}
+.btn-accent{background:var(--accent);color:var(--ink)}
+.btn-accent:hover{background:var(--accent-deep);color:#fff}
+.chev{transition:transform .2s}
+.btn:hover .chev{transform:translateX(3px)}
+
+/* content wrap */
+.content{padding:36px 36px 60px;max-width:1440px}
+
+/* welcome */
+.welcome{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:32px;flex-wrap:wrap}
+.welcome h1{font-size:36px;letter-spacing:-0.03em;font-weight:600;line-height:1.05}
+.welcome h1 .serif{color:var(--ink-2);font-weight:400}
+.welcome p{color:var(--muted);font-size:15px;margin-top:6px}
+.welcome .date{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);padding:6px 12px;border:1px solid var(--line-2);border-radius:100px;background:#fff}
+.welcome .date .dot{width:6px;height:6px;border-radius:50%;background:var(--accent-deep);box-shadow:0 0 0 4px oklch(0.85 0.17 130 / 0.22)}
+
+/* stats grid */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px}
+.stat{border:1px solid var(--line);border-radius:16px;background:#fff;padding:22px;position:relative;transition:border-color .25s ease,transform .25s ease,box-shadow .25s ease;overflow:hidden}
+.stat:hover{border-color:var(--line-2);transform:translateY(-2px);box-shadow:0 18px 36px -22px rgba(10,10,10,0.15)}
+.stat-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+.stat-ico{width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;border:1px solid oklch(0.85 0.17 130 / 0.35)}
+.stat-ico svg{width:16px;height:16px}
+.stat.empty .stat-ico{background:#F5F5F0;color:var(--muted-2);border-color:var(--line-2)}
+.stat-val{font-size:44px;letter-spacing:-0.03em;font-weight:500;line-height:1;display:flex;align-items:baseline;gap:8px}
+.stat.empty .stat-val{color:var(--muted-2)}
+.stat-delta{font-size:12px;color:var(--accent-deep);font-family:'JetBrains Mono',monospace}
+.stat-sub{font-size:12.5px;color:var(--muted);margin-top:10px}
+.stat-spark{position:absolute;right:14px;bottom:14px;width:90px;height:28px;opacity:0.9}
+
+/* quick actions */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px}
+.qa{border:1px solid var(--line);border-radius:18px;padding:28px;position:relative;overflow:hidden;transition:border-color .25s ease,transform .25s ease,box-shadow .25s ease;display:flex;flex-direction:column;min-height:180px}
+.qa:hover{border-color:var(--line-2);transform:translateY(-2px);box-shadow:0 20px 44px -26px rgba(10,10,10,0.2)}
+.qa.primary{background:var(--ink);color:#fff;border-color:var(--ink);overflow:hidden}
+.qa.primary::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(ellipse 70% 80% at 110% 120%, oklch(0.85 0.17 130 / 0.45) 0%, transparent 55%),
+  radial-gradient(ellipse 60% 60% at -10% -20%, oklch(0.85 0.17 130 / 0.22) 0%, transparent 55%);
+  pointer-events:none}
+.qa.primary::after{content:"";position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0);background-size:22px 22px;mask-image:radial-gradient(ellipse 70% 70% at 90% 100%, #000 20%, transparent 70%);-webkit-mask-image:radial-gradient(ellipse 70% 70% at 90% 100%, #000 20%, transparent 70%);pointer-events:none}
+.qa.secondary{background:#fff}
+.qa-inner{position:relative;z-index:1;display:flex;flex-direction:column;height:100%}
+.qa-ico{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px}
+.qa.primary .qa-ico{background:var(--accent);color:var(--ink)}
+.qa.secondary .qa-ico{background:var(--ink);color:var(--accent)}
+.qa-ico svg{width:20px;height:20px}
+.qa h3{font-size:20px;letter-spacing:-0.02em;font-weight:600;margin-bottom:6px}
+.qa.primary h3 .serif{color:var(--accent)}
+.qa p{font-size:14px;line-height:1.5;max-width:420px}
+.qa.primary p{color:rgba(255,255,255,0.7)}
+.qa.secondary p{color:var(--muted)}
+.qa-cta{display:inline-flex;align-items:center;gap:6px;margin-top:22px;font-size:14px;font-weight:500;padding:9px 14px;border-radius:9px;width:fit-content;transition:all .2s}
+.qa.primary .qa-cta{background:var(--accent);color:var(--ink)}
+.qa.primary .qa-cta:hover{background:#fff}
+.qa.secondary .qa-cta{background:var(--ink);color:#fff}
+.qa.secondary .qa-cta:hover{background:var(--accent-deep);color:#fff}
+.qa:hover .qa-cta .chev{transform:translateX(3px)}
+
+/* activity */
+.act-wrap{border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden}
+.act-head{padding:22px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.act-head h2{font-size:19px;font-weight:600;letter-spacing:-0.02em}
+.act-head p{font-size:13.5px;color:var(--muted);margin-top:3px}
+.act-filters{display:flex;gap:6px}
+.chip{font-size:12px;padding:6px 12px;border:1px solid var(--line);border-radius:100px;color:var(--ink-2);background:#fff;transition:all .2s}
+.chip:hover{border-color:var(--line-2)}
+.chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+.act-list{padding:8px 0}
+.act-item{display:flex;align-items:center;gap:14px;padding:16px 24px;border-bottom:1px solid var(--line);transition:background .2s}
+.act-item:last-child{border-bottom:none}
+.act-item:hover{background:#FCFCFA}
+.act-dot{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.act-dot.d-evt{background:var(--accent-soft);color:var(--ink);border:1px solid oklch(0.85 0.17 130 / 0.35)}
+.act-dot.d-team{background:#F5F5F0;color:var(--ink-2);border:1px solid var(--line-2)}
+.act-dot.d-sys{background:var(--ink);color:var(--accent)}
+.act-dot svg{width:15px;height:15px}
+.act-body{flex:1;min-width:0}
+.act-title{font-size:14.5px;font-weight:500;letter-spacing:-0.01em;color:var(--ink);margin-bottom:2px}
+.act-title b{font-weight:600}
+.act-sub{font-size:12.5px;color:var(--muted)}
+.act-meta{text-align:right;flex-shrink:0}
+.act-time{font-size:12px;color:var(--muted-2);font-family:'JetBrains Mono',monospace}
+.act-tag{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:100px;margin-top:4px;font-weight:500}
+.act-tag.t-green{background:var(--accent);color:var(--ink)}
+.act-tag.t-gray{background:#EEE;color:var(--muted)}
+.act-tag.t-dark{background:var(--ink);color:#fff}
+.act-chev{color:var(--muted-2);transition:transform .2s, color .2s}
+.act-item:hover .act-chev{transform:translateX(3px);color:var(--ink)}
+
+/* empty hint */
+.empty-hint{padding:32px 24px;text-align:center;color:var(--muted);font-size:13.5px;display:none}
+.empty-hint.show{display:block}
+.act-footer{padding:14px 24px;border-top:1px solid var(--line);text-align:center;font-size:13.5px;color:var(--muted)}
+.act-footer a{color:var(--ink);font-weight:500;border-bottom:1px dashed var(--line-2);padding-bottom:1px}
+.act-footer a:hover{border-bottom-color:var(--ink)}
+
+/* responsive */
+@media (max-width:1024px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .qa-grid{grid-template-columns:1fr}
+  .content{padding:24px 20px 48px}
+  .topbar{padding:14px 20px}
+  .search{width:auto;flex:1}
+}
+@media (max-width:640px){
+  .stats{grid-template-columns:1fr}
+  .welcome h1{font-size:28px}
+  .search kbd{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- =============== SIDEBAR =============== -->
+  <aside class="sidebar">
+    <div class="side-brand"><span class="logo-mark"></span>EHMS</div>
+
+    <div class="side-sec">Workspace</div>
+    <div class="side-item active">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Events <span class="side-badge">8</span>
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      My Teams
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+      Submissions
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+      Judging
+    </div>
+
+    <div class="side-sec">Explore</div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>
+      Browse Events
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 3 3 5-7"/></svg>
+      Analytics
+    </div>
+    <div class="side-item">
+      <svg class="side-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.1A1.6 1.6 0 009 19.4a1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.1A1.6 1.6 0 004.6 9a1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg>
+      Settings
+    </div>
+
+    <div class="side-foot">
+      <div class="user-card">
+        <div class="user-av">AR</div>
+        <div class="user-info">
+          <div class="un">Ayesha R.</div>
+          <div class="ue"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="adccd4c8dec5ccedc8c5c0de83ccdddd">[email&#160;protected]</a></div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted-2)"><path d="M7 10l5 5 5-5"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- =============== MAIN =============== -->
+  <div class="main">
+
+    <!-- top bar -->
+    <header class="topbar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" placeholder="Search events, teams, submissions…">
+        <kbd>⌘K</kbd>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" aria-label="Help">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M13.7 21a2 2 0 01-3.4 0"/></svg>
+          <span class="pip"></span>
+        </button>
+        <a href="#" class="btn btn-primary">New event <span class="chev">→</span></a>
+      </div>
+    </header>
+
+    <!-- content -->
+    <div class="content">
+
+      <!-- welcome -->
+      <div class="welcome">
+        <div>
+          <h1>Welcome back, <span class="serif">Ayesha.</span></h1>
+          <p>Here's an overview of your hackathon activities.</p>
+        </div>
+        <div class="date"><span class="dot"></span> TUE · APR 21, 2026 · 14:22</div>
+      </div>
+
+      <!-- stats -->
+      <section class="stats">
+        <div class="stat">
+          <div class="stat-head">
+            <div class="stat-label">Total Events</div>
+            <div class="stat-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+          </div>
+          <div class="stat-val">8 <span class="stat-delta">↑ 2</span></div>
+          <div class="stat-sub">All time · organized</div>
+          <svg class="stat-spark" viewBox="0 0 90 28" preserveAspectRatio="none">
+            <polyline fill="none" stroke="oklch(0.5 0.17 130)" stroke-width="1.6" points="0,22 12,18 24,20 36,14 48,16 60,10 72,12 84,6"/>
+            <circle cx="84" cy="6" r="2.5" fill="#0A0A0A"/>
+          </svg>
+        </div>
+
+        <div class="stat empty">
+          <div class="stat-head">
+            <div class="stat-label">My Teams</div>
+            <div class="stat-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+          </div>
+          <div class="stat-val">0</div>
+          <div class="stat-sub">No active teams · <a href="#" style="color:var(--ink);border-bottom:1px dashed var(--line-2)">join one</a></div>
+        </div>
+
+        <div class="stat empty">
+          <div class="stat-head">
+            <div class="stat-label">Submissions</div>
+            <div class="stat-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+            </div>
+          </div>
+          <div class="stat-val">0</div>
+          <div class="stat-sub">No projects submitted yet</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-head">
+            <div class="stat-label">Upcoming</div>
+            <div class="stat-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+          </div>
+          <div class="stat-val">3 <span class="stat-delta">OPEN</span></div>
+          <div class="stat-sub">Events open for registration</div>
+          <svg class="stat-spark" viewBox="0 0 90 28" preserveAspectRatio="none">
+            <g fill="oklch(0.85 0.17 130)">
+              <rect x="4" y="14" width="8" height="10" rx="1.5"/>
+              <rect x="18" y="8" width="8" height="16" rx="1.5"/>
+              <rect x="32" y="16" width="8" height="8" rx="1.5"/>
+              <rect x="46" y="4" width="8" height="20" rx="1.5"/>
+              <rect x="60" y="10" width="8" height="14" rx="1.5"/>
+              <rect x="74" y="6" width="8" height="18" rx="1.5" fill="#0A0A0A"/>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <!-- quick actions -->
+      <section class="qa-grid">
+        <div class="qa primary">
+          <div class="qa-inner">
+            <div class="qa-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <h3>Create New <span class="serif">Event.</span></h3>
+            <p>Start organizing your next hackathon with our comprehensive tools — branding, tracks, judging, analytics.</p>
+            <a href="#" class="qa-cta">Get Started <span class="chev">→</span></a>
+          </div>
+        </div>
+        <div class="qa secondary">
+          <div class="qa-inner">
+            <div class="qa-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>
+            </div>
+            <h3>Join a <span class="serif" style="color:var(--accent-deep)">Hackathon.</span></h3>
+            <p>Explore open hackathons and join teams to collaborate on innovative projects with developers worldwide.</p>
+            <a href="#" class="qa-cta">Browse Events <span class="chev">→</span></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- activity -->
+      <section class="act-wrap">
+        <div class="act-head">
+          <div>
+            <h2>Recent Activity</h2>
+            <p>Your latest hackathon activities</p>
+          </div>
+          <div class="act-filters">
+            <button class="chip active">All</button>
+            <button class="chip">Events</button>
+            <button class="chip">Teams</button>
+            <button class="chip">Submissions</button>
+          </div>
+        </div>
+
+        <div class="act-list">
+          <div class="act-item">
+            <div class="act-dot d-evt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </div>
+            <div class="act-body">
+              <div class="act-title">Event <b>"Global Innovate 2026"</b> opened for registration</div>
+              <div class="act-sub">248 participants registered in the first 24 hours</div>
+            </div>
+            <div class="act-meta">
+              <div class="act-time">2h AGO</div>
+              <span class="act-tag t-green">Live</span>
+            </div>
+            <svg class="act-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+
+          <div class="act-item">
+            <div class="act-dot d-sys">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+            </div>
+            <div class="act-body">
+              <div class="act-title">Judging rubric published for <b>Climate Hack 2026</b></div>
+              <div class="act-sub">4 criteria · 12 judges invited</div>
+            </div>
+            <div class="act-meta">
+              <div class="act-time">YESTERDAY</div>
+              <span class="act-tag t-dark">Draft</span>
+            </div>
+            <svg class="act-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+
+          <div class="act-item">
+            <div class="act-dot d-team">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <div class="act-body">
+              <div class="act-title">You were invited to join <b>Team Orbit</b></div>
+              <div class="act-sub">Hackathon: Build for Good · 3 team members</div>
+            </div>
+            <div class="act-meta">
+              <div class="act-time">APR 19</div>
+              <span class="act-tag t-gray">Pending</span>
+            </div>
+            <svg class="act-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+
+          <div class="act-item">
+            <div class="act-dot d-evt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 14l4-4 3 3 5-7"/></svg>
+            </div>
+            <div class="act-body">
+              <div class="act-title">Analytics report ready for <b>FinHack 2025</b></div>
+              <div class="act-sub">Final engagement, drop-off and demographics summary</div>
+            </div>
+            <div class="act-meta">
+              <div class="act-time">APR 18</div>
+              <span class="act-tag t-green">Ready</span>
+            </div>
+            <svg class="act-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+
+          <div class="act-item">
+            <div class="act-dot d-sys">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
+            </div>
+            <div class="act-body">
+              <div class="act-title">Sponsor payment received — <b>$45,000</b></div>
+              <div class="act-sub">Northwind · Tier A · Global Innovate 2026</div>
+            </div>
+            <div class="act-meta">
+              <div class="act-time">APR 17</div>
+              <span class="act-tag t-green">Cleared</span>
+            </div>
+            <svg class="act-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+        </div>
+
+        <div class="act-footer">
+          <a href="#">View all activity →</a>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// chip filter toggle (visual only)
+document.querySelectorAll('.act-filters .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.act-filters .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

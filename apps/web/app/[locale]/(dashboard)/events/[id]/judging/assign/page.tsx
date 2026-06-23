@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { usersApi, judgingApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -148,7 +148,7 @@ export default function AssignJudgePage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <UserCheck className="w-8 h-8 text-indigo-600" />
+            <UserCheck className="w-8 h-8 text-primary" />
             {locale === 'ar' ? 'تعيين حكم' : 'Assign Judge'}
           </h1>
           <p className="mt-1 text-gray-500 dark:text-gray-400">
@@ -201,12 +201,12 @@ export default function AssignJudgePage() {
                     onClick={() => setSelectedJudge(judge)}
                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                       selectedJudge?.id === judge.id
-                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-indigo-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                        ? 'border-green-500 bg-green-50 dark:bg-green-950/30'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-green-300 hover:bg-gray-50 dark:hover:bg-gray-800/50'
                     }`}
                   >
-                    <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center shrink-0">
-                      <span className="text-indigo-700 dark:text-indigo-400 font-semibold text-sm">
+                    <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-950/40 flex items-center justify-center shrink-0">
+                      <span className="text-green-800 dark:text-green-300 font-semibold text-sm">
                         {judge.name?.charAt(0)?.toUpperCase() || '?'}
                       </span>
                     </div>
@@ -215,7 +215,7 @@ export default function AssignJudgePage() {
                       <p className="text-sm text-gray-500 truncate">{judge.email}</p>
                     </div>
                     {selectedJudge?.id === judge.id && (
-                      <UserCheck className="w-5 h-5 text-indigo-600 shrink-0" />
+                      <UserCheck className="w-5 h-5 text-primary shrink-0" />
                     )}
                   </div>
                 ))}

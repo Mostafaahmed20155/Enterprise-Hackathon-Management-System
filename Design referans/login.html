@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign in · EHMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#FAFAF7; --ink:#0A0A0A; --ink-2:#2A2A2A; --muted:#6B6B6B; --muted-2:#9B9B9B;
+  --line:rgba(10,10,10,0.08); --line-2:rgba(10,10,10,0.14);
+  --accent:oklch(0.85 0.17 130); --accent-deep:oklch(0.68 0.19 130); --accent-soft:oklch(0.93 0.09 130);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.serif{font-family:'Instrument Serif',serif;font-weight:400;font-style:italic}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ============ LAYOUT ============ */
+.wrap{display:grid;grid-template-columns:1fr 1fr;min-height:100vh}
+
+/* LEFT – form */
+.left{display:flex;flex-direction:column;padding:32px 40px}
+.brand-bar{display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:-0.02em}
+.logo-mark{width:26px;height:26px;border-radius:8px;background:var(--ink);position:relative;overflow:hidden;flex-shrink:0}
+.logo-mark::before{content:"";position:absolute;inset:4px;border-radius:4px;background:var(--accent)}
+.logo-mark::after{content:"";position:absolute;left:10px;top:10px;width:6px;height:6px;border-radius:2px;background:var(--ink)}
+.bb-right{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:14px}
+.bb-right a.ghost{padding:7px 14px;border-radius:8px;border:1px solid var(--line-2);color:var(--ink);font-weight:500;transition:all .2s;background:#fff}
+.bb-right a.ghost:hover{border-color:var(--ink)}
+
+.form-shell{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 0}
+.form-box{width:100%;max-width:420px}
+
+.step-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.08em;display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.step-tag::before{content:"";width:24px;height:1px;background:var(--ink)}
+.form-box h1{font-size:40px;letter-spacing:-0.035em;font-weight:600;line-height:1.02}
+.form-box h1 .serif{color:var(--ink-2)}
+.sub{color:var(--muted);font-size:14.5px;margin-top:8px;line-height:1.55;max-width:380px}
+
+/* social auth */
+.sso{margin-top:28px;display:flex;flex-direction:column;gap:10px}
+.sso-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 16px;border-radius:10px;background:#fff;border:1px solid var(--line-2);font-size:14px;font-weight:500;color:var(--ink);width:100%;transition:all .2s}
+.sso-btn:hover{border-color:var(--ink);transform:translateY(-1px);box-shadow:0 6px 18px -10px rgba(10,10,10,0.2)}
+.sso-btn svg{width:16px;height:16px;flex-shrink:0}
+
+.divider{display:flex;align-items:center;gap:14px;margin:22px 0;color:var(--muted-2);font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* fields */
+.fld{display:flex;flex-direction:column;margin-bottom:14px}
+.fld-label{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.fld-label a{font-size:12px;color:var(--muted);border-bottom:1px dashed var(--line-2);padding-bottom:1px}
+.fld-label a:hover{color:var(--ink);border-color:var(--ink)}
+.inp-wrap{position:relative}
+.inp-wrap .ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted-2);pointer-events:none}
+.inp-wrap .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:6px;color:var(--muted);display:inline-flex;align-items:center;justify-content:center}
+.inp-wrap .eye:hover{background:#F5F5F0;color:var(--ink)}
+.inp-wrap .eye svg{width:14px;height:14px}
+.inp{width:100%;padding:12px 14px 12px 36px;background:#fff;border:1px solid var(--line-2);border-radius:10px;font:inherit;font-size:14px;color:var(--ink);transition:all .2s;outline:none}
+.inp.no-ico{padding-left:14px}
+.inp:hover{border-color:var(--line-2);background:#fff}
+.inp:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(10,10,10,0.05)}
+.inp::placeholder{color:var(--muted-2)}
+
+/* row (remember + forgot) */
+.row{display:flex;justify-content:space-between;align-items:center;margin:4px 0 22px}
+.check{display:inline-flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2);cursor:pointer}
+.check input{display:none}
+.check .box{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--line-2);background:#fff;display:inline-flex;align-items:center;justify-content:center;transition:all .2s}
+.check .box svg{width:10px;height:10px;color:var(--ink);opacity:0;transition:opacity .15s}
+.check input:checked + .box{background:var(--accent);border-color:var(--accent-deep)}
+.check input:checked + .box svg{opacity:1}
+
+/* submit */
+.sub-btn{width:100%;padding:12.5px 16px;border-radius:10px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14.5px;letter-spacing:-0.01em;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s}
+.sub-btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px -12px rgba(10,10,10,0.4);background:#000}
+.sub-btn:hover .arr{transform:translateX(4px)}
+.arr{transition:transform .2s}
+
+/* alt cta */
+.alt-cta{text-align:center;margin-top:24px;font-size:13.5px;color:var(--muted)}
+.alt-cta a{color:var(--ink);font-weight:600;border-bottom:1px dashed var(--line-2);padding-bottom:1px}
+.alt-cta a:hover{border-color:var(--ink)}
+
+.legal{text-align:center;font-size:11.5px;color:var(--muted-2);margin-top:40px;line-height:1.6}
+.legal a{color:var(--muted);border-bottom:1px dashed var(--line-2)}
+.legal a:hover{color:var(--ink)}
+
+.foot-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted-2);margin-top:20px;font-family:'JetBrains Mono',monospace}
+.foot-row .dot{width:5px;height:5px;border-radius:50%;background:var(--accent-deep);display:inline-block;margin-right:6px;box-shadow:0 0 0 3px oklch(0.68 0.19 130 / 0.15)}
+
+/* ============ RIGHT – visual ============ */
+.right{position:relative;overflow:hidden;background:
+  radial-gradient(60% 50% at 75% 25%, oklch(0.85 0.17 130 / 0.55), transparent 70%),
+  radial-gradient(80% 60% at 25% 95%, oklch(0.68 0.19 130 / 0.22), transparent 75%),
+  #F5F5F0;
+  padding:40px 48px;display:flex;flex-direction:column;gap:28px}
+.right::before{content:"";position:absolute;inset:0;
+  background-image:
+    radial-gradient(rgba(10,10,10,0.08) 1px, transparent 1px);
+  background-size:16px 16px;
+  -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 85%);
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 85%);
+  pointer-events:none;z-index:0}
+.right > *{position:relative;z-index:1}
+
+/* top chips row */
+.r-chips{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.r-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:100px;background:rgba(255,255,255,0.75);border:1px solid rgba(255,255,255,0.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:11.5px;font-weight:500;color:var(--ink-2);box-shadow:0 4px 12px -6px rgba(10,10,10,0.1)}
+.r-chip svg{width:12px;height:12px;color:var(--accent-deep);flex-shrink:0}
+.r-chip.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.r-chip.dark svg{color:var(--accent)}
+
+/* headline */
+.r-head{max-width:480px}
+.r-head .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.1em;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.r-head .eyebrow::before{content:"";width:22px;height:1px;background:var(--ink)}
+.r-head h2{font-size:38px;line-height:1.05;letter-spacing:-0.03em;font-weight:600;color:var(--ink);text-wrap:balance}
+.r-head h2 .serif{color:var(--ink-2)}
+
+/* mock dashboard */
+.mock-wrap{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:0}
+.mock{width:100%;max-width:560px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 40px 80px -30px rgba(10,10,10,0.25),0 16px 32px -16px rgba(10,10,10,0.12);overflow:hidden;transform:perspective(1400px) rotateY(-4deg) rotateX(3deg) rotate(-0.5deg);transform-origin:center}
+.mock-top{display:flex;align-items:center;gap:6px;padding:11px 14px;border-bottom:1px solid var(--line);background:#FCFCFA}
+.mock-top .t{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.mock-top .url{flex:1;margin-left:12px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted-2);text-align:center;background:#F5F5F0;padding:4px 10px;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:6px}
+.mock-top .url svg{width:10px;height:10px}
+.mock-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+.mock-header{display:flex;justify-content:space-between;align-items:center}
+.mock-header .ttl{font-size:14px;font-weight:600;letter-spacing:-0.015em}
+.mock-header .ttl .serif-mk{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--ink-2)}
+.mock-header .live{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);padding:3px 8px;border-radius:100px;background:var(--accent-soft);border:1px solid oklch(0.85 0.17 130 / 0.4)}
+.mock-header .live .p{width:5px;height:5px;border-radius:50%;background:var(--accent-deep);box-shadow:0 0 0 3px oklch(0.68 0.19 130 / 0.2)}
+.mock-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mock-stat{background:#FCFCFA;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.mock-stat .l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-family:'JetBrains Mono',monospace;font-weight:600}
+.mock-stat .v{font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-top:3px;line-height:1}
+.mock-stat .d{font-size:10px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:4px}
+.mock-stat .d b{color:var(--accent-deep);font-weight:600}
+.mock-stat.accent{background:var(--ink);color:#fff}
+.mock-stat.accent .l{color:var(--accent)}
+.mock-stat.accent .d{color:rgba(255,255,255,0.6)}
+.mock-stat.accent .d b{color:var(--accent)}
+.mock-chart{background:#FCFCFA;border:1px solid var(--line);border-radius:10px;padding:14px 12px 6px;height:110px;position:relative}
+.mock-chart .ch-label{position:absolute;top:10px;left:12px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;font-weight:600}
+.mock-chart .ch-value{position:absolute;top:24px;left:12px;font-size:16px;font-weight:600;letter-spacing:-0.02em}
+.mock-chart svg{width:100%;height:100%;margin-top:18px}
+.mock-events{display:flex;flex-direction:column;gap:6px}
+.mock-ev{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#FCFCFA;border:1px solid var(--line);border-radius:9px;font-size:11.5px}
+.mock-ev .dt{width:32px;text-align:center;flex-shrink:0}
+.mock-ev .dt .mo{font-size:8.5px;font-family:'JetBrains Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;font-weight:600}
+.mock-ev .dt .dy{font-size:15px;font-weight:600;letter-spacing:-0.02em;line-height:1;margin-top:1px}
+.mock-ev .nm{flex:1;font-weight:500;letter-spacing:-0.01em;color:var(--ink)}
+.mock-ev .nm .sub{font-size:10px;color:var(--muted);font-weight:400;margin-top:1px}
+.mock-ev .st{font-size:9.5px;padding:2px 7px;border-radius:5px;background:var(--accent);color:var(--ink);font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:0.04em}
+.mock-ev .st.gray{background:#EFEFEA;color:var(--muted)}
+
+/* testimonial */
+.quote-card{background:rgba(255,255,255,0.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,0.9);border-radius:18px;padding:22px 24px;box-shadow:0 18px 40px -22px rgba(10,10,10,0.2)}
+.quote-card .big{font-family:'Instrument Serif',serif;font-size:22px;font-style:italic;line-height:1.3;letter-spacing:-0.01em;color:var(--ink);text-wrap:pretty}
+.quote-card .who{display:flex;align-items:center;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.quote-card .av{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.quote-card .wh-meta .n{font-size:13px;font-weight:600;letter-spacing:-0.01em}
+.quote-card .wh-meta .r{font-size:11.5px;color:var(--muted);margin-top:1px}
+.quote-card .stars{margin-left:auto;display:flex;gap:1px}
+.quote-card .stars svg{width:12px;height:12px;color:var(--accent-deep);fill:currentColor}
+
+/* bottom foot */
+.r-foot{display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:0.06em}
+.r-foot .ls{display:flex;gap:16px}
+
+/* responsive */
+@media (max-width:960px){
+  .wrap{grid-template-columns:1fr}
+  .right{display:none}
+  .left{padding:24px 20px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ============ LEFT ============ -->
+  <div class="left">
+
+    <div class="brand-bar">
+      <a class="brand" href="index.html"><span class="logo-mark"></span>EHMS</a>
+      <div class="bb-right">
+        <span>New here?</span>
+        <a href="register.html" class="ghost">Create account</a>
+      </div>
+    </div>
+
+    <div class="form-shell">
+      <div class="form-box">
+
+        <div class="step-tag">ACCOUNT · SIGN IN</div>
+        <h1>Welcome <span class="serif">back.</span></h1>
+        <p class="sub">Continue managing your hackathons, teams and judging in one place.</p>
+
+        <!-- SSO -->
+        <div class="sso">
+          <button class="sso-btn">
+            <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.2c0-.8-.1-1.6-.2-2.3H12v4.4h5.9c-.3 1.4-1.1 2.5-2.3 3.3v2.8h3.7c2.2-2 3.5-5 3.2-8.2z"/><path fill="#34A853" d="M12 23c3.1 0 5.6-1 7.5-2.8l-3.7-2.8c-1 .7-2.3 1.1-3.8 1.1-2.9 0-5.4-2-6.3-4.6H1.9v2.9C3.8 20.5 7.6 23 12 23z"/><path fill="#FBBC05" d="M5.7 13.9c-.2-.7-.4-1.4-.4-2.1s.1-1.4.4-2.1V6.8H1.9C1.1 8.3.6 10.1.6 12s.5 3.7 1.3 5.2l3.8-3.3z"/><path fill="#EA4335" d="M12 5.3c1.6 0 3.1.6 4.2 1.7l3.2-3.2C17.5 2 15 1 12 1 7.6 1 3.8 3.5 1.9 6.8l3.8 2.9C6.6 7.3 9.1 5.3 12 5.3z"/></svg>
+            Continue with Google
+          </button>
+          <button class="sso-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.9c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8-.6 0-1.7-.7-2.8-.7-1.4 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.5 2.1 2.7 2.1 1.1 0 1.5-.7 2.8-.7 1.3 0 1.7.7 2.8.7 1.2 0 1.9-1 2.6-2 .8-1.2 1.2-2.3 1.2-2.4-.1 0-2.4-.9-2.5-3.5zM14.1 6.4c.6-.7 1-1.7 .9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2z"/></svg>
+            Continue with Apple
+          </button>
+          <button class="sso-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 3H4a1 1 0 00-1 1v16a1 1 0 001 1h16a1 1 0 001-1V4a1 1 0 00-1-1zM8 17H5v-7h3v7zm-1.5-8A1.5 1.5 0 115 6a1.5 1.5 0 011.5 1.5zm11 8h-3v-3.5c0-1-.4-1.5-1.2-1.5-.9 0-1.4.6-1.4 1.5V17h-3v-7h3v1c.4-.6 1.1-1.2 2.2-1.2 2 0 3.4 1.4 3.4 3.6V17z"/></svg>
+            Continue with Work SSO
+          </button>
+        </div>
+
+        <div class="divider">or with email</div>
+
+        <!-- EMAIL FIELD -->
+        <div class="fld">
+          <label class="fld-label">Email</label>
+          <div class="inp-wrap">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 6l8 6 8-6"/></svg>
+            <input class="inp" type="email" placeholder="you@company.com" value="ayesha@ehms.sa">
+          </div>
+        </div>
+
+        <!-- PASSWORD FIELD -->
+        <div class="fld">
+          <label class="fld-label">Password <a href="#">Forgot?</a></label>
+          <div class="inp-wrap">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 118 0v4"/></svg>
+            <input class="inp" id="pw" type="password" placeholder="Enter your password" value="••••••••••">
+            <button class="eye" id="eye" aria-label="Toggle password"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+
+        <!-- ROW -->
+        <div class="row">
+          <label class="check">
+            <input type="checkbox" checked>
+            <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Keep me signed in
+          </label>
+          <a href="#" style="font-size:12.5px;color:var(--muted)">Use passkey instead</a>
+        </div>
+
+        <button class="sub-btn">Sign in <span class="arr">→</span></button>
+
+        <div class="alt-cta">
+          New to EHMS? <a href="register.html">Create an account</a>
+        </div>
+
+        <div class="foot-row">
+          <span><span class="dot"></span>All systems normal</span>
+          <span>v2.14.0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="legal">
+      By continuing, you agree to our <a href="#">Terms</a> and <a href="#">Privacy policy</a>. Protected by reCAPTCHA.
+    </div>
+  </div>
+
+  <!-- ============ RIGHT ============ -->
+  <div class="right">
+
+    <!-- TOP CHIPS -->
+    <div class="r-chips">
+      <span class="r-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> SOC 2 Type II</span>
+      <span class="r-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> SAML SSO</span>
+      <span class="r-chip dark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg> Trusted by 180+ teams</span>
+    </div>
+
+    <!-- HEADLINE -->
+    <div class="r-head">
+      <div class="eyebrow">LIVE DASHBOARD · PREVIEW</div>
+      <h2>Every hackathon, one <span class="serif">control tower.</span></h2>
+    </div>
+
+    <!-- MOCK -->
+    <div class="mock-wrap">
+      <div class="mock">
+        <div class="mock-top">
+          <span class="t" style="background:#FF5F57"></span>
+          <span class="t" style="background:#FEBC2E"></span>
+          <span class="t" style="background:#28C840"></span>
+          <span class="url"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 118 0v4"/></svg>app.ehms.sa/dashboard</span>
+        </div>
+        <div class="mock-body">
+
+          <div class="mock-header">
+            <div class="ttl">Overview <span class="serif-mk">· this quarter</span></div>
+            <div class="live"><span class="p"></span>LIVE</div>
+          </div>
+
+          <div class="mock-row">
+            <div class="mock-stat accent">
+              <div class="l">Events</div><div class="v">24</div>
+              <div class="d"><b>↑ 12%</b> vs last Q</div>
+            </div>
+            <div class="mock-stat">
+              <div class="l">Teams</div><div class="v">186</div>
+              <div class="d"><b>↑ 38</b> this week</div>
+            </div>
+            <div class="mock-stat">
+              <div class="l">Submissions</div><div class="v">342</div>
+              <div class="d"><b>92%</b> judged</div>
+            </div>
+          </div>
+
+          <div class="mock-chart">
+            <div class="ch-label">Registrations · 30d</div>
+            <div class="ch-value">+1,284</div>
+            <svg viewBox="0 0 320 70" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="gr" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="oklch(0.68 0.19 130)" stop-opacity="0.35"/>
+                  <stop offset="1" stop-color="oklch(0.68 0.19 130)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0 55 C30 50 50 38 85 42 C115 46 135 22 170 26 C205 30 225 12 265 16 C290 18 305 10 320 8 L320 70 L0 70 Z" fill="url(#gr)"/>
+              <path d="M0 55 C30 50 50 38 85 42 C115 46 135 22 170 26 C205 30 225 12 265 16 C290 18 305 10 320 8" fill="none" stroke="oklch(0.68 0.19 130)" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="265" cy="16" r="3.5" fill="#fff" stroke="oklch(0.68 0.19 130)" stroke-width="2"/>
+            </svg>
+          </div>
+
+          <div class="mock-events">
+            <div class="mock-ev">
+              <div class="dt"><div class="mo">NOV</div><div class="dy">12</div></div>
+              <div class="nm">Tech Hackathon 2026<div class="sub">72 teams · Riyadh</div></div>
+              <div class="st">LIVE</div>
+            </div>
+            <div class="mock-ev">
+              <div class="dt"><div class="mo">NOV</div><div class="dy">22</div></div>
+              <div class="nm">Green Economy Jam<div class="sub">Registration open</div></div>
+              <div class="st gray">OPEN</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- QUOTE -->
+    <div class="quote-card">
+      <div class="big">From a fragile spreadsheet maze to a calm Monday afternoon — for 400 participants.</div>
+      <div class="who">
+        <div class="av">NK</div>
+        <div class="wh-meta">
+          <div class="n">Noor Kassem</div>
+          <div class="r">Events Lead · Ministry of Tech</div>
+        </div>
+        <div class="stars">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="r-foot">
+      <span>© 2026 EHMS · RIYADH</span>
+      <div class="ls"><span>PRIVACY</span><span>TERMS</span><span>STATUS</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// password toggle
+const eye = document.getElementById('eye');
+const pw = document.getElementById('pw');
+eye.addEventListener('click', () => {
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+});
+</script>
+
+</body>
+</html>

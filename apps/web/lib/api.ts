@@ -34,7 +34,8 @@ api.interceptors.request.use(
 function redirectToLogin() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
-  window.location.href = '/auth/login';
+  const locale = localStorage.getItem('locale') || 'ar';
+  window.location.href = `/${locale}/auth/login`;
   return new Promise<never>(() => {});
 }
 
@@ -191,4 +192,22 @@ export const usersApi = {
   assignRole: (id: string, role: string) => api.post(`/users/${id}/roles`, { role }),
   removeRole: (id: string, roleName: string) => api.delete(`/users/${id}/roles/${roleName}`),
   toggleStatus: (id: string, active: boolean) => api.patch(`/users/${id}/status`, { active }),
+  delete: (id: string) => api.delete(`/users/${id}`),
+};
+
+// Notifications API
+export interface NotificationItem {
+  id: string;
+  type: string;
+  title: { en: string; ar: string };
+  body: { en: string; ar: string };
+  link?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export const notificationsApi = {
+  list: () => api.get<{ data: NotificationItem[]; hasUnread: boolean }>('/notifications'),
+  markRead: (id: string) => api.patch<void>(`/notifications/${id}/read`),
+  markAllRead: () => api.patch<void>('/notifications/read-all'),
 };
