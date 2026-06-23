@@ -6250,3 +6250,101 @@
     transform: none !important;
   }
 }
+
+/* Notification panel */
+.ehms-notification-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  width: 320px;
+  background: var(--ehms-surface, #fff);
+  border: 1px solid var(--ehms-border, #e5e7eb);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.ehms-notification-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--ehms-border, #e5e7eb);
+}
+
+.ehms-notification-mark-all {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ehms-accent, #6366f1);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ehms-notification-mark-all:hover {
+  text-decoration: underline;
+}
+
+.ehms-notification-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.ehms-notification-empty {
+  padding: 24px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ehms-muted, #6b7280);
+}
+
+.ehms-notification-item {
+  display: block;
+  width: 100%;
+  text-align: start;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 1px solid var(--ehms-border, #e5e7eb);
+  background: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ehms-notification-item:last-child {
+  border-bottom: none;
+}
+
+.ehms-notification-item:hover {
+  background: var(--ehms-hover, #f9fafb);
+}
+
+.ehms-notification-item.is-unread {
+  background: var(--ehms-unread-bg, #f0f0ff);
+}
+
+.ehms-notification-item.is-unread:hover {
+  background: var(--ehms-unread-hover, #e8e8ff);
+}
+
+.ehms-notification-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.ehms-notification-item-body {
+  font-size: 12px;
+  color: var(--ehms-muted, #6b7280);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.ehms-notification-item-time {
+  font-size: 11px;
+  color: var(--ehms-muted, #9ca3af);
+}

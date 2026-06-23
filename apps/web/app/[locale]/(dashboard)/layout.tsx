@@ -4,9 +4,10 @@ import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { teamsApi } from '@/lib/api';
+import { notificationsApi, teamsApi } from '@/lib/api';
 import { queryKeys, useCurrentUser } from '@/lib/queries';
 import { GlobalSearch } from '@/components/global-search';
+import { NotificationPanel } from '@/components/notifications/notification-panel';
 import {
   Bell,
   Calendar,
@@ -79,6 +80,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { data: currentUser } = useCurrentUser();
   const invitesQuery = useQuery({
     queryKey: queryKeys.teamInvites,
@@ -90,6 +92,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const data = Array.isArray(body) ? body : body.data;
     return Array.isArray(data) ? data.length : 0;
   }, [invitesQuery.data]);
+  const notifQuery = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => notificationsApi.list().then((r) => r.data),
+    refetchInterval: 30_000,
+  });
+  const hasUnread = notifQuery.data?.hasUnread ?? false;
 
   const getUserInitials = (name?: string) => {
     if (!name?.trim()) {
@@ -272,15 +280,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <HelpCircle aria-hidden size={16} />
             </button>
 
-            <button
-              type="button"
-              className="ehms-shell-icon-btn has-pip"
-              aria-label={copy.notificationsLabel}
-            >
-              <Bell aria-hidden size={16} />
-              <span className="ehms-shell-pip" />
-            </button>
-
+            <div style={{ position: 'relative' }}>
+              <button
+                type="button"
+                className={`ehms-shell-icon-btn ${hasUnread ? 'has-pip' : ''}`}
+                aria-label={copy.notificationsLabel}
+                onClick={() => setIsNotifOpen((v) => !v)}
+              >
+                <Bell aria-hidden size={16} />
+                {hasUnread && <span className="ehms-shell-pip" />}
+              </button>
+              {isNotifOpen && (
+                <NotificationPanel
+                  onClose={() => setIsNotifOpen(false)}
+                  locale={isRtl ? 'ar' : 'en'}
+                />
+              )}
+            </div>
           </div>
         </header>
 
