@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocale } from 'next-intl';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from '@/i18n/routing';
-import { authApi, eventsApi, submissionsApi, usersApi } from '@/lib/api';
+import { eventsApi, submissionsApi, usersApi } from '@/lib/api';
+import { queryKeys, useCurrentUser } from '@/lib/queries';
 import { ArrowRight, Calendar, Clock, FileText, Plus, Sparkles, Trophy, Users } from 'lucide-react';
 
 type BilingualText = string | { en?: string; ar?: string };
@@ -31,6 +33,7 @@ interface DashboardTeam {
 
 interface DashboardSubmission {
   id: string;
+  slug?: string | null;
   title?: BilingualText;
   teamId?: string;
   status?: string;
@@ -40,10 +43,6 @@ interface DashboardSubmission {
     id?: string;
     name?: BilingualText;
   };
-}
-
-interface CurrentUser {
-  name?: string;
 }
 
 type ActivityCategory = 'events' | 'teams' | 'submissions';
@@ -449,7 +448,7 @@ function buildSubmissionActivities(
       tag: copy.activity.draftTag,
       tone: 'gray',
       icon: 'submission',
-      href: `/submissions/${submission.id}`,
+      href: `/submissions/${submission.slug || submission.id}`,
     });
   }
 
@@ -467,7 +466,7 @@ function buildSubmissionActivities(
       tag: copy.activity.submittedTag,
       tone: 'green',
       icon: 'submission',
-      href: `/submissions/${submission.id}`,
+      href: `/submissions/${submission.slug || submission.id}`,
     });
   }
 
@@ -479,83 +478,69 @@ export default function DashboardPage() {
   const isRtl = locale === 'ar';
   const copy = dashboardCopy[isRtl ? 'ar' : 'en'];
 
-  const [stats, setStats] = useState<DashboardStats>({
-    totalEvents: 0,
-    myTeams: 0,
-    submissions: 0,
-    submittedProjects: 0,
-    upcomingEvents: 0,
-  });
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [activityFilter, setActivityFilter] = useState<ActivityCategory | 'all'>('all');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    void loadDashboardData();
-  }, []);
+  const eventsQuery = useQuery({
+    queryKey: queryKeys.events,
+    queryFn: () => eventsApi.list().then((r) => r.data),
+  });
+  const teamsQuery = useQuery({
+    queryKey: queryKeys.myTeams,
+    queryFn: () => usersApi.getMyTeams().then((r) => r.data),
+  });
+  const submissionsQuery = useQuery({
+    queryKey: queryKeys.submissions(50),
+    queryFn: () => submissionsApi.list({ limit: 50 }).then((r) => r.data),
+  });
+  const { data: currentUser } = useCurrentUser();
 
-  const loadDashboardData = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const events = extractArray<DashboardEvent>(eventsQuery.data);
+  const teams = extractArray<DashboardTeam>(teamsQuery.data);
+  const submissions = extractArray<DashboardSubmission>(submissionsQuery.data);
 
-      const [userResponse, eventsResponse, teamsResponse, submissionsResponse] = await Promise.all([
-        authApi.getCurrentUser().catch(() => ({ data: null })),
-        eventsApi.list(),
-        usersApi.getMyTeams(),
-        submissionsApi.list({ limit: 50 }),
-      ]);
+  const stats: DashboardStats = useMemo(() => {
+    const myTeamIds = new Set(teams.map((team) => team.id));
+    const mySubmissions = submissions.filter((submission) => {
+      const teamId = submission.teamId || submission.team?.id;
+      return Boolean(teamId && myTeamIds.has(teamId));
+    });
+    const submittedProjects = mySubmissions.filter(
+      (submission) => submission.status === 'SUBMITTED'
+    ).length;
+    const upcomingEvents = events.filter((event) =>
+      ['PUBLISHED', 'REGISTRATION_OPEN', 'TEAM_FORMATION'].includes(event.state)
+    ).length;
 
-      const events = extractArray<DashboardEvent>(eventsResponse.data);
-      const teams = extractArray<DashboardTeam>(teamsResponse.data);
-      const submissions = extractArray<DashboardSubmission>(submissionsResponse.data);
-      const user = (userResponse.data || null) as CurrentUser | null;
+    return {
+      totalEvents: events.length,
+      myTeams: teams.length,
+      submissions: mySubmissions.length,
+      submittedProjects,
+      upcomingEvents,
+    };
+  }, [events, teams, submissions]);
 
-      const myTeamIds = new Set(teams.map((team) => team.id));
-      const mySubmissions = submissions.filter((submission) => {
-        const teamId = submission.teamId || submission.team?.id;
-        return Boolean(teamId && myTeamIds.has(teamId));
-      });
+  const activities = useMemo(() => {
+    const myTeamIds = new Set(teams.map((team) => team.id));
+    const mySubmissions = submissions.filter((submission) => {
+      const teamId = submission.teamId || submission.team?.id;
+      return Boolean(teamId && myTeamIds.has(teamId));
+    });
 
-      const submittedProjects = mySubmissions.filter(
-        (submission) => submission.status === 'SUBMITTED'
-      ).length;
-      const upcomingEvents = events.filter((event) =>
-        ['PUBLISHED', 'REGISTRATION_OPEN', 'TEAM_FORMATION'].includes(event.state)
-      ).length;
-
-      const feed = [
-        ...events
-          .map((event) => buildEventActivity(event, locale, copy))
-          .filter((item): item is ActivityItem => item !== null),
-        ...teams
-          .map((team) => buildTeamActivity(team, locale, copy))
-          .filter((item): item is ActivityItem => item !== null),
-        ...mySubmissions.flatMap((submission) =>
-          buildSubmissionActivities(submission, locale, copy)
-        ),
-      ].sort(
-        (left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime()
-      );
-
-      setCurrentUser(user);
-      setStats({
-        totalEvents: events.length,
-        myTeams: teams.length,
-        submissions: mySubmissions.length,
-        submittedProjects,
-        upcomingEvents,
-      });
-      setActivities(feed);
-    } catch (loadError) {
-      console.error('Failed to load dashboard data:', loadError);
-      setError(copy.loadError);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return [
+      ...events
+        .map((event) => buildEventActivity(event, locale, copy))
+        .filter((item): item is ActivityItem => item !== null),
+      ...teams
+        .map((team) => buildTeamActivity(team, locale, copy))
+        .filter((item): item is ActivityItem => item !== null),
+      ...mySubmissions.flatMap((submission) =>
+        buildSubmissionActivities(submission, locale, copy)
+      ),
+    ].sort(
+      (left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime()
+    );
+  }, [events, teams, submissions, locale, copy]);
 
   const visibleActivities = activities
     .filter((activity) => activityFilter === 'all' || activity.category === activityFilter)
@@ -563,6 +548,16 @@ export default function DashboardPage() {
 
   const firstName = currentUser?.name?.trim().split(' ')[0] || copy.welcome.fallbackName;
   const hasTeamLink = stats.myTeams === 0;
+
+  const isLoading =
+    eventsQuery.isLoading || teamsQuery.isLoading || submissionsQuery.isLoading;
+  const hasError = eventsQuery.isError || teamsQuery.isError || submissionsQuery.isError;
+
+  const refetchDashboardData = () => {
+    void eventsQuery.refetch();
+    void teamsQuery.refetch();
+    void submissionsQuery.refetch();
+  };
 
   if (isLoading) {
     return (
@@ -573,14 +568,14 @@ export default function DashboardPage() {
     );
   }
 
-  if (error) {
+  if (hasError) {
     return (
       <div className="ehms-dashboard-page ehms-dashboard-loading">
-        <div className="ehms-dashboard-error">{error}</div>
+        <div className="ehms-dashboard-error">{copy.loadError}</div>
         <button
           type="button"
           className="ehms-dashboard-btn ehms-dashboard-btn-primary"
-          onClick={loadDashboardData}
+          onClick={refetchDashboardData}
         >
           {copy.retry}
         </button>

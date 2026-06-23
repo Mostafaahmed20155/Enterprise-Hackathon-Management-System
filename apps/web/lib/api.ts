@@ -34,7 +34,8 @@ api.interceptors.request.use(
 function redirectToLogin() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
-  window.location.href = '/auth/login';
+  const locale = localStorage.getItem('locale') || 'ar';
+  window.location.href = `/${locale}/auth/login`;
   return new Promise<never>(() => {});
 }
 
@@ -191,4 +192,5 @@ export const usersApi = {
   assignRole: (id: string, role: string) => api.post(`/users/${id}/roles`, { role }),
   removeRole: (id: string, roleName: string) => api.delete(`/users/${id}/roles/${roleName}`),
   toggleStatus: (id: string, active: boolean) => api.patch(`/users/${id}/status`, { active }),
+  delete: (id: string) => api.delete(`/users/${id}`),
 };

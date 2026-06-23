@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Paperclip } from 'lucide-react';
 
 const submissionSchema = z.object({
   titleEn: z.string().min(3, 'English title must be at least 3 characters'),
@@ -99,7 +101,7 @@ export default function CreateSubmissionPage() {
         }
       }
 
-      router.push(`/submissions/${submission.id}`);
+      router.push(`/submissions/${submission.slug || submission.id}`);
     } catch (err: any) {
       setError(err.response?.data?.message || t('createError'));
     } finally {
@@ -265,8 +267,8 @@ export default function CreateSubmissionPage() {
                 {files.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {files.map((file, index) => (
-                      <p key={index} className="text-sm text-gray-600 dark:text-gray-400">
-                        📎 {file.name} ({(file.size / 1024).toFixed(2)} KB)
+                      <p key={index} className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                        <Paperclip className="w-3.5 h-3.5 shrink-0" /> {file.name} ({(file.size / 1024).toFixed(2)} KB)
                       </p>
                     ))}
                   </div>

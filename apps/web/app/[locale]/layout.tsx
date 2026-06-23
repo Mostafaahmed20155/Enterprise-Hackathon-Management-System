@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { Cairo, Instrument_Serif, Inter, JetBrains_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
+import { QueryProvider } from '@/components/providers/query-provider';
 import '../globals.css';
 
 const inter = Inter({
@@ -69,23 +70,25 @@ export default async function LocaleLayout({
     >
       <body className={locale === 'ar' ? 'font-arabic' : 'font-sans'} suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
-          {children}
-          <Toaster
-            position={locale === 'ar' ? 'top-left' : 'top-right'}
-            dir={dir}
-            richColors
-            closeButton
-            toastOptions={{
-              classNames: {
-                toast: 'font-medium',
-                title: 'text-sm',
-                description: 'text-xs',
-                actionButton: 'bg-primary text-white',
-                cancelButton: 'bg-gray-200 dark:bg-gray-700',
-                closeButton: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
-              },
-            }}
-          />
+          <QueryProvider>
+            {children}
+            <Toaster
+              position={locale === 'ar' ? 'top-left' : 'top-right'}
+              dir={dir}
+              richColors
+              closeButton
+              toastOptions={{
+                classNames: {
+                  toast: 'font-medium',
+                  title: 'text-sm',
+                  description: 'text-xs',
+                  actionButton: 'bg-primary text-white',
+                  cancelButton: 'bg-gray-200 dark:bg-gray-700',
+                  closeButton: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+                },
+              }}
+            />
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>

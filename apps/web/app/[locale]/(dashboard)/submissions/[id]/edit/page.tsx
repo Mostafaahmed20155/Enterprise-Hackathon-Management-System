@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { submissionsApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Upload, Trash2 } from 'lucide-react';
-import { Link } from '@/i18n/routing';
+import { ArrowLeft, Save, Upload, Trash2, Paperclip } from 'lucide-react';
+import { Link, useRouter } from '@/i18n/routing';
 
 type BilingualText = string | { en: string; ar: string };
 
@@ -109,7 +109,7 @@ export default function EditSubmissionPage() {
     if (repoUrl !== undefined) payload.repoUrl = repoUrl || null;
     if (videoUrl !== undefined) payload.videoUrl = videoUrl || null;
 
-    const promise = submissionsApi.update(submissionId, payload);
+    const promise = submissionsApi.update(submission?.id || submissionId, payload);
 
     toast.promise(promise, {
       loading: t('saving'),
@@ -136,7 +136,7 @@ export default function EditSubmissionPage() {
     toast.promise(
       async () => {
         try {
-          await submissionsApi.uploadFile(submissionId, file);
+          await submissionsApi.uploadFile(submission?.id || submissionId, file);
           await loadSubmission();
         } finally {
           setIsUploading(false);
@@ -154,7 +154,7 @@ export default function EditSubmissionPage() {
   const handleDeleteFile = async (fileId: string) => {
     toast.promise(
       async () => {
-        await submissionsApi.deleteFile(submissionId, fileId);
+        await submissionsApi.deleteFile(submission?.id || submissionId, fileId);
         await loadSubmission();
       },
       {
@@ -348,7 +348,7 @@ export default function EditSubmissionPage() {
                     className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">📎</span>
+                      <Paperclip className="w-5 h-5 text-gray-400" />
                       <div>
                         <p className="font-medium text-sm text-gray-900 dark:text-white">{file.fileName}</p>
                         <p className="text-xs text-gray-500">{(file.fileSize / 1024).toFixed(2)} KB</p>

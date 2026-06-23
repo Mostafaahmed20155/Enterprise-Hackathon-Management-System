@@ -12,9 +12,9 @@
     --popover: oklch(1 0.004 48);
     --popover-foreground: oklch(0.26 0.028 42);
 
-    /* Primary: vivid coral-orange (~#FF6B4A family) */
-    --primary: oklch(0.64 0.2 38);
-    --primary-foreground: oklch(0.995 0.005 48);
+    /* Primary: brand lime-green */
+    --primary: oklch(0.68 0.19 130);
+    --primary-foreground: oklch(0.26 0.028 42);
 
     /* Secondary: soft peach */
     --secondary: oklch(0.96 0.03 48);
@@ -34,7 +34,7 @@
     /* Borders with warm tint */
     --border: oklch(0.9 0.018 48);
     --input: oklch(0.9 0.018 48);
-    --ring: oklch(0.64 0.2 38);
+    --ring: oklch(0.68 0.19 130);
 
     /* Border radius system */
     --radius: 0.75rem;
@@ -46,7 +46,7 @@
     --shadow-md: 0px 4px 8px -1px hsl(0 0% 0% / 0.08), 0px 2px 4px -2px hsl(0 0% 0% / 0.08);
     --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.08), 0px 4px 6px -2px hsl(0 0% 0% / 0.08);
     --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.08), 0px 8px 10px -2px hsl(0 0% 0% / 0.08);
-    --chart-1: oklch(0.64 0.2 38);
+    --chart-1: oklch(0.68 0.19 130);
     --chart-2: oklch(0.7 0.17 48);
     --chart-3: oklch(0.72 0.14 58);
     --chart-4: oklch(0.58 0.16 32);
@@ -85,9 +85,9 @@
     --popover: oklch(0.21 0.028 42);
     --popover-foreground: oklch(0.93 0.012 48);
 
-    /* Primary: bright coral on dark surfaces */
-    --primary: oklch(0.72 0.18 40);
-    --primary-foreground: oklch(0.995 0.005 48);
+    /* Primary: brand lime on dark surfaces */
+    --primary: oklch(0.85 0.17 130);
+    --primary-foreground: oklch(0.2 0.022 42);
 
     /* Secondary: warm charcoal */
     --secondary: oklch(0.28 0.03 42);
@@ -105,8 +105,8 @@
 
     --border: oklch(0.34 0.03 42);
     --input: oklch(0.34 0.03 42);
-    --ring: oklch(0.72 0.18 40);
-    --chart-1: oklch(0.72 0.18 40);
+    --ring: oklch(0.85 0.17 130);
+    --chart-1: oklch(0.85 0.17 130);
     --chart-2: oklch(0.76 0.15 50);
     --chart-3: oklch(0.68 0.14 32);
     --chart-4: oklch(0.62 0.12 58);
@@ -3828,7 +3828,7 @@
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  background: var(--accent);
   color: var(--ink);
   font-size: 13px;
   font-weight: 700;
@@ -3961,6 +3961,90 @@
   color: var(--muted);
   font-family: var(--font-mono-display), monospace;
   font-size: 11px;
+}
+
+.ehms-shell-search-wrap {
+  position: relative;
+  display: flex;
+  width: 380px;
+  max-width: 100%;
+}
+
+.ehms-shell-search-wrap .ehms-shell-search {
+  width: 100%;
+}
+
+.ehms-shell-search-results {
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-start: 0;
+  width: 100%;
+  min-width: 320px;
+  max-width: 440px;
+  background: var(--bg-elev, #ffffff);
+  border: 1px solid var(--line-2, rgba(10, 10, 10, 0.08));
+  border-radius: 12px;
+  box-shadow: 0 24px 48px -16px rgba(10, 10, 10, 0.22), 0 8px 20px -12px rgba(10, 10, 10, 0.14);
+  padding: 6px;
+  z-index: 50;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.ehms-shell-search-group {
+  padding: 2px;
+}
+
+.ehms-shell-search-group-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted, #6b6b6b);
+  font-family: var(--font-mono-display), monospace;
+  font-weight: 600;
+  padding: 6px 10px 4px;
+}
+
+.ehms-shell-search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--ink, #0a0a0a);
+  transition: background 0.12s ease;
+}
+
+.ehms-shell-search-item:hover {
+  background: #f5f5f0;
+}
+
+.ehms-shell-search-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ehms-shell-search-item-sub {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: var(--muted, #6b6b6b);
+  font-family: var(--font-mono-display), monospace;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ehms-shell-search-empty {
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted, #6b6b6b);
 }
 
 .ehms-shell-topbar-actions {

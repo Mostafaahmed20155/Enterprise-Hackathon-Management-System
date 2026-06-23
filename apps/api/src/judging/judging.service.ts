@@ -483,6 +483,7 @@ export class JudgingService {
 
         return {
           submissionId: submission.id,
+          submissionSlug: submission.slug,
           teamId: submission.team.id,
           teamName: submission.team.name,
           title: submission.title,

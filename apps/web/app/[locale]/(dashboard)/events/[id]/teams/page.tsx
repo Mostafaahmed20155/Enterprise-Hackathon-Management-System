@@ -7,6 +7,7 @@ import { Link } from '@/i18n/routing';
 import { eventsApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Lock, User } from 'lucide-react';
 
 interface Team {
   id: string;
@@ -102,8 +103,8 @@ export default function EventTeamsPage() {
                 <div className="flex items-start justify-between mb-2">
                   <CardTitle className="text-xl">{team.name}</CardTitle>
                   {team.isLocked && (
-                    <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
-                      🔒 {t('locked')}
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+                      <Lock className="w-3 h-3" /> {t('locked')}
                     </span>
                   )}
                 </div>
@@ -117,10 +118,10 @@ export default function EventTeamsPage() {
                   <div className="space-y-1">
                     {team.members.slice(0, 3).map((member) => (
                       <div key={member.id} className="flex items-center text-sm">
-                        <span className="me-2">👤</span>
+                        <User className="w-3.5 h-3.5 me-2 text-gray-400" />
                         <span>{member.user.name}</span>
                         {member.role === 'LEADER' && (
-                          <span className="ms-2 text-xs bg-teal-100 dark:bg-teal-950/30 text-teal-900 dark:text-teal-300 px-2 py-0.5 rounded">
+                          <span className="ms-2 text-xs bg-primary/15 text-primary px-2 py-0.5 rounded">
                             {t('leader')}
                           </span>
                         )}

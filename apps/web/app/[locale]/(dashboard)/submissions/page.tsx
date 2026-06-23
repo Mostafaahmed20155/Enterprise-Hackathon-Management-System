@@ -18,6 +18,7 @@ type BilingualText = string | { en: string; ar: string };
 
 interface Submission {
   id: string;
+  slug?: string | null;
   title: BilingualText;
   description: BilingualText;
   status: string;
@@ -278,7 +279,7 @@ export default function SubmissionsPage() {
       className="space-y-0 pb-16 pt-1 [-webkit-font-smoothing:antialiased]"
       style={{ backgroundColor: bgPage, color: ink }}
     >
-      <div className="mx-auto max-w-[1400px] space-y-5 px-1 sm:px-0">
+      <div className="w-full space-y-5">
         {/* Page heading */}
         <div className="flex flex-wrap items-end justify-between gap-5 pb-1">
           <div>
@@ -306,7 +307,8 @@ export default function SubmissionsPage() {
             </button>
             <Link
               href="/submissions/create"
-              className="inline-flex items-center gap-2 rounded-[10px] border border-transparent bg-[#0A0A0A] px-4 py-2.5 text-[13.5px] font-medium text-[#FAFAF7] transition-all hover:-translate-y-px hover:bg-black"
+              className="group inline-flex items-center gap-2 rounded-[10px] border border-transparent px-4 py-2.5 text-[13.5px] font-semibold transition-all hover:-translate-y-px"
+              style={{ backgroundColor: accent, color: ink }}
             >
               + {t('createSubmission')}
             </Link>
@@ -477,7 +479,7 @@ export default function SubmissionsPage() {
             {filtered.map((submission) => {
               const hue = teamHue(submission.team.id);
               return (
-                <Link key={submission.id} href={`/submissions/${submission.id}`} className="group">
+                <Link key={submission.id} href={`/submissions/${submission.slug || submission.id}`} className="group">
                   <article
                     className="flex h-full flex-col gap-3 rounded-2xl border bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-15px_rgba(10,10,10,0.15)]"
                     style={{ borderColor: line }}
@@ -542,7 +544,7 @@ export default function SubmissionsPage() {
                 return (
                   <Link
                     key={submission.id}
-                    href={`/submissions/${submission.id}`}
+                    href={`/submissions/${submission.slug || submission.id}`}
                     className="block rounded-2xl border bg-white p-4 transition-colors hover:bg-[#FCFCFA]"
                     style={{ borderColor: line }}
                   >
@@ -611,7 +613,7 @@ export default function SubmissionsPage() {
                 return (
                   <Link
                     key={submission.id}
-                    href={`/submissions/${submission.id}`}
+                    href={`/submissions/${submission.slug || submission.id}`}
                     className="grid grid-cols-[1fr_140px_100px_90px_72px] cursor-pointer items-center gap-3.5 border-b px-5 py-3.5 transition-colors last:border-b-0 hover:bg-[#FCFCFA]"
                     style={{ borderColor: line }}
                   >

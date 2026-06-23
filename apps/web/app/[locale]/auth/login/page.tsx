@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { getApiErrorMessage } from '@/lib/api-error-message';
 
 export default function LoginPage() {
@@ -13,15 +12,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const loginWith = async (emailValue: string, passwordValue: string) => {
     setLoading(true);
     setError('');
-
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
 
     const apiBase = process.env.NEXT_PUBLIC_API_URL;
     if (!apiBase) {
@@ -39,7 +35,7 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept-Language': locale },
         credentials: 'include',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: emailValue, password: passwordValue }),
       });
 
       if (!response.ok) {
@@ -69,6 +65,17 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void loginWith(email, password);
+  };
+
+  const handleDemo = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    void loginWith(demoEmail, demoPassword);
   };
 
   return (
@@ -143,7 +150,9 @@ export default function LoginPage() {
 
         .ln-demo { margin-top:20px; padding:14px 16px; background:#fff; border:1px solid rgba(10,10,10,0.08); border-radius:12px; }
         .ln-demo-title { font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#9B9B9B; letter-spacing:0.08em; text-transform:uppercase; font-weight:600; margin-bottom:10px; }
-        .ln-demo-row { display:flex; align-items:center; gap:8px; font-size:12px; color:#6B6B6B; margin-bottom:4px; }
+        .ln-demo-row { display:flex; align-items:center; gap:8px; font-size:12px; color:#6B6B6B; margin-bottom:4px; width:100%; text-align:start; background:#fff; border:1px solid rgba(10,10,10,0.08); border-radius:8px; padding:8px 10px; cursor:pointer; font-family:inherit; transition:all .15s; }
+        .ln-demo-row:hover:not(:disabled) { border-color:#0A0A0A; color:#0A0A0A; transform:translateY(-1px); }
+        .ln-demo-row:disabled { opacity:0.6; cursor:not-allowed; }
         .ln-demo-row:last-child { margin-bottom:0; }
         .ln-demo-badge { font-size:10.5px; font-weight:600; font-family:'JetBrains Mono',monospace; background:#F5F5F0; color:#2A2A2A; padding:2px 7px; border-radius:5px; }
         .ln-code { font-family:'JetBrains Mono',monospace; font-size:11.5px; background:#F5F5F0; padding:2px 6px; border-radius:4px; color:#2A2A2A; }
@@ -250,10 +259,7 @@ export default function LoginPage() {
               <span className="ln-logo-mark" />
               EHMS
             </Link>
-            <div className="ln-bb-right">
-              <span>New here?</span>
-              <Link href="/auth/register" className="ln-ghost">Create account</Link>
-            </div>
+          
           </div>
 
           <div className="ln-form-shell">
@@ -263,7 +269,7 @@ export default function LoginPage() {
               <h1>Welcome <span className="ln-serif">back.</span></h1>
               <p className="ln-sub">Continue managing your hackathons, teams and judging in one place.</p>
 
-              {/* SSO */}
+              {/* SSO 
               <div className="ln-sso">
                 <button
                   type="button"
@@ -281,7 +287,7 @@ export default function LoginPage() {
               </div>
 
               <div className="ln-divider">or with email</div>
-
+*/}
               {/* Error */}
               {error && (
                 <div className="ln-error">
@@ -295,7 +301,7 @@ export default function LoginPage() {
                   <label className="ln-fld-label">{t('auth.email')}</label>
                   <div className="ln-inp-wrap">
                     <svg className="ln-inp-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 6l8 6 8-6"/></svg>
-                    <input className="ln-inp" name="email" type="email" autoComplete="email" required placeholder={t('auth.emailPlaceholder')} />
+                    <input className="ln-inp" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required placeholder={t('auth.emailPlaceholder')} />
                   </div>
                 </div>
 
@@ -306,7 +312,7 @@ export default function LoginPage() {
                   </label>
                   <div className="ln-inp-wrap">
                     <svg className="ln-inp-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 118 0v4"/></svg>
-                    <input className="ln-inp" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required placeholder={t('auth.passwordPlaceholder')} style={{ paddingRight: 40 }} />
+                    <input className="ln-inp" name="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required placeholder={t('auth.passwordPlaceholder')} style={{ paddingRight: 40 }} />
                     <button type="button" className="ln-inp-eye" aria-label="Toggle password" onClick={() => setShowPassword(v => !v)}>
                       {showPassword
                         ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -338,25 +344,22 @@ export default function LoginPage() {
 
               {/* Demo accounts */}
               <div className="ln-demo">
-                <div className="ln-demo-title">Demo accounts</div>
-                <div className="ln-demo-row">
+                <div className="ln-demo-title">{locale === 'ar' ? 'حسابات تجريبية · اضغط لتسجيل الدخول' : 'Demo accounts · click to sign in'}</div>
+                <button type="button" className="ln-demo-row" disabled={loading} onClick={() => handleDemo('admin@ehms.com', 'Password123!')}>
                   <span className="ln-demo-badge">Admin</span>
                   <span className="ln-code">admin@ehms.com</span>
                   <span style={{ color:'#9B9B9B' }}>/</span>
                   <span className="ln-code">Password123!</span>
-                </div>
-                <div className="ln-demo-row">
+                </button>
+                <button type="button" className="ln-demo-row" disabled={loading} onClick={() => handleDemo('organizer@ehms.com', 'Password123!')}>
                   <span className="ln-demo-badge">Org</span>
                   <span className="ln-code">organizer@ehms.com</span>
                   <span style={{ color:'#9B9B9B' }}>/</span>
                   <span className="ln-code">Password123!</span>
-                </div>
+                </button>
               </div>
 
-              <div className="ln-foot-row">
-                <span><span className="ln-foot-dot" />All systems normal</span>
-                <span>v2.14.0</span>
-              </div>
+             
             </div>
           </div>
 
@@ -368,21 +371,6 @@ export default function LoginPage() {
         {/* ── RIGHT: Visual ── */}
         <div className="ln-right">
 
-          {/* Top chips */}
-          <div className="ln-r-chips">
-            <span className="ln-r-chip">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-              SOC 2 Type II
-            </span>
-            <span className="ln-r-chip">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-              SAML SSO
-            </span>
-            <span className="ln-r-chip dark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/></svg>
-              Trusted by 180+ teams
-            </span>
-          </div>
 
           {/* Headline + features */}
           <div className="ln-r-head">
@@ -464,10 +452,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="ln-r-foot">
-            <span>© 2026 EHMS · RIYADH</span>
-            <div className="ls"><span>PRIVACY</span><span>TERMS</span><span>STATUS</span></div>
-          </div>
+         
         </div>
 
       </div>

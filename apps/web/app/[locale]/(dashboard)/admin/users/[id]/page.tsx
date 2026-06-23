@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 import { usersApi, authApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -203,10 +204,10 @@ export default function AdminUserDetailPage() {
 
       {/* Profile Card */}
       <Card className="border-0 shadow-sm overflow-hidden">
-        <div className="h-24 bg-gradient-to-r from-primary/20 via-green-500/20 to-emerald-500/20" />
+        <div className="h-24 bg-primary/15" />
         <CardContent className="px-6 pb-6 -mt-12">
           <div className="flex items-end gap-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-primary to-green-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-4 ring-white dark:ring-gray-900">
+            <div className="w-20 h-20 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center font-bold text-2xl shadow-sm ring-4 ring-white dark:ring-gray-900">
               {getUserInitials(user.name)}
             </div>
             <div className="pb-1">

@@ -1,20 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { judgingApi, api } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { ArrowLeft } from 'lucide-react';
+import { Link, useRouter } from '@/i18n/routing';
 
 type BilingualText = string | { en: string; ar: string };
 
 interface Criterion {
-  // After LocalizeResponseInterceptor, `name` is a plain string.
-  // We always fetch with Accept-Language: en so it's the English name (stable score key).
   name: string;
   description?: string;
   maxScore: number;
@@ -23,6 +19,7 @@ interface Criterion {
 
 interface ScoredSubmission {
   id: string;
+  slug?: string | null;
   title: BilingualText;
   description: BilingualText;
   team: { id: string; name: BilingualText };
@@ -50,6 +47,23 @@ function getText(value: BilingualText | undefined, locale: string): string {
   return value[locale as 'en' | 'ar'] || value.en || '';
 }
 
+// Brand tokens — flat, no gradients
+const ink = '#0A0A0A';
+const ink2 = '#2A2A2A';
+const muted = '#6B6B6B';
+const muted2 = '#9B9B9B';
+const line = 'rgba(10,10,10,.08)';
+const line2 = 'rgba(10,10,10,.14)';
+const bgPage = '#FAFAF7';
+const accent = 'oklch(0.85 0.17 130)';
+const accentDeep = 'oklch(0.68 0.19 130)';
+const accentSoft = 'oklch(0.93 0.09 130)';
+const mono = 'font-[family-name:var(--font-mono),ui-monospace,monospace]';
+const serif = 'font-[family-name:var(--font-display),ui-serif,Georgia,serif]';
+
+const fieldBase =
+  'w-full rounded-[10px] bg-white px-3.5 py-2.5 text-sm text-[#0A0A0A] outline-none transition-colors hover:border-[rgba(10,10,10,.2)] focus:border-[#0A0A0A] focus:shadow-[0_0_0_3px_rgba(10,10,10,.05)] disabled:opacity-60';
+
 export default function ScoreSubmissionPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -73,8 +87,6 @@ export default function ScoreSubmissionPage() {
     try {
       setIsLoading(true);
 
-      // Fetch assignment with EN locale so criterion names are always English
-      // (used as stable keys in the scores JSON — must match stored keys)
       const [assignmentRes, submissionsRes] = await Promise.all([
         api.get(`/judging/assignments/${assignmentId}`, { headers: { 'Accept-Language': 'en' } }),
         judgingApi.getSubmissionsForJudge(assignmentId),
@@ -83,16 +95,14 @@ export default function ScoreSubmissionPage() {
       const assignment = assignmentRes.data;
       const submissions: ScoredSubmission[] = Array.isArray(submissionsRes.data)
         ? submissionsRes.data
-        : (submissionsRes.data?.data || []);
+        : submissionsRes.data?.data || [];
 
       const submission = submissionId
         ? submissions.find((s) => s.id === submissionId)
         : submissions[0];
 
       if (!submission) {
-        setError(
-          locale === 'ar' ? 'المشروع غير موجود' : 'Submission not found'
-        );
+        setError(locale === 'ar' ? 'المشروع غير موجود' : 'Submission not found');
         return;
       }
 
@@ -101,10 +111,6 @@ export default function ScoreSubmissionPage() {
         : [];
       const existing = submission.scores[0];
 
-      // `feedback` is stored as { en, ar } in DB but the interceptor localizes it.
-      // We need both EN and AR for the bilingual feedback form, so fetch submissions
-      // with Accept-Language: en to get the EN feedback, then also with AR for AR.
-      // Simpler: store raw feedback if available, otherwise show empty.
       const rawFeedback = existing?.feedback;
       const feedbackEn = typeof rawFeedback === 'string' ? rawFeedback : (rawFeedback as any)?.en ?? '';
       const feedbackAr = typeof rawFeedback === 'string' ? '' : (rawFeedback as any)?.ar ?? '';
@@ -120,7 +126,7 @@ export default function ScoreSubmissionPage() {
     } catch (err: any) {
       const msg = err.response?.data?.message;
       setError(
-        typeof msg === 'object' ? (msg[locale] || msg.en || t('loadError')) : (msg || t('loadError'))
+        typeof msg === 'object' ? msg[locale] || msg.en || t('loadError') : msg || t('loadError')
       );
     } finally {
       setIsLoading(false);
@@ -146,10 +152,8 @@ export default function ScoreSubmissionPage() {
 
     let promise: Promise<any>;
     if (data.existingScoreId) {
-      // Update existing score
       promise = judgingApi.updateScore(data.existingScoreId, { scores, feedback });
     } else {
-      // Submit new score
       promise = judgingApi.submitScore({
         assignmentId,
         submissionId: data.submission.id,
@@ -168,20 +172,33 @@ export default function ScoreSubmissionPage() {
         const errorData = err.response?.data;
         const errorMessage = errorData?.error?.message || errorData?.message;
         return typeof errorMessage === 'object'
-          ? (errorMessage[locale] || errorMessage.en || t('submitError'))
-          : (errorMessage || t('submitError'));
+          ? errorMessage[locale] || errorMessage.en || t('submitError')
+          : errorMessage || t('submitError');
       },
     });
 
     promise.finally(() => setIsSaving(false));
   };
 
+  const btnPrimary =
+    'inline-flex items-center justify-center gap-2 rounded-[10px] border border-transparent bg-[#0A0A0A] px-5 py-2.5 text-[13.5px] font-medium text-[#FAFAF7] transition-all hover:-translate-y-px hover:bg-black disabled:opacity-60';
+  const btnOutline =
+    'inline-flex items-center justify-center gap-2 rounded-[10px] border bg-white px-5 py-2.5 text-[13.5px] font-medium text-[#0A0A0A] transition-colors hover:bg-[rgba(10,10,10,.04)] disabled:opacity-60';
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div
+        className="flex min-h-[420px] items-center justify-center [-webkit-font-smoothing:antialiased]"
+        style={{ backgroundColor: bgPage, color: ink }}
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
+          <div
+            className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2"
+            style={{ borderColor: line2, borderTopColor: ink }}
+          />
+          <p className="text-[13px]" style={{ color: muted }}>
+            {t('loading')}
+          </p>
         </div>
       </div>
     );
@@ -189,80 +206,111 @@ export default function ScoreSubmissionPage() {
 
   if (error || !data) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">{error || t('notFound')}</p>
-          <Button onClick={loadData} className="mt-4">{t('retry')}</Button>
-        </div>
+      <div
+        className="mx-auto max-w-[860px] px-4 py-8 sm:px-8 [-webkit-font-smoothing:antialiased]"
+        style={{ backgroundColor: bgPage, color: ink }}
+      >
+        <p className="mb-4 text-sm" style={{ color: 'oklch(0.62 0.22 25)' }}>
+          {error || t('notFound')}
+        </p>
+        <button type="button" onClick={loadData} className={btnPrimary}>
+          {t('retry')}
+        </button>
       </div>
     );
   }
 
-  const { assignmentCriteria, submission, existingScoreId, existingScores, existingFeedbackEn, existingFeedbackAr } = data;
+  const {
+    assignmentCriteria,
+    submission,
+    existingScoreId,
+    existingScores,
+    existingFeedbackEn,
+    existingFeedbackAr,
+  } = data;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          {existingScoreId ? t('editScore') : t('scoreSubmission')}
+    <div
+      className="mx-auto max-w-[860px] px-4 py-8 sm:px-8 [-webkit-font-smoothing:antialiased]"
+      style={{ backgroundColor: bgPage, color: ink }}
+    >
+      {/* Header */}
+      <div className="mb-7">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className={`mb-3 inline-flex items-center gap-2 text-[12px] transition-colors hover:text-[#0A0A0A] ${mono}`}
+          style={{ color: muted2 }}
+        >
+          <ArrowLeft className="h-3.5 w-3.5 rtl:rotate-180" /> {locale === 'ar' ? 'العودة' : 'Back'}
+        </button>
+        <h1 className="text-[28px] font-semibold leading-[1.05] tracking-[-0.03em]">
+          {existingScoreId ? t('editScore') : t('scoreSubmission')}{' '}
+          <span className={`${serif} font-normal italic`} style={{ color: ink2 }}>
+            {locale === 'ar' ? 'النموذج' : 'form.'}
+          </span>
         </h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <p className="mt-1.5 text-[13.5px]" style={{ color: muted }}>
           {getText(submission.title, locale)} · {getText(submission.team.name, locale)}
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Submission Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('submissionDetails')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+        <section className="overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+          <div className="border-b px-6 py-4" style={{ borderColor: line }}>
+            <h2 className="text-[15px] font-semibold tracking-[-0.01em]" style={{ color: ink }}>
+              {t('submissionDetails')}
+            </h2>
+          </div>
+          <div className="px-6 py-5">
+            <p className="whitespace-pre-wrap text-[14px] leading-relaxed" style={{ color: ink2 }}>
               {getText(submission.description, locale)}
             </p>
             <div className="mt-4">
-              <a
-                href={`/${locale}/submissions/${submission.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary dark:text-green-300 hover:underline"
+              <Link
+                href={`/submissions/${submission.slug || submission.id}`}
+                className="text-[13px] font-medium transition-colors hover:underline"
+                style={{ color: accentDeep }}
               >
                 {locale === 'ar' ? 'عرض المشروع الكامل ←' : 'View full submission →'}
-              </a>
+              </Link>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         {/* Scoring Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('scoringCriteria')}</CardTitle>
-            <CardDescription>{t('scoringDescription')}</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <section className="overflow-hidden rounded-[18px] border bg-white" style={{ borderColor: line }}>
+          <div className="border-b px-6 py-4" style={{ borderColor: line }}>
+            <h2 className="text-[15px] font-semibold tracking-[-0.01em]" style={{ color: ink }}>
+              {t('scoringCriteria')}
+            </h2>
+            <p className="mt-1 text-[12.5px]" style={{ color: muted }}>
+              {t('scoringDescription')}
+            </p>
+          </div>
+          <div className="px-6 py-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Criteria Scores */}
               {assignmentCriteria.map((criterion, index) => (
                 <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor={`score_${index}`} className="font-semibold">
-                      {criterion.name}
-                      {' '}
-                      <span className="font-normal text-gray-500">
+                  <div className="flex items-center justify-between gap-3">
+                    <label htmlFor={`score_${index}`} className="text-[13.5px] font-semibold" style={{ color: ink }}>
+                      {criterion.name}{' '}
+                      <span className="font-normal" style={{ color: muted }}>
                         ({criterion.weight * 100}% {t('weight')})
                       </span>
-                    </Label>
-                    <span className="text-sm text-gray-500">
+                    </label>
+                    <span className={`text-[12px] ${mono}`} style={{ color: muted2 }}>
                       {t('max')}: {criterion.maxScore}
                     </span>
                   </div>
                   {criterion.description && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-[12.5px]" style={{ color: muted }}>
                       {criterion.description}
                     </p>
                   )}
-                  <Input
+                  <input
                     id={`score_${index}`}
                     name={`score_${index}`}
                     type="number"
@@ -272,54 +320,64 @@ export default function ScoreSubmissionPage() {
                     defaultValue={existingScores[criterion.name] ?? 0}
                     required
                     disabled={isSaving}
+                    className={`${fieldBase} ${mono}`}
+                    style={{ borderColor: line2, maxWidth: 200 }}
                   />
                 </div>
               ))}
 
               {/* Feedback */}
-              <div className="space-y-4 pt-2">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">{t('feedback')}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="feedbackEn">{t('feedbackEn')}</Label>
+              <div className="space-y-3 border-t pt-5" style={{ borderColor: line }}>
+                <h3 className="text-[14px] font-semibold" style={{ color: ink }}>
+                  {t('feedback')}
+                </h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <label htmlFor="feedbackEn" className="text-[12.5px] font-medium" style={{ color: ink2 }}>
+                      {t('feedbackEn')}
+                    </label>
                     <textarea
                       id="feedbackEn"
                       name="feedbackEn"
                       rows={4}
                       dir="ltr"
-                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="Great work on..."
                       defaultValue={existingFeedbackEn}
                       disabled={isSaving}
+                      className={`${fieldBase} min-h-[110px] resize-y leading-[1.55]`}
+                      style={{ borderColor: line2 }}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="feedbackAr">{t('feedbackAr')}</Label>
+                  <div className="space-y-1.5">
+                    <label htmlFor="feedbackAr" className="text-[12.5px] font-medium" style={{ color: ink2 }}>
+                      {t('feedbackAr')}
+                    </label>
                     <textarea
                       id="feedbackAr"
                       name="feedbackAr"
                       rows={4}
                       dir="rtl"
-                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="عمل رائع على..."
                       defaultValue={existingFeedbackAr}
                       disabled={isSaving}
+                      className={`${fieldBase} min-h-[110px] resize-y leading-[1.55]`}
+                      style={{ borderColor: line2 }}
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSaving}>
+              <div className="flex justify-end gap-3 border-t pt-5" style={{ borderColor: line }}>
+                <button type="button" onClick={() => router.back()} disabled={isSaving} className={btnOutline}>
                   {t('cancel')}
-                </Button>
-                <Button type="submit" disabled={isSaving}>
+                </button>
+                <button type="submit" disabled={isSaving} className={btnPrimary}>
                   {isSaving ? t('submitting') : t('submitScore')}
-                </Button>
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </div>
     </div>
   );

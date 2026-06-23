@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { getApiErrorMessage } from '@/lib/api-error-message';
 
 type Role = 'Organizer' | 'Participant' | 'Judge';
@@ -274,36 +273,18 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <div className="rg-logos">
-              <div className="l">TRUSTED BY TEAMS AT</div>
-              <div className="row">
-                <span>Ministry of Tech</span>
-                <span>KAUST</span>
-                <span>Aramco Digital</span>
-                <span>NEOM</span>
-              </div>
-            </div>
-            <div className="rg-left-foot">
-              <span><span className="rg-left-dot" />All systems normal</span>
-              <span>© 2026 EHMS · RIYADH · KSA</span>
-            </div>
+           
+          
           </div>
         </div>
 
         {/* ── RIGHT: Form ── */}
         <div className="rg-right">
-          <div className="rg-brand-bar">
-            <div className="rg-creating">Creating account as <strong>{selectedRole}</strong></div>
-            <div className="rg-bb-right">
-              <span>Already have an account?</span>
-              <Link href="/auth/login" className="rg-ghost">Sign in</Link>
-            </div>
-          </div>
+        
 
           <div className="rg-form-shell">
             <div className="rg-form-box">
 
-              <div className="rg-step-tag">STEP 01 OF 01 · ACCOUNT</div>
               <h1>Create your <span className="rg-serif">account.</span></h1>
               <p className="rg-sub">Pick a role to get the right defaults. You can add more roles later.</p>
 
@@ -324,7 +305,7 @@ export default function RegisterPage() {
                 ))}
               </div>
 
-              {/* SSO 2-col */}
+              {/* SSO 2-col
               <div className="rg-sso-row">
                 <button
                   type="button"
@@ -339,11 +320,8 @@ export default function RegisterPage() {
                   </svg>
                   Google
                 </button>
-                <button type="button" className="rg-sso-btn">
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M16.4 12.9c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8-.6 0-1.7-.7-2.8-.7-1.4 0-2.8.8-3.5 2.1-1.5 2.6-.4 6.4 1.1 8.5.7 1 1.5 2.1 2.7 2.1 1.1 0 1.5-.7 2.8-.7 1.3 0 1.7.7 2.8.7 1.2 0 1.9-1 2.6-2 .8-1.2 1.2-2.3 1.2-2.4-.1 0-2.4-.9-2.5-3.5zM14.1 6.4c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2z"/></svg>
-                  Apple
-                </button>
               </div>
+              */}
 
               <div className="rg-divider">or with email</div>
 
@@ -445,9 +423,7 @@ export default function RegisterPage() {
                 Already have an account? <Link href="/auth/login">{t('auth.signIn')}</Link>
               </div>
 
-              <div className="rg-legal">
-                Protected by reCAPTCHA · <a href="#">Privacy</a> · <a href="#">Terms</a>
-              </div>
+              
             </div>
           </div>
         </div>

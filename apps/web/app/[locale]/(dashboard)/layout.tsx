@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useQuery } from '@tanstack/react-query';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
-import { authApi, teamsApi } from '@/lib/api';
+import { teamsApi } from '@/lib/api';
+import { queryKeys, useCurrentUser } from '@/lib/queries';
+import { GlobalSearch } from '@/components/global-search';
 import {
   Bell,
   Calendar,
@@ -13,9 +16,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Plus,
   Scale,
-  Search,
   ShieldCheck,
   User,
   UserCog,
@@ -44,7 +45,6 @@ interface ShellCopy {
   shortcut: string;
   helpLabel: string;
   notificationsLabel: string;
-  newEvent: string;
 }
 
 const shellCopy: Record<'en' | 'ar', ShellCopy> = {
@@ -57,7 +57,6 @@ const shellCopy: Record<'en' | 'ar', ShellCopy> = {
     shortcut: '⌘K',
     helpLabel: 'Help',
     notificationsLabel: 'Notifications',
-    newEvent: 'New event',
   },
   ar: {
     platformLabel: 'منصة الهاكاثون',
@@ -68,7 +67,6 @@ const shellCopy: Record<'en' | 'ar', ShellCopy> = {
     shortcut: '⌘K',
     helpLabel: 'المساعدة',
     notificationsLabel: 'الإشعارات',
-    newEvent: 'فعالية جديدة',
   },
 };
 
@@ -81,25 +79,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [pendingInviteCount, setPendingInviteCount] = useState(0);
-
-  useEffect(() => {
-    void Promise.all([
-      authApi
-        .getCurrentUser()
-        .then((response) => setCurrentUser((response.data || null) as CurrentUser | null))
-        .catch(() => {}),
-      teamsApi
-        .getInvites()
-        .then((response) => {
-          const data = Array.isArray(response.data) ? response.data : response.data?.data || [];
-          setPendingInviteCount(data.length);
-        })
-        .catch(() => {}),
-    ]);
-  }, []);
+  const { data: currentUser } = useCurrentUser();
+  const invitesQuery = useQuery({
+    queryKey: queryKeys.teamInvites,
+    queryFn: () => teamsApi.getInvites().then((r) => r.data),
+  });
+  const pendingInviteCount = useMemo(() => {
+    const body = invitesQuery.data;
+    if (!body) return 0;
+    const data = Array.isArray(body) ? body : body.data;
+    return Array.isArray(data) ? data.length : 0;
+  }, [invitesQuery.data]);
 
   const getUserInitials = (name?: string) => {
     if (!name?.trim()) {
@@ -256,16 +246,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Menu aria-hidden size={18} />
             </button>
 
-            <label className="ehms-shell-search" aria-label={copy.searchPlaceholder}>
-              <Search aria-hidden size={15} />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder={copy.searchPlaceholder}
-              />
-              <kbd>{copy.shortcut}</kbd>
-            </label>
+            <GlobalSearch placeholder={copy.searchPlaceholder} shortcut={copy.shortcut} />
           </div>
 
           <div className="ehms-shell-topbar-actions">
@@ -300,10 +281,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="ehms-shell-pip" />
             </button>
 
-            <Link href="/events/create" className="ehms-shell-btn ehms-shell-btn-primary">
-              <Plus aria-hidden size={16} />
-              <span>{copy.newEvent}</span>
-            </Link>
           </div>
         </header>
 

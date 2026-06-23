@@ -381,7 +381,7 @@ export default function EventDetailPage() {
                   <span className="d" />
                   {STATE_LABELS[event.state] || event.state}
                 </span>
-                <span className="ep-tag ep-tag-region">🏆 Hackathon Event</span>
+                <span className="ep-tag ep-tag-region">Hackathon Event</span>
                 <span className="ep-tag ep-tag-id">{event.id?.slice(0, 16) || 'EVT-ID'}</span>
               </div>
               <h1 style={{

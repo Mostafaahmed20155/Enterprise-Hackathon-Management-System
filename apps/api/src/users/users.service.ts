@@ -140,13 +140,20 @@ export class UsersService {
           name: true,
           email: true,
           avatar: true,
-          emailVerified: true,
-          preferredLocale: true,
-          createdAt: true,
-          userRoles: {
-            where: { eventId: null },
-            include: { role: { select: { name: true, displayName: true } } },
+        emailVerified: true,
+        preferredLocale: true,
+        createdAt: true,
+        userRoles: {
+          where: { eventId: null },
+          include: { role: { select: { name: true, displayName: true } } },
+        },
+        teamMemberships: {
+          select: {
+            team: {
+              select: { id: true, name: true },
+            },
           },
+        },
         },
         skip,
         take: limit,
@@ -260,6 +267,45 @@ export class UsersService {
       data: { emailVerified: active },
       select: { id: true, emailVerified: true, name: true, email: true },
     });
+  }
+
+  /**
+   * Permanently delete a user account (admin action)
+   */
+  async deleteUser(targetUserId: string, currentUserId: string) {
+    if (targetUserId === currentUserId) {
+      throw new BadRequestException({
+        en: 'You cannot delete your own account',
+        ar: 'لا يمكنك حذف حسابك الخاص',
+      });
+    }
+
+    const existing = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException({ en: 'User not found', ar: 'المستخدم غير موجود' });
+    }
+
+    try {
+      await this.prisma.user.delete({ where: { id: targetUserId } });
+    } catch (error: any) {
+      // P2003 / P2014 = referential integrity failure
+      // (user owns events, leads teams, authored submissions, etc.)
+      if (error?.code === 'P2003' || error?.code === 'P2014') {
+        throw new BadRequestException({
+          en: 'Cannot delete this user because they own events, lead teams, or have submissions. Reassign or remove those first.',
+          ar: 'تعذّر حذف هذا المستخدم لأنه يملك فعاليات أو يقود فرقاً أو لديه مشاريع. أعد التعيين أو احذفها أولاً.',
+        });
+      }
+      throw error;
+    }
+
+    return {
+      message: { en: 'User deleted successfully', ar: 'تم حذف المستخدم بنجاح' },
+    };
   }
 
   /**

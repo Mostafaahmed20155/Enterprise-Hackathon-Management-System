@@ -11,12 +11,40 @@ import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { UpdateSubmissionDto } from './dto/update-submission.dto';
 import { EventState, SubmissionStatus } from '@ehms/database';
 
+function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
 @Injectable()
 export class SubmissionsService {
   constructor(
     private prisma: PrismaService,
     private storage: StorageService,
   ) {}
+
+  /**
+   * Generate a unique URL slug from the English title.
+   * Appends -2, -3, ... on collision with an existing submission slug.
+   */
+  private async generateUniqueSlug(baseEn: string): Promise<string> {
+    const base = slugify(baseEn) || 'submission';
+    let candidate = base;
+    let n = 2;
+    while (await this.prisma.submission.findUnique({ where: { slug: candidate } })) {
+      const suffix = `-${n++}`;
+      candidate = `${base.slice(0, 60 - suffix.length)}${suffix}`;
+    }
+    return candidate;
+  }
 
   /**
    * Create a new submission
@@ -97,6 +125,7 @@ export class SubmissionsService {
         demoUrl: dto.demoUrl,
         repoUrl: dto.repoUrl,
         videoUrl: dto.videoUrl,
+        slug: await this.generateUniqueSlug(dto.title.en),
         status: SubmissionStatus.DRAFT,
       },
       include: {
@@ -204,11 +233,13 @@ export class SubmissionsService {
   }
 
   /**
-   * Get submission by ID
+   * Get submission by ID or slug
    */
-  async findOne(id: string) {
-    const submission = await this.prisma.submission.findUnique({
-      where: { id },
+  async findOne(idOrSlug: string) {
+    const submission = await this.prisma.submission.findFirst({
+      where: {
+        OR: [{ slug: idOrSlug }, { id: idOrSlug }],
+      },
       include: {
         team: {
           include: {

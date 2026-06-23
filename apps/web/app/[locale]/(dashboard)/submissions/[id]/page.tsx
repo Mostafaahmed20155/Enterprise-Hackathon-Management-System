@@ -241,7 +241,7 @@ export default function SubmissionDetailPage() {
     toast.promise(
       async () => {
         try {
-          const response = await submissionsApi.submitFinal(submissionId);
+          const response = await submissionsApi.submitFinal(submission?.id || submissionId);
           await loadSubmission();
           return response;
         } finally {
@@ -279,7 +279,7 @@ export default function SubmissionDetailPage() {
     if (!window.confirm(t('confirmDeleteFile'))) return;
     toast.promise(
       async () => {
-        await submissionsApi.deleteFile(submissionId, fileId);
+        await submissionsApi.deleteFile(submission?.id || submissionId, fileId);
         await loadSubmission();
       },
       {
