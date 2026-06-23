@@ -6,6 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateJudgingAssignmentDto } from './dto/create-assignment.dto';
 import { SubmitScoreDto } from './dto/submit-score.dto';
 import { UpdateScoreDto } from './dto/update-score.dto';
@@ -13,7 +14,10 @@ import { EventState } from '@ehms/database';
 
 @Injectable()
 export class JudgingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   /**
    * Create judging assignment
@@ -107,6 +111,19 @@ export class JudgingService {
           },
         },
       },
+    });
+
+    const eventName = (event.name as any)?.en || 'an event';
+    const eventNameAr = (event.name as any)?.ar || eventName;
+    await this.notifications.create({
+      userId: dto.judgeId,
+      type: 'JUDGING_ASSIGNED',
+      title: { en: 'Judging Assignment', ar: 'تعيين تحكيم' },
+      body: {
+        en: `You have been assigned as a judge for ${eventName}`,
+        ar: `تم تعيينك حكماً في ${eventNameAr}`,
+      },
+      link: `/judging`,
     });
 
     return assignment;
